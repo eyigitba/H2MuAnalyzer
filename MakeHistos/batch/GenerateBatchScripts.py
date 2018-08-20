@@ -64,7 +64,7 @@ def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list):
     sub_files.append( open(launcher_name, 'w') )
 
     ## Write the line defining how to run MACRO, specifying the sample and input files to run over
-    run_macro  = "\nroot -b -l -q %s/%s(" % (os.getcwd(), MACRO)
+    run_macro  = "\nroot -b -l -q '%s/%s(" % (os.getcwd(), MACRO)
     run_macro += ('"'+samp_name+'", "'+in_dir_name+'", "'+OUT_DIR+'/'+LABEL+'/files", {"')  ## sample, in_dir, out_dir
     for in_file in file_list:  ## in_files
         run_macro += (in_file+'", "')
@@ -108,7 +108,7 @@ def main():
 
     ## Set directories to run the jobs from, and to output files to
     subs_file.write('\npwd_cmd="/bin/pwd"')
-    subs_file.write('\nrun_dir=${pwd_cmd}')
+    subs_file.write('\nrun_dir=`${pwd_cmd}`')
     subs_file.write('\nout_dir="%s"\n' % out_dir)
 
     # hadd_file.write('\nout_dir="%s"\n' % out_dir)
