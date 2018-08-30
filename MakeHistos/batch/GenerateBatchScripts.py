@@ -108,7 +108,7 @@ def main():
 
     ## Set directories to run the jobs from, and to output files to
     subs_file.write('\npwd_cmd="/bin/pwd"')
-    subs_file.write('\nrun_dir=${pwd_cmd}')
+    subs_file.write('\nrun_dir=`${pwd_cmd}`')
     subs_file.write('\nout_dir="%s"\n' % out_dir)
 
     # hadd_file.write('\nout_dir="%s"\n' % out_dir)
