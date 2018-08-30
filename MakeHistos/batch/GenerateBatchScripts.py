@@ -32,10 +32,10 @@ MACRO = 'macros/ReadNTupleChain.C'  ## Root macro to run from each job
 LOC   = 'CERN'  ## Location of input files ('CERN' or 'UF')
 YEAR  = 2017    ## Dataset year (2016 or 2017)
 
-OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
+OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
 LABEL   = 'Data_Aug18_v1'  ## Unique label for this set of jobs
 
-NJOBS   =    -1  ## Maximum number of jobs to generate
+NJOBS   =    20  ## Maximum number of jobs to generate
 JOBSIZE =   300  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1    ## Maximum number of events to process per job
@@ -64,7 +64,7 @@ def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list):
     sub_files.append( open(launcher_name, 'w') )
 
     ## Write the line defining how to run MACRO, specifying the sample and input files to run over
-    run_macro  = "\nroot -b -l -q %s/%s(" % (os.getcwd(), MACRO)
+    run_macro  = "\nroot -b -l -q '%s/%s(" % (os.getcwd(), MACRO)
     run_macro += ('"'+samp_name+'", "'+in_dir_name+'", "'+OUT_DIR+'/'+LABEL+'/files", {"')  ## sample, in_dir, out_dir
     for in_file in file_list:  ## in_files
         run_macro += (in_file+'", "')
