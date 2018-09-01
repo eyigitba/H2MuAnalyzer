@@ -21,14 +21,13 @@ import numpy
 ## ROOT includes
 import ROOT as R
 import ROOT.RooFit as RF
-
-
+R.gROOT.SetBatch(True)  ## Don't display histograms or canvases when drawn
 
 
 INDIR  = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms/GenRecoPtDiffVsD0_Aug24_v1/files'
 INFILE = 'histos_ZJets_AMC__NONE.root'
 
-## Main function executed by ./batch/FindPeaks.py
+## Main function executed by ./macros/FindPeaks.py
 def main():
 
     print '\n\n*** Inside FindPeakss.py ***'
@@ -37,10 +36,15 @@ def main():
     print '\nOpening file %s' % (INDIR+'/'+INFILE)
     in_file = R.TFile(INDIR+'/'+INFILE)
 
+    print '\nCreating output root file plots/FindPeaks.root'
+    out_file = R.TFile('plots/FindPeaks.root', 'recreate')
+    out_file.cd()
+
     if not os.path.exists('plots'):
         print '\nCreating output folders plots/png and plots/pdf'
         os.makedirs('plots/png')
-        os.makedirs('plots/pdf')
+        os.makedirs('plots/png/histos')
+        # os.makedirs('plots/pdf')
 
     ## Input histograms and canvases to draw on
     hist = {}
@@ -58,7 +62,9 @@ def main():
     # dRelPt2 = 10000*(RECO - GEN) / (GEN pT)^2 
     # dPhi    = (RECO - GEN phi) * GEN charge
     for var in ['dPt', 'dRelPt', 'dRelPt2', 'dPhi']:  ## Variables plotted vs. RECO d0 * charge
+    # for var in ['dRelPt2']:  ## Variables plotted vs. RECO d0 * charge
         for corr in ['PF', 'Roch']:
+        # for corr in ['Roch']:
 
             ## Unique string identifying this canvas
             if (var == 'dPhi'): c_str = var
@@ -66,8 +72,8 @@ def main():
 
             if (var == 'dPhi' and corr == 'Roch'): continue
 
+            ## Canvas for the graphs of peak vs. d0
             canv[c_str] = R.TCanvas(c_str, c_str, 800, 600)
-            canv[c_str].cd()
 
             for muon in ['mu1', 'mu2']:
 
@@ -83,6 +89,7 @@ def main():
                 print 'Getting data for %s' % g_str
                 iDat = -1
                 for d0 in ['m9','m8','m7','m6','m5','m4','m3','m2','m1','0','p1','p2','p3','p4','p5','p6','p7','p8','p9']:
+                # for d0 in ['p8']:
                     iDat += 1
 
                     h_x = in_file.Get('h_d0_%s_d0_%s' % (d0, muon))
@@ -93,18 +100,32 @@ def main():
 
                     yMax = 0 ## Maximum integral over 11 bins
                     iMax = 0 ## Central bin of maximum integral (i.e. the center of the peak)
-                    for i in range(6, h_y.GetNbinsX() - 4):
+                    for i in range(6, h_y.GetNbinsX() - 4):  ## Don't include over- or under-flow
                         if (h_y.Integral(i-5, i+5) > yMax):
                             yMax = h_y.Integral(i-5, i+5)
                             iMax = i
-                    iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - sqrt(yMax)
-                    iHi = 0                ## Highest bin with integral > yMax - sqrt(yMax)
-                    for i in range(1, h_y.GetNbinsX() + 1):
-                        if (h_y.Integral(i-5, i+5) > yMax - math.sqrt(yMax)): iLo = min(iLo, i)
-                        if (h_y.Integral(i-5, i+5) > yMax - math.sqrt(yMax)): iHi = max(iHi, i)
+                    iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - 2*sqrt(yMax)
+                    iHi = 0                ## Highest bin with integral > yMax - 2*sqrt(yMax)
+                    for i in range(6, h_y.GetNbinsX() - 4):  ## Don't include over- or under-flow
+                        if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iLo = min(iLo, i)
+                        if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iHi = max(iHi, i)
 
                     data[g_str]['y'][iDat] = h_y.GetBinCenter(iMax)
-                    data[g_str]['yerr'][iDat] = (h_y.GetBinCenter(iHi) - h_y.GetBinCenter(iLo)) / 2.
+                    data[g_str]['yerr'][iDat] = (h_y.GetBinLowEdge(iHi+1) - h_y.GetBinLowEdge(iLo)) / 2.
+
+                    # ## Canvas with the original histogram and its peak range
+                    # h_can = R.TCanvas(g_str+'_'+d0, g_str+'_'+d0, 800, 600)
+                    # h_can.cd()
+                    # h_y.SetLineColor(R.kBlack)
+                    # h_y.Draw()
+                    # h_y_peak = h_y.Clone()
+                    # h_y_peak.GetXaxis().SetRangeUser(h_y.GetBinLowEdge(iLo), h_y.GetBinLowEdge(iHi+1))
+                    # h_y_peak.SetLineWidth(2)
+                    # h_y_peak.SetLineColor(R.kBlue)
+                    # h_y_peak.Draw('same')
+                    # h_can.SaveAs('plots/png/histos/%s_%s.png' % (g_str, d0))
+                    # # h_can.SaveAs('plots/pdf/%s_%s.pdf' % (g_str, d0))
+
 
                 ## End loop: for d0 in ['m9','m8','m7','m6','m5','m4','m3','m2','m1','0','p1','p2','p3','p4','p5','p6','p7','p8','p9']
 
@@ -134,6 +155,8 @@ def main():
                 fit[g_str].SetParameter(0, 0)
                 fit[g_str].SetParameter(1, (data[g_str]['y'][13] - data[g_str]['y'][4]) / (data[g_str]['x'][13] - data[g_str]['x'][4]) )
 
+                ## Draw the graph onto the canvas
+                canv[c_str].cd()
                 if (muon == 'mu1'):
                     graph[g_str].SetLineColor(R.kBlue)
                     fit[g_str].SetLineColor(R.kBlue)
@@ -160,20 +183,19 @@ def main():
             leg.Draw('same')
 
             canv[c_str].SaveAs('plots/png/%s.png' % c_str)
-            canv[c_str].SaveAs('plots/pdf/%s.pdf' % c_str)
+            # canv[c_str].SaveAs('plots/pdf/%s.pdf' % c_str)
+            canv[c_str].Write()
 
         ## End loop: for corr in ['PF', 'Roch']:
     ## End loop: for var in ['dPt', 'dRelPt', 'dRelPt2', 'dPhi']:
 
 
-    # ## Write histograms to output root file
-    # print '\nCreating output root file plots/FindPeaks.root'
-    # out_file.cd()
-    # out_file.Write()
+    ## Write histograms to output root file
+    out_file.Write()
 
     ## Close output and input files
     print 'Finished, closing files ...'
-    # out_file.Close()
+    out_file.Close()
     in_file.Close()
     print '... and, done!'
         
