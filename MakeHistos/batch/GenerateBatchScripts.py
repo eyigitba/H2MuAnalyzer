@@ -28,22 +28,26 @@ from SampleDatabase import GetSamples
 ## Command to list files in eos on lxplus
 eos_cmd = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select'
 
-MACRO = 'macros/ReadNTupleChain.C'  ## Root macro to run from each job
+# MACRO = 'macros/ReadNTupleChain.C'  ## Root macro to run from each job
+# MACRO = 'macros/GenRecoPtDiffVsD0.C'  ## Root macro to run from each job
+MACRO = 'macros/GenRecoPtDiffVsD0VsPt.C'  ## Root macro to run from each job
+# MACRO = 'macros/SignalPeakD0Corr.C'  ## Root macro to run from each job
 LOC   = 'CERN'  ## Location of input files ('CERN' or 'UF')
-YEAR  = 2017    ## Dataset year (2016 or 2017)
+YEAR  = 2016    ## Dataset year (2016 or 2017)
 
 OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
-LABEL   = 'Data_Aug18_v1'  ## Unique label for this set of jobs
+LABEL   = 'GenRecoPtDiffVsD0VsPt_2016_Sep01_v1'  ## Unique label for this set of jobs
 
 NJOBS   =    -1  ## Maximum number of jobs to generate
-JOBSIZE =   300  ## Size of input NTuples in MB, per job (default 1000)
+JOBSIZE =   200  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1    ## Maximum number of events to process per job
 PRT_EVT = 1000  ## Print every Nth event in each job
 
-DATA_ONLY = True   ## Only process data samples, not MC
+DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
+SAMP_LIST = ['ZJets_AMC', 'ZJets_MG']  ## Name of individual samples to process ([] to process multiple samples)
 
 VERBOSE = False ## Verbose printout
 
@@ -88,13 +92,18 @@ def main():
 
     ## Create output directories for plots and submission scripts
     print 'Preparing output directories'
+    if os.path.exists('batch/launchers'):
+        delete_dir = raw_input('\n*** batch/launchers/ directory already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n')
+        if delete_dir == 'Y':
+            rmtree('batch/launchers')
+        else:
+            print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
     out_dir = OUT_DIR+'/'+LABEL
     if os.path.exists(out_dir):
-        delete_dir = raw_input('\n*** Directory %s already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n(Will also delete current batch/launchers/ folder.)\n\n' % out_dir)
+        delete_dir = raw_input('\n*** Directory %s already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n' % out_dir)
         if delete_dir == 'Y':
             rmtree(out_dir)
-            rmtree('batch/launchers')
-            print '\nDeleted %s and batch/launchers\n' % out_dir
+            print '\nDeleted %s\n' % out_dir
         else:
             print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
     os.makedirs(out_dir)
@@ -134,7 +143,9 @@ def main():
             continue
         if SIG_ONLY and not samp.evt_type == 'Sig':
             continue
-        
+        if len(SAMP_LIST) > 0 and not samp.name in SAMP_LIST:
+            continue
+
         print '\nLooking at sample %s' % samp.name
         
         ########################################################
@@ -207,6 +218,8 @@ def main():
             break
 
     ## End loop: for samp in samples
+
+    subs_file.write('\necho "Jobs will be output to ${out_dir}"\n')
 
     ## Write the output files
     subs_file.close()

@@ -8,18 +8,21 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   TChain * ch = (&ch_);
 
   // Configure special options
+  bool loadGEN   = false;
   bool loadJES   = false;
   bool loadFlags = false;
   bool loadSFs   = false;
 
   for (uint i = 0; i < opts.size(); i++) {
     if (verbose) std::cout << "  * Using option " << opts.at(i) << std::endl;
+    if (opts.at(i).compare("GEN")   == 0) loadGEN   = true;
     if (opts.at(i).compare("JES")   == 0) loadJES   = true;
     if (opts.at(i).compare("Flags") == 0) loadFlags = true;
     if (opts.at(i).compare("SFs")   == 0) loadSFs   = true;
   }
 
-  if (verbose) std::cout << "loadJES = " << loadJES << ", loadFlags = " << loadFlags << ", loadSFs = " << loadSFs << std::endl;
+  if (verbose) std::cout << "loadGen = " << loadGEN << ", loadJES = " << loadJES
+			 << ", loadFlags = " << loadFlags << ", loadSFs = " << loadSFs << std::endl;
 
   ch->SetBranchAddress("event", &(br.event));
   ch->SetBranchAddress("vertices", &(br.vertices));
@@ -43,6 +46,18 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   ch->SetBranchAddress("nBLoose", &(br.nBLoose));
   ch->SetBranchAddress("nBMed", &(br.nBMed));
   ch->SetBranchAddress("nBTight", &(br.nBTight));
+
+  if (loadGEN) {
+    ch->SetBranchAddress("genParents", &(br.genParents));
+    ch->SetBranchAddress("genMuons", &(br.genMuons));
+    ch->SetBranchAddress("genMuPairs", &(br.genMuPairs));
+    ch->SetBranchAddress("genJets", &(br.genJets));
+
+    ch->SetBranchAddress("nGenParents", &(br.nGenParents));
+    ch->SetBranchAddress("nGenMuons", &(br.nGenMuons));
+    ch->SetBranchAddress("nGenMuPairs", &(br.nGenMuPairs));
+    ch->SetBranchAddress("nGenJets", &(br.nGenJets));
+  }
 
   // ch->SetBranchAddress("hltPaths", &(br.hltPaths));  // Causes error messages after exiting code, for some reason - AWB 15.08.2018
   // ch->SetBranchAddress("btagName", &(br.btagName));  // Causes segfault, for some reason - AWB 15.08.2018

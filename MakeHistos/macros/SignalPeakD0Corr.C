@@ -21,26 +21,33 @@
 R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
 
 // Hard-coded options for running locally / manually
-// Options passed in as arguments to GenRecoPtDiffVsD0 when running in batch mode
+// Options passed in as arguments to SignalPeakD0Corr when running in batch mode
 const int MIN_FILE = 1;     // Minimum index of input files to process
-const int MAX_FILE = 1;     // Maximum index of input files to process
-const int MAX_EVT  = 5000;  // Maximum number of events to process
-const int PRT_EVT  = 100;   // Print every N events
+const int MAX_FILE = 2;     // Maximum index of input files to process
+const int MAX_EVT  = -1;    // Maximum number of events to process
+const int PRT_EVT  = 10000; // Print every N events
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR   = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/180802_165055/0000";
-const TString SAMPLE   = "ZJets_AMC";
+const TString IN_DIR   = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/170313_225533/0000";
+// const TString IN_DIR   = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/GluGlu_HToMuMu_M125_13TeV_amcatnloFXFX_pythia8/H2Mu_gg/180802_164158/0000";
+const TString SAMPLE   = "H2Mu_gg";
 const TString OUT_DIR  = "plots";
+
+const int YEAR = 2016;  // Different corrections for 2016 and 2017
+
+const double MU_MASS = 0.1056583745;
 
 const std::vector<std::string> SEL_CUTS = {}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"NONE"}; // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> CAT_CUTS = {"d0_m9","d0_m8","d0_m7","d0_m6","d0_m5","d0_m4","d0_m3","d0_m2","d0_m1","d0_0", // Event selection categories
-					   "d0_p1","d0_p2","d0_p3","d0_p4","d0_p5","d0_p6","d0_p7","d0_p8","d0_p9"};       // Also applied in parallel
+const std::vector<std::string> CAT_CUTS = {"NONE"}; // Also applied in parallel
 
-// Command-line options for running in batch.  Running "root -b -l -q macros/GenRecoPtDiffVsD0.C" will use hard-coded options above.
-void GenRecoPtDiffVsD0( TString sample = "", TString in_dir = "", TString out_dir = "",
-			std::vector<TString> in_files = {}, TString out_file_str = "",
-			int max_evt = 0, int prt_evt = 0) {
+// Command-line options for running in batch.  Running "root -b -l -q macros/SignalPeakD0Corr.C" will use hard-coded options above.
+void SignalPeakD0Corr( TString sample = "", TString in_dir = "", TString out_dir = "",
+		       std::vector<TString> in_files = {}, TString out_file_str = "",
+		       int max_evt = 0, int prt_evt = 0) {
+
+  // in_dir = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/GluGlu_HToMuMu_M125_13TeV_amcatnloFXFX_pythia8/H2Mu_gg";
+  // in_files.push_back("NTuple_0.root");
 
   // Set variables to hard-coded values if they are not initialized
   if (sample.Length()  == 0) sample  = SAMPLE;
@@ -135,7 +142,7 @@ void GenRecoPtDiffVsD0( TString sample = "", TString in_dir = "", TString out_di
     int iMu2  = -99; // Lower-pT RECO muon
 
     for (UInt_t iGen = 0; iGen < br.nGenMuPairs; iGen++) {
-      if (br.genMuPairs->at(iGen).mother_ID != 23) continue;  // Require a Z boson
+      if (br.genMuPairs->at(iGen).mother_ID != 25) continue;  // Require a Z boson
       if (br.genMuPairs->at(iGen).postFSR   !=  0) continue;  // Require pre-FSR pair
       int iGen1_tmp = br.genMuPairs->at(iGen).iMu1;
       int iGen2_tmp = br.genMuPairs->at(iGen).iMu2;
@@ -175,37 +182,70 @@ void GenRecoPtDiffVsD0( TString sample = "", TString in_dir = "", TString out_di
       MuonInfo mu1 = br.muons->at(iMu1);
       MuonInfo mu2 = br.muons->at(iMu2);
 
+      TLorentzVector vGen1;
+      TLorentzVector vGen2;
+
+      TLorentzVector vMu1_PF;
+      TLorentzVector vMu2_PF;
+      TLorentzVector vMu1_d0_PF;
+      TLorentzVector vMu2_d0_PF;
+      TLorentzVector vMu1_dPhi_PF;
+      TLorentzVector vMu2_dPhi_PF;
+
+      TLorentzVector vMu1_Roch;
+      TLorentzVector vMu2_Roch;
+      TLorentzVector vMu1_d0_Roch;
+      TLorentzVector vMu2_d0_Roch;
+      TLorentzVector vMu1_dPhi_Roch;
+      TLorentzVector vMu2_dPhi_Roch;
+
+      double mass_PF      = (YEAR == 2016 ? 124.875 : 124.88);
+      double mass_Roch    = (YEAR == 2016 ? 124.900 : 124.88);
+      double pt_corr_PF   = (YEAR == 2016 ? -0.080 : -0.100);
+      double pt_corr_Roch = (YEAR == 2016 ? -0.086 : -0.100);
+      double phi_corr     = (YEAR == 2016 ?  0.085 :  0.090);
+
       // Loop through alternate, optional selection cuts defined in src/SelectionCuts.cc
       for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++) {
 	// if (not PassSelection(br, OPT_CUTS.at(iOpt), verbose)) continue;  // Not using centrally-defined selection cuts
 
 	BookAndFill( "h_"+OPT_CUTS.at(iOpt)+"_d0_mu1", 1000, -0.05, 0.05, mu1.d0_PV*mu1.charge );
 	BookAndFill( "h_"+OPT_CUTS.at(iOpt)+"_d0_mu2", 1000, -0.05, 0.05, mu2.d0_PV*mu2.charge );
+	BookAndFill( "h_"+OPT_CUTS.at(iOpt)+"_d0_mu1_mu2_diff", 1000, -0.05, 0.05, (mu1.d0_PV - mu2.d0_PV)*mu1.charge );
 	
 	// Loop through category cuts defined in src/CategoryCuts.cc
 	for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++) {
 	  // if (not InCategory(br, CAT_CUTS.at(iCat), verbose)) continue;  // Not using centrally-defined category cuts
 
-	  // See if mu1 or mu2 falls inside the d0 bin
-	  bool mu1_inCat = false;
-	  bool mu2_inCat = false;
-	  // Loop over possible central d0 values
-	  for (int iD0 = 0; iD0 < ((CAT_CUTS.size() + 1) / 2); iD0++) {
-	    double d0 = 0.001 * iD0; // Central d0 value in the bin
-	    if ( (iD0 == 0 && CAT_CUTS.at(iCat).find("d0_0") != string::npos) || 
-		 (iD0 != 0 && CAT_CUTS.at(iCat).find( std::to_string(iD0) ) != string::npos) ) {
-	      // Switch central d0 value to negative if needed
-	      if (CAT_CUTS.at(iCat).find("d0_m") != string::npos) d0 *= -1;
-	      // See if mu1 or mu2 passes the d0 cuts
-	      if ( (mu1.d0_PV * mu1.charge > d0 - 0.0005) && (mu1.d0_PV * mu1.charge < d0 + 0.0005) )
-		mu1_inCat = true;
-	      if ( (mu2.d0_PV * mu2.charge > d0 - 0.0005) && (mu2.d0_PV * mu2.charge < d0 + 0.0005) )
-		mu2_inCat = true;
-	    }
-	  } // End loop: for (int iD0 = 0; iD0 < 7; iD0++)
+	  vGen1.SetPtEtaPhiM(gen1.pt, gen1.eta, gen1.phi, MU_MASS);
+	  vGen2.SetPtEtaPhiM(gen2.pt, gen2.eta, gen2.phi, MU_MASS);
+
+	  vMu1_PF.SetPtEtaPhiM(mu1.pt, mu1.eta, mu1.phi, MU_MASS);
+	  vMu2_PF.SetPtEtaPhiM(mu2.pt, mu2.eta, mu2.phi, MU_MASS);
+
+	  vMu1_Roch.SetPtEtaPhiM(mu1.pt_Roch, mu1.eta, mu1.phi, MU_MASS);
+	  vMu2_Roch.SetPtEtaPhiM(mu2.pt_Roch, mu2.eta, mu2.phi, MU_MASS);
+
+	  double dPt1_PF = pt_corr_PF * mu1.charge * mu1.d0_PV * pow(mu1.pt, 2);
+	  double dPt2_PF = pt_corr_PF * mu2.charge * mu2.d0_PV * pow(mu2.pt, 2);
 	  
-	  if (not (mu1_inCat || mu2_inCat) ) continue;
+	  double dPt1_Roch = pt_corr_Roch * mu1.charge * mu1.d0_PV * pow(mu1.pt_Roch, 2);
+	  double dPt2_Roch = pt_corr_Roch * mu2.charge * mu2.d0_PV * pow(mu2.pt_Roch, 2);
 	  
+	  double dPhi1 = phi_corr * mu1.d0_PV;
+	  double dPhi2 = phi_corr * mu2.d0_PV;
+	  
+	  vMu1_d0_PF.SetPtEtaPhiM(mu1.pt + dPt1_PF, mu1.eta, mu1.phi, MU_MASS);
+	  vMu2_d0_PF.SetPtEtaPhiM(mu2.pt + dPt2_PF, mu2.eta, mu2.phi, MU_MASS);
+	  vMu1_dPhi_PF.SetPtEtaPhiM(mu1.pt + dPt1_PF, mu1.eta, mu1.phi + dPhi1, MU_MASS);
+	  vMu2_dPhi_PF.SetPtEtaPhiM(mu2.pt + dPt2_PF, mu2.eta, mu2.phi + dPhi2, MU_MASS);
+	  
+	  vMu1_d0_Roch.SetPtEtaPhiM(mu1.pt_Roch + dPt1_Roch, mu1.eta, mu1.phi, MU_MASS);
+	  vMu2_d0_Roch.SetPtEtaPhiM(mu2.pt_Roch + dPt2_Roch, mu2.eta, mu2.phi, MU_MASS);
+	  vMu1_dPhi_Roch.SetPtEtaPhiM(mu1.pt_Roch + dPt1_Roch, mu1.eta, mu1.phi + dPhi1, MU_MASS);
+	  vMu2_dPhi_Roch.SetPtEtaPhiM(mu2.pt_Roch + dPt2_Roch, mu2.eta, mu2.phi + dPhi2, MU_MASS);
+
+
 	  if (verbose) std::cout << "\nPassed cut " << OPT_CUTS.at(iOpt) << ", in category " << CAT_CUTS.at(iCat) << std::endl;
 	  std::string h_pre = "h_"+OPT_CUTS.at(iOpt)+"_"+CAT_CUTS.at(iCat)+"_";
 	  
@@ -213,35 +253,75 @@ void GenRecoPtDiffVsD0( TString sample = "", TString in_dir = "", TString out_di
 	  ///  Generate and fill plots  ///
 	  /////////////////////////////////
 
-	  if (mu1_inCat) {
-	    if (verbose) std::cout << "Gen1 pT = " << gen1.pt << ", eta = " << gen1.eta << ", phi = " << gen1.phi << std::endl;
-	    if (verbose) std::cout << "Mu1 pT = " << mu1.pt << ", eta = " << mu1.eta << ", phi = " << mu1.phi << ", d0 = " << mu1.d0_PV << ", charge = " << mu1.charge << std::endl;
-	  
-	    BookAndFill( h_pre+"dPt_Roch_mu1",     200,  -5,  5,        mu1.pt_Roch - gen1.pt );
-	    BookAndFill( h_pre+"dPt_PF_mu1",       200,  -5,  5,        mu1.pt      - gen1.pt );
-	    BookAndFill( h_pre+"dRelPt_Roch_mu1",  200, -10, 10,   100*(mu1.pt_Roch - gen1.pt) / gen1.pt );
-	    BookAndFill( h_pre+"dRelPt_PF_mu1",    200, -10, 10,   100*(mu1.pt      - gen1.pt) / gen1.pt );
-	    BookAndFill( h_pre+"dRelPt2_Roch_mu1", 200, -20, 20, 10000*(mu1.pt_Roch - gen1.pt) / pow(gen1.pt, 2) );
-	    BookAndFill( h_pre+"dRelPt2_PF_mu1",   200, -20, 20, 10000*(mu1.pt      - gen1.pt) / pow(gen1.pt, 2) );
-	    BookAndFill( h_pre+"dPhi_mu1", 200, -2, 2, 1000*(mu1.phi - gen1.phi)*mu1.charge );
-	    BookAndFill( h_pre+"dEta_mu1", 200, -2, 2, 1000*(mu1.eta - gen1.eta) );
-	    BookAndFill( h_pre+"d0_mu1", 200, -0.01, 0.01, mu1.d0_PV*mu1.charge );
+	  if (verbose) std::cout << "Gen1 pT = " << gen1.pt << ", eta = " << gen1.eta << ", phi = " << gen1.phi << std::endl;
+	  if (verbose) std::cout << "Mu1 pT = " << mu1.pt << ", eta = " << mu1.eta << ", phi = " << mu1.phi << ", d0 = " << mu1.d0_PV << ", charge = " << mu1.charge << std::endl;
+
+	  if (verbose) std::cout << "Gen2 pT = " << gen2.pt << ", eta = " << gen2.eta << ", phi = " << gen2.phi << std::endl;
+	  if (verbose) std::cout << "Mu2 pT = " << mu2.pt << ", eta = " << mu2.eta << ", phi = " << mu2.phi << ", d0 = " << mu2.d0_PV << ", charge = " << mu2.charge << std::endl;
+
+	  BookAndFill( h_pre+"GEN_mass", 100, 115, 135, (vGen1 + vGen2).M() );
+
+	  BookAndFill( h_pre+"PF_mass",     100, 115, 135, (vMu1_PF      + vMu2_PF     ).M() );
+	  BookAndFill( h_pre+"PF_mass_d0",  100, 115, 135, (vMu1_d0_PF   + vMu2_d0_PF  ).M() );
+	  BookAndFill( h_pre+"PF_mass_phi", 100, 115, 135, (vMu1_dPhi_PF + vMu2_dPhi_PF).M() );
+
+	  BookAndFill( h_pre+"PF_dMass_d0",  100, -10, 10, abs((vMu1_d0_PF   + vMu2_d0_PF  ).M() - mass_PF) - abs((vMu1_PF + vMu2_PF).M() - mass_PF) );
+	  BookAndFill( h_pre+"PF_dMass_phi", 100, -10, 10, abs((vMu1_dPhi_PF + vMu2_dPhi_PF).M() - mass_PF) - abs((vMu1_PF + vMu2_PF).M() - mass_PF) );
+
+	  BookAndFill( h_pre+"Roch_mass",     100, 115, 135, (vMu1_Roch      + vMu2_Roch     ).M() );
+	  BookAndFill( h_pre+"Roch_mass_d0",  100, 115, 135, (vMu1_d0_Roch   + vMu2_d0_Roch  ).M() );
+	  BookAndFill( h_pre+"Roch_mass_phi", 100, 115, 135, (vMu1_dPhi_Roch + vMu2_dPhi_Roch).M() );
+
+	  BookAndFill( h_pre+"Roch_dMass_d0",  100, -10, 10, abs((vMu1_d0_Roch  + vMu2_d0_Roch   ).M() - mass_Roch) - abs((vMu1_Roch + vMu2_Roch).M() - mass_Roch) );
+	  BookAndFill( h_pre+"Roch_dMass_phi", 100, -10, 10, abs((vMu1_dPhi_Roch + vMu2_dPhi_Roch).M() - mass_Roch) - abs((vMu1_Roch + vMu2_Roch).M() - mass_Roch) );
+
+	  if (abs(mu1.d0_PV - mu2.d0_PV)*mu1.charge < -0.0016) {
+	    BookAndFill( h_pre+"PF_mass_neg16",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_neg16",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_neg16",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_neg16",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
+	  } else if (abs(mu1.d0_PV - mu2.d0_PV)*mu1.charge < -0.0008) {
+	    BookAndFill( h_pre+"PF_mass_neg08",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_neg08",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_neg08",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_neg08",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
+	  } else if (abs(mu1.d0_PV - mu2.d0_PV)*mu1.charge < -0.0004) {
+	    BookAndFill( h_pre+"PF_mass_neg04",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_neg04",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_neg04",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_neg04",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
+	  } else if (abs(mu1.d0_PV - mu2.d0_PV)*mu1.charge < -0.0002) {
+	    BookAndFill( h_pre+"PF_mass_neg02",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_neg02",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_neg02",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_neg02",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
+	  } else if (abs(mu1.d0_PV - mu2.d0_PV)*mu1.charge < 0.0002) {
+	    BookAndFill( h_pre+"PF_mass_00",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_00",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_00",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_00",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
+	  } else if (abs(mu1.d0_PV - mu2.d0_PV)*mu1.charge < 0.0004) {
+	    BookAndFill( h_pre+"PF_mass_pos02",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_pos02",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_pos02",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_pos02",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
+	  } else if (abs(mu1.d0_PV - mu2.d0_PV)*mu1.charge < 0.0008) {
+	    BookAndFill( h_pre+"PF_mass_pos04",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_pos04",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_pos04",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_pos04",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
+	  } else if (abs(mu1.d0_PV - mu2.d0_PV)*mu1.charge < 0.0016) {
+	    BookAndFill( h_pre+"PF_mass_pos08",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_pos08",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_pos08",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_pos08",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
+	  } else {
+	    BookAndFill( h_pre+"PF_mass_pos16",     100, 115, 135, (vMu1_PF    + vMu2_PF     ).M() );
+	    BookAndFill( h_pre+"PF_mass_d0_pos16",  100, 115, 135, (vMu1_d0_PF + vMu2_d0_PF  ).M() );
+	    BookAndFill( h_pre+"Roch_mass_pos16",     100, 115, 135, (vMu1_Roch    + vMu2_Roch     ).M() );
+	    BookAndFill( h_pre+"Roch_mass_d0_pos16",  100, 115, 135, (vMu1_d0_Roch + vMu2_d0_Roch  ).M() );
 	  }
 
-	  if (mu2_inCat) {
-	    if (verbose) std::cout << "Gen2 pT = " << gen2.pt << ", eta = " << gen2.eta << ", phi = " << gen2.phi << std::endl;
-	    if (verbose) std::cout << "Mu2 pT = " << mu2.pt << ", eta = " << mu2.eta << ", phi = " << mu2.phi << ", d0 = " << mu2.d0_PV << ", charge = " << mu2.charge << std::endl;
-	    
-	    BookAndFill( h_pre+"dPt_Roch_mu2",     200,  -5,  5,        mu2.pt_Roch - gen2.pt );
-	    BookAndFill( h_pre+"dPt_PF_mu2",       200,  -5,  5,        mu2.pt      - gen2.pt );
-	    BookAndFill( h_pre+"dRelPt_Roch_mu2",  200, -10, 10,   100*(mu2.pt_Roch - gen2.pt) / gen2.pt );
-	    BookAndFill( h_pre+"dRelPt_PF_mu2",    200, -10, 10,   100*(mu2.pt      - gen2.pt) / gen2.pt );
-	    BookAndFill( h_pre+"dRelPt2_Roch_mu2", 200, -20, 20, 10000*(mu2.pt_Roch - gen2.pt) / pow(gen2.pt, 2) );
-	    BookAndFill( h_pre+"dRelPt2_PF_mu2",   200, -20, 20, 10000*(mu2.pt      - gen2.pt) / pow(gen2.pt, 2) );
-	    BookAndFill( h_pre+"dPhi_mu2", 200, -2, 2, 1000*(mu2.phi - gen2.phi)*mu2.charge );
-	    BookAndFill( h_pre+"dEta_mu2", 200, -2, 2, 1000*(mu2.eta - gen2.eta) );
-	    BookAndFill( h_pre+"d0_mu2", 200, -0.01, 0.01, mu2.d0_PV*mu2.charge );
-	  }
 	  
 	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
       } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
@@ -308,6 +388,6 @@ void GenRecoPtDiffVsD0( TString sample = "", TString in_dir = "", TString out_di
     
   } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
       
-  std::cout << "\nExiting GenRecoPtDiffVsD0()\n";
+  std::cout << "\nExiting SignalPeakD0Corr()\n";
   
-} // End void GenRecoPtDiffVsD0()
+} // End void SignalPeakD0Corr()
