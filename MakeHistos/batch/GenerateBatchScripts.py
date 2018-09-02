@@ -33,7 +33,7 @@ LOC   = 'CERN'  ## Location of input files ('CERN' or 'UF')
 YEAR  = 2017    ## Dataset year (2016 or 2017)
 
 OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
-LABEL   = 'Data_Aug18_v1'  ## Unique label for this set of jobs
+LABEL   = 'Data_Aug18_v7'  ## Unique label for this set of jobs
 
 NJOBS   =    20  ## Maximum number of jobs to generate
 JOBSIZE =   300  ## Size of input NTuples in MB, per job (default 1000)

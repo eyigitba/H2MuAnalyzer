@@ -87,6 +87,28 @@ struct NTupleBranches {
   float MuIso_eff_3 = -99;
   float MuIso_eff_3_up = -99;
   float MuIso_eff_3_down = -99;
+
+  float IsoMu_SF_3 = -99;
+  float IsoMu_SF_3_up = -99;
+  float IsoMu_SF_3_down = -99;
+  float IsoMu_SF_bug = -99;
+  float IsoMu_SF_bug_up = -99;
+  float IsoMu_SF_bug_down = -99;
+  float MuID_SF_3 = -99;
+  float MuID_SF_3_up = -99;
+  float MuID_SF_3_down = -99;
+  float MuID_SF_4 = -99;
+  float MuID_SF_4_up = -99;
+  float MuID_SF_4_down = -99;
+  float MuIso_SF_3 = -99;
+  float MuIso_SF_3_up = -99;
+  float MuIso_SF_3_down = -99;
+
+  float PU_wgt = -99;
+  float PU_wgt_up = -99;
+  float PU_wgt_down = -99;
+
+  int GEN_wgt = -99;
 };
 
 

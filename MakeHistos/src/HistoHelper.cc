@@ -18,38 +18,39 @@ TH2 * BookHisto(TString h_name, int nBinsX, float minX, float maxX, int nBinsY, 
 }
 
 // Fill a 1D histogram
-void FillHisto(TH1 * hist, double val) {
+void FillHisto(TH1 * hist, double val, float weight) {
   // std::cout << "    * Filling " << hist->GetName() << " with value " << val << std::endl;
-  hist->Fill(val);
+  hist->Fill(val, weight);
 }
 // Fill a 2D histogram
-void FillHisto(TH2 * hist, double valX, double valY) { hist->Fill(valX, valY); }
+void FillHisto(TH2 * hist, double valX, double valY, float weight) { hist->Fill(valX, valY, weight); }
 
 // Book a 1D histogram (if it does not already exist), then fill it
-void BookAndFill(TString h_name, int nBins, float min, float max, double val) {
+void BookAndFill(std::map<TString, TH1*> & h1_map, TString h_name, int nBins, float min, float max, double val, float weight) {
   // std::cout << "\nInside BookAndFill(" << h_name << ", " << nBins << ", " << min << ", " << max << ", " << val << ")" << std::endl;
-  if (h_map_1D.find(h_name) == h_map_1D.end()) {
+  if (h1_map.find(h_name) == h1_map.end()) {
     // std::cout << "  * Did not find histogram in map, now booking ... " << std::endl;
     TH1 * hist = BookHisto(h_name, nBins, min, max);
-    h_map_1D[h_name] = hist;
+    h1_map[h_name] = hist;
     // std::cout << "  * ... booked!" << std::endl;
   }
-  FillHisto(h_map_1D.find(h_name)->second, val);
+  FillHisto(h1_map.find(h_name)->second, val, weight);
   // for (const auto it : h_map_1D) std::cout << "Inside HistoHelper, map at " << it.first << " = " << it.second->Integral() << std::endl;
 }
 // Book a 2D histogram (if it does not already exist), then fill it
-void BookAndFill(TString h_name, int nBinsX, float minX, float maxX, int nBinsY, float minY, float maxY, double valX, double valY) {
-  if (h_map_2D.find(h_name) == h_map_2D.end()) {
+void BookAndFill(std::map<TString, TH2*> & h2_map, TString h_name, int nBinsX, float minX, float maxX, int nBinsY, float minY, float maxY, double valX, double valY, float weight) {
+  if (h2_map.find(h_name) == h2_map.end()) {
     TH2 * hist = BookHisto(h_name, nBinsX, minX, maxX, nBinsY, minY, maxY);
-    h_map_2D[h_name] = hist;
+    h2_map[h_name] = hist;
   }
-  FillHisto(h_map_2D.find(h_name)->second, valX, valY);
+  FillHisto(h2_map.find(h_name)->second, valX, valY, weight);
 }
 
 // Return maps from HistoHelper
-void RetreiveMap(std::map<TString, TH1*> & new_map) {
-  for (const auto it : h_map_1D) new_map[it.first] = it.second;
-}
-void RetreiveMap(std::map<TString, TH2*> & new_map) {
-  for (const auto it : h_map_2D) new_map[it.first] = it.second;
-}
+//void RetrieveMap(std::map<TString, TH1*> & new_map) {
+//  for (const auto it : h_map_1D) new_map[it.first] = it.second;
+//}
+//void RetrieveMap(std::map<TString, TH2*> & new_map) {
+//  for (const auto it : h_map_2D) new_map[it.first] = it.second;
+//}
+// retrieve can only work if h_map is defined in the header // XWZ 31.08.2018 

@@ -26,6 +26,7 @@ const int MIN_FILE = 1;     // Minimum index of input files to process
 const int MAX_FILE = 3;     // Maximum index of input files to process
 const int MAX_EVT  = 10000; // Maximum number of events to process
 const int PRT_EVT  = 100;   // Print every N events
+const float SAMP_WGT = 1.0;
 const bool verbose = false; // Print extra information
 
 const TString IN_DIR   = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/SingleMuon/SingleMu_2017F/180802_164117/0000";
@@ -39,14 +40,15 @@ const std::vector<std::string> CAT_CUTS = {"NONE", "Mu1Pos", "Mu1Neg"}; // Event
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
 void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir = "",
 		      std::vector<TString> in_files = {}, TString out_file_str = "",
-		      int max_evt = 0, int prt_evt = 0) {
+		      int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
 
   // Set variables to hard-coded values if they are not initialized
-  if (sample.Length()  == 0) sample  = SAMPLE;
-  if (in_dir.Length()  == 0) in_dir  = IN_DIR;
-  if (out_dir.Length() == 0) out_dir = OUT_DIR;
-  if (max_evt          == 0) max_evt = MAX_EVT;
-  if (prt_evt          == 0) prt_evt = PRT_EVT;
+  if (sample.Length()  == 0) sample  	 = SAMPLE;
+  if (in_dir.Length()  == 0) in_dir  	 = IN_DIR;
+  if (out_dir.Length() == 0) out_dir 	 = OUT_DIR;
+  if (max_evt          == 0) max_evt 	 = MAX_EVT;
+  if (prt_evt          == 0) prt_evt 	 = PRT_EVT;
+  if (samp_weight      == 0) samp_weight = SAMP_WGT;
 
   // Initialize empty file to access each file in the list
   TFile *file_tmp(0);
@@ -81,8 +83,8 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
   NTupleBranches br;
 
   // Initialize empty map of histogram names to histograms
-  std::map<TString, TH1*> h_map_1D_loc;
-  std::map<TString, TH2*> h_map_2D_loc;
+  std::map<TString, TH1*> h_map_1D;
+  std::map<TString, TH2*> h_map_2D;
 
   // Add trees from the input files to the TChain
   TChain * in_chain = new TChain("dimuons/tree");
@@ -119,6 +121,20 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
       if (not PassSelection(br, SEL_CUTS.at(i), verbose)) pass_sel_cuts = false;
     }
 
+    //////////////////////////
+    ///  Get event weight  ///
+    //////////////////////////
+    float PU_wgt = 1;
+    float muon_wgt = 1;
+    float GEN_wgt = 1;
+    if (not sample.Contains("SingleMu")) {
+      PU_wgt 	= br.PU_wgt;
+      muon_wgt 	= br.IsoMu_SF_3 * br.MuIso_SF_3 * br.MuID_SF_3;
+      GEN_wgt 	= br.GEN_wgt;
+    }
+    float event_wgt = PU_wgt * muon_wgt * GEN_wgt;
+
+
     if (pass_sel_cuts) {
       
       // Loop through alternate, optional selection cuts defined in src/SelectionCuts.cc
@@ -142,27 +158,41 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
 	    if (verbose) std::cout << "  * Pair " << iPair+1 << " has mass = " << br.muPairs->at(iPair).mass << std::endl;
 	    
 	    // Function from interface/HistoHelper.h that books a histogram (if it has not already been booked), then fills it
-	    BookAndFill(h_pre+"mass", 80, 70, 110, br.muPairs->at(iPair).mass);
+	    BookAndFill(h_map_1D, h_pre+"mass", 80, 70, 110, br.muPairs->at(iPair).mass, event_wgt);
 	    
 	  } // End loop: for (UInt_t iPair = 0; iPair < nPairs; iPair++)
 
-	  BookAndFill(h_pre+"nJets", 6, -0.5, 5.5, br.nJets);
-	  BookAndFill(h_pre+"MET", 40, 0, 200, (br.met)->pt);
+	  BookAndFill(h_map_1D, h_pre+"nJets", 6, -0.5, 5.5, br.nJets, event_wgt);
+	  BookAndFill(h_map_1D, h_pre+"MET", 40, 0, 200, (br.met)->pt, event_wgt);
 	  
 	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
       } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
     } // End conditional: if (pass_sel_cuts)
 
     // Before we exit the loop over all events, copy maps of histograms to local memory
-    // *** Super-hacky!!! Should instead pass h_map_1D_loc to BookAndFill function! *** - AWB 20.08.2018
-    if (iEvt+1 == in_chain->GetEntries() || (iEvt == max_evt && max_evt > 0)) {
-      std::cout << "\nAt event " << iEvt << ", copying maps to local area" << std::endl;
-      RetreiveMap(h_map_1D_loc);
-      RetreiveMap(h_map_2D_loc);
-    }
+    // *** Super-hacky!!! Should instead pass h_map_1D to BookAndFill function! *** - AWB 20.08.2018
+//    if (iEvt+1 == in_chain->GetEntries() || (iEvt == max_evt && max_evt > 0)) {
+//      std::cout << "\nAt event " << iEvt << ", copying maps to local area" << std::endl;
+//      RetrieveMap(h_map_1D);
+//      RetrieveMap(h_map_2D);
+//    }
     
   } // End loop: for (UInt_t iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++)
   std::cout << "\n******* Leaving the event loop *******" << std::endl;
+
+  std::cout << "\n******* normalizing histos, weight =  " << samp_weight << " *******" << std::endl;
+  if (h_map_1D.empty()) std::cout << "h_map_1D is empty" << std::endl;
+  else {
+    for (std::map<TString, TH1*>::iterator it_term = h_map_1D.begin() ; it_term != h_map_1D.end() ; it_term++) {
+        it_term->second ->Scale(samp_weight);
+    }
+  }
+  if (h_map_2D.empty()) std::cout << "h_map_2D is empty" << std::endl;
+  else {
+    for (std::map<TString, TH2*>::iterator it_term = h_map_2D.begin() ; it_term != h_map_2D.end() ; it_term++) {
+        it_term->second ->Scale(samp_weight);
+    }
+  }
 
   // Concatenate basic selection cuts into string for output file name
   std::string selStr = "";
@@ -186,7 +216,7 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
       out_file->cd();
 
       // Write out 1D histograms
-      for (std::map<TString, TH1*>::iterator it = h_map_1D_loc.begin(); it != h_map_1D_loc.end(); ++it) {
+      for (std::map<TString, TH1*>::iterator it = h_map_1D.begin(); it != h_map_1D.end(); ++it) {
 	std::string h_name = it->second->GetName();
 	if (h_name.find(optCatStr+"_") != std::string::npos) {
 	  // Remove optional selection and category cuts from histogram names
@@ -198,7 +228,7 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
 	}
       }
       // Write out 2D histograms
-      for (std::map<TString, TH2*>::iterator it = h_map_2D_loc.begin(); it != h_map_2D_loc.end(); ++it) {
+      for (std::map<TString, TH2*>::iterator it = h_map_2D.begin(); it != h_map_2D.end(); ++it) {
 	std::string h_name = it->second->GetName();
 	if (h_name.find(optCatStr+"_") != std::string::npos) {
 	  // Remove optional selection and category cuts from histogram names

@@ -10,16 +10,18 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   // Configure special options
   bool loadJES   = false;
   bool loadFlags = false;
-  bool loadSFs   = false;
+  bool loadEffs   = false;
+  bool loadWgts  = false;
 
   for (uint i = 0; i < opts.size(); i++) {
     if (verbose) std::cout << "  * Using option " << opts.at(i) << std::endl;
     if (opts.at(i).compare("JES")   == 0) loadJES   = true;
     if (opts.at(i).compare("Flags") == 0) loadFlags = true;
-    if (opts.at(i).compare("SFs")   == 0) loadSFs   = true;
+    if (opts.at(i).compare("Effs")   == 0) loadEffs   = true;  // in 180802 tuples, SF are not stored in eff,  Xunwu Zuo 02.09.2018
+    if (opts.at(i).compare("Wgts")  == 0) loadWgts  = true;
   }
 
-  if (verbose) std::cout << "loadJES = " << loadJES << ", loadFlags = " << loadFlags << ", loadSFs = " << loadSFs << std::endl;
+  if (verbose) std::cout << "loadJES = " << loadJES << ", loadFlags = " << loadFlags << ", loadEffs = " << loadEffs << std::endl;
 
   ch->SetBranchAddress("event", &(br.event));
   ch->SetBranchAddress("vertices", &(br.vertices));
@@ -85,7 +87,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("Flag_ecalBadCalib", &(br.Flag_ecalBadCalib));
   }
 
-  if (loadSFs) {
+  if (loadEffs) {
     ch->SetBranchAddress("IsoMu_eff_3", &(br.IsoMu_eff_3));
     ch->SetBranchAddress("IsoMu_eff_3_up", &(br.IsoMu_eff_3_up));
     ch->SetBranchAddress("IsoMu_eff_3_down", &(br.IsoMu_eff_3_down));
@@ -101,6 +103,30 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("MuIso_eff_3", &(br.MuIso_eff_3));
     ch->SetBranchAddress("MuIso_eff_3_up", &(br.MuIso_eff_3_up));
     ch->SetBranchAddress("MuIso_eff_3_down", &(br.MuIso_eff_3_down));
+  }
+
+  if (loadWgts) {
+ 
+    ch->SetBranchAddress("IsoMu_SF_3", &(br.IsoMu_SF_3));
+    ch->SetBranchAddress("IsoMu_SF_3_up", &(br.IsoMu_SF_3_up));
+    ch->SetBranchAddress("IsoMu_SF_3_down", &(br.IsoMu_SF_3_down));
+    ch->SetBranchAddress("IsoMu_SF_bug", &(br.IsoMu_SF_bug));
+    ch->SetBranchAddress("IsoMu_SF_bug_up", &(br.IsoMu_SF_bug_up));
+    ch->SetBranchAddress("IsoMu_SF_bug_down", &(br.IsoMu_SF_bug_down));
+    ch->SetBranchAddress("MuID_SF_3", &(br.MuID_SF_3));
+    ch->SetBranchAddress("MuID_SF_3_up", &(br.MuID_SF_3_up));
+    ch->SetBranchAddress("MuID_SF_3_down", &(br.MuID_SF_3_down));
+    ch->SetBranchAddress("MuID_SF_4", &(br.MuID_SF_4));
+    ch->SetBranchAddress("MuID_SF_4_up", &(br.MuID_SF_4_up));
+    ch->SetBranchAddress("MuID_SF_4_down", &(br.MuID_SF_4_down));
+    ch->SetBranchAddress("MuIso_SF_3", &(br.MuIso_SF_3));
+    ch->SetBranchAddress("MuIso_SF_3_up", &(br.MuIso_SF_3_up));
+    ch->SetBranchAddress("MuIso_SF_3_down", &(br.MuIso_SF_3_down));
+    ch->SetBranchAddress("PU_wgt", &(br.PU_wgt));
+    ch->SetBranchAddress("PU_wgt_up", &(br.PU_wgt_up));
+    ch->SetBranchAddress("PU_wgt_down", &(br.PU_wgt_down));
+    ch->SetBranchAddress("GEN_wgt", &(br.GEN_wgt));
+
   }
 
   if (verbose) std::cout << "Exiting SetBranchAddress\n" << std::endl;
