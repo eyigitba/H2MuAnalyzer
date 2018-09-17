@@ -24,32 +24,40 @@ from operator import itemgetter
 ## Info about data and MC NTuples from H2MuAnalyzer/MakeHistos/python/SampleDatabase.py
 sys.path.insert(0, '%s/python' % os.getcwd())
 from SampleDatabase import GetSamples
+from GetNormForSamples import GetNormForSample
 
 ## Command to list files in eos on lxplus
 eos_cmd = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select'
 
-MACRO = 'macros/ReadNTupleChain.C'  ## Root macro to run from each job
+# MACRO = 'macros/ReadNTupleChain.C'  ## Root macro to run from each job
+MACRO = 'macros/MC_data_comparison.C'  ## Root macro to run from each job
+# MACRO = 'macros/GenRecoPtDiffVsD0.C'  ## Root macro to run from each job
+# MACRO = 'macros/GenRecoPtDiffVsD0VsPt.C'  ## Root macro to run from each job
+# MACRO = 'macros/SignalPeakD0Corr.C'  ## Root macro to run from each job
 LOC   = 'CERN'  ## Location of input files ('CERN' or 'UF')
 YEAR  = 2017    ## Dataset year (2016 or 2017)
 
 OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
-LABEL   = 'Data_Aug18_v7'  ## Unique label for this set of jobs
+#LABEL   = 'Data_Aug18_v7'  ## Unique label for this set of jobs
+#LABEL   = 'GenRecoPtDiffVsD0VsPt_2016_Sep11_v1'  ## Unique label for this set of jobs
+LABEL   = 'MC_data_comparison_2017_v4_v2' ## ntuple v4, plot v1  
 
-NJOBS   =    20  ## Maximum number of jobs to generate
-JOBSIZE =   300  ## Size of input NTuples in MB, per job (default 1000)
+NJOBS   =    -1  ## Maximum number of jobs to generate
+JOBSIZE =   200  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1    ## Maximum number of events to process per job
 PRT_EVT = 1000  ## Print every Nth event in each job
 
-DATA_ONLY = True   ## Only process data samples, not MC
+DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
+SAMP_LIST = ['ZJets_AMC', 'ZJets_MG', 'tt', 'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg']  ## Name of individual samples to process ([] to process multiple samples)
 
 VERBOSE = False ## Verbose printout
 
 
 ## Function to write the launcher script for a single job, and add that job to the main submit_all.sh script
-def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list):
+def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list, samp_wgt):
 
     out_dir = OUT_DIR+'/'+LABEL
 
@@ -70,7 +78,7 @@ def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list):
         run_macro += (in_file+'", "')
     run_macro  = run_macro[:-4]  ## Remove last ", "
     run_macro += '"}, "%d", ' % (len(sub_files)-1)  ## out_file_str
-    run_macro += "%d, %d)'" % (MAX_EVT, PRT_EVT)  ## max_evt, prt_evt
+    run_macro += "%d, %d, %f)'" % (MAX_EVT, PRT_EVT, samp_wgt)  ## max_evt, prt_evt, sample_wgt
 
     sub_files[-1].write('\nrun_dir="%s"' % os.getcwd())
     sub_files[-1].write('\ncd ${run_dir}')
@@ -88,13 +96,18 @@ def main():
 
     ## Create output directories for plots and submission scripts
     print 'Preparing output directories'
+    if os.path.exists('batch/launchers'):
+        delete_dir = raw_input('\n*** batch/launchers/ directory already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n')
+        if delete_dir == 'Y':
+            rmtree('batch/launchers')
+        else:
+            print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
     out_dir = OUT_DIR+'/'+LABEL
     if os.path.exists(out_dir):
-        delete_dir = raw_input('\n*** Directory %s already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n(Will also delete current batch/launchers/ folder.)\n\n' % out_dir)
+        delete_dir = raw_input('\n*** Directory %s already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n' % out_dir)
         if delete_dir == 'Y':
             rmtree(out_dir)
-            rmtree('batch/launchers')
-            print '\nDeleted %s and batch/launchers\n' % out_dir
+            print '\nDeleted %s\n' % out_dir
         else:
             print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
     os.makedirs(out_dir)
@@ -134,7 +147,9 @@ def main():
             continue
         if SIG_ONLY and not samp.evt_type == 'Sig':
             continue
-        
+        if len(SAMP_LIST) > 0 and not samp.name in SAMP_LIST:
+            continue
+
         print '\nLooking at sample %s' % samp.name
         
         ########################################################
@@ -187,18 +202,19 @@ def main():
 
         job_size  = 0.  ## Size of jobs in each input file in MB
         job_files = []  ## Files submitted to a single job 
+	samp_wgt = GetNormForSample(subs_file, samp.name, samp.xsec, in_dir_name, in_files) # all files used in that sample, not only for this job
         for iFile in range(len(in_files)):
             if (len(sub_files) >= NJOBS - 1 and NJOBS > 0):
                 break
             if (job_size > JOBSIZE and JOBSIZE > 0):
-                WriteSingleJob(subs_file, sub_files, samp.name, in_dir_name, job_files)
+                WriteSingleJob(subs_file, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
                 if VERBOSE: print 'Writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
                 job_size  = 0.
                 job_files = []
             job_files.append( in_files[iFile][0] )
             job_size += in_files[iFile][1]
         ## End loop: for iFile in range(len(in_files))
-        WriteSingleJob(subs_file, sub_files, samp.name, in_dir_name, job_files)
+        WriteSingleJob(subs_file, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
         if VERBOSE: print 'Writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
 
         print 'We have now written a total of %d launcher files' % len(sub_files)
@@ -207,6 +223,8 @@ def main():
             break
 
     ## End loop: for samp in samples
+
+    subs_file.write('\necho "Jobs will be output to ${out_dir}"\n')
 
     ## Write the output files
     subs_file.close()

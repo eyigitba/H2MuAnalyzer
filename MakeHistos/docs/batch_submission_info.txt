@@ -2,4 +2,4 @@
 lxplus batch submission twiki page: https://twiki.cern.ch/twiki/bin/view/Main/BatchJobs
 
 Check job status: bjobs
-Kill all jobs: bkill -u abrinke1 0
+Kill all jobs: bkill -u username 0

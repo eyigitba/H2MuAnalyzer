@@ -32,8 +32,14 @@ struct NTupleBranches {
   MhtInfo * mht = 0;
   MhtInfo * mht_JES_up = 0;
   MhtInfo * mht_JES_down = 0;
+
+  GenParentInfos * genParents = 0;
+  GenMuonInfos * genMuons = 0;
+  GenMuPairInfos * genMuPairs = 0;
+  GenJetInfos * genJets = 0;
   
   int nVertices = -99;
+  int nPU = -99;
   int nMuons = -99;
   int nMuPairs = -99;
   int nEles = -99;
@@ -56,6 +62,10 @@ struct NTupleBranches {
   int nBLoose_JES_down = -99;
   int nBMed_JES_down = -99;
   int nBTight_JES_down = -99;
+  int nGenParents = -99;
+  int nGenMuons = -99;
+  int nGenMuPairs = -99;
+  int nGenJets = -99;
   
   std::vector<std::string> hltPaths = {};
   std::string btagName = "INVALID";

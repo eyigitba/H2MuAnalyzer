@@ -129,10 +129,10 @@ void GenRecoPtDiffVsD0( TString sample = "", TString in_dir = "", TString out_di
 
     pass_sel_cuts = false;
 
-    int iGen1 = -99; // Positive GEN muon
-    int iGen2 = -99; // Negative GEN muon
-    int iMu1  = -99; // Positive RECO muon
-    int iMu2  = -99; // Negative RECO muon
+    int iGen1 = -99; // Higher-pT GEN muon
+    int iGen2 = -99; // Lower-pT GEN muon
+    int iMu1  = -99; // Higher-pT RECO muon
+    int iMu2  = -99; // Lower-pT RECO muon
 
     for (UInt_t iGen = 0; iGen < br.nGenMuPairs; iGen++) {
       if (br.genMuPairs->at(iGen).mother_ID != 23) continue;  // Require a Z boson
