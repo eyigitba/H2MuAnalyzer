@@ -1,5 +1,0 @@
-
-run_dir="/afs/cern.ch/work/x/xzuo/h2mm_944/src/H2MuAnalyzer/MakeHistos"
-cd ${run_dir}
-eval `scramv1 runtime -sh`
-root -b -l -q '/afs/cern.ch/work/x/xzuo/h2mm_944/src/H2MuAnalyzer/MakeHistos/macros/MC_data_comparison.C("tt", "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8/tt/180802_165355", "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/MC_data_comparison_2017_v4_v2/files", {"0000/tuple_298.root", "0000/tuple_299.root", "0000/tuple_3.root", "0000/tuple_30.root", "0000/tuple_300.root", "0000/tuple_301.root", "0000/tuple_302.root", "0000/tuple_303.root", "0000/tuple_304.root", "0000/tuple_305.root", "0000/tuple_306.root", "0000/tuple_307.root", "0000/tuple_308.root", "0000/tuple_309.root", "0000/tuple_31.root", "0000/tuple_310.root", "0000/tuple_311.root", "0000/tuple_312.root", "0000/tuple_313.root", "0000/tuple_314.root", "0000/tuple_315.root", "0000/tuple_316.root", "0000/tuple_317.root"}, "216", -1, 1000, -0.000714)'

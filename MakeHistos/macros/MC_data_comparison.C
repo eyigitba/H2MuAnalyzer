@@ -35,7 +35,7 @@ const TString OUT_DIR  = "plots";
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"NONE"}; // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> CAT_CUTS = {"NONE"}; // Event selection categories, also applied in parallel
+const std::vector<std::string> CAT_CUTS = {"NONE", "WHlep", "ZHmu", "ZHele"}; // Event selection categories, also applied in parallel
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
 void MC_data_comparison( TString sample = "", TString in_dir = "", TString out_dir = "",
@@ -146,7 +146,7 @@ void MC_data_comparison( TString sample = "", TString in_dir = "", TString out_d
 	  if (not InCategory(br, CAT_CUTS.at(iCat), verbose)) continue;
 	  
 	  if (verbose) std::cout << "\nPassed cut " << OPT_CUTS.at(iOpt) << ", in category " << CAT_CUTS.at(iCat) << std::endl;
-	  std::string h_pre = "h_"+OPT_CUTS.at(iOpt)+"_"+CAT_CUTS.at(iCat)+"_";
+	  std::string h_pre = (std::string)sample + "_"+OPT_CUTS.at(iOpt)+"_"+CAT_CUTS.at(iCat)+"_";
 	  
 	  /////////////////////////////////
 	  ///  Generate and fill plots  ///
@@ -247,6 +247,7 @@ void MC_data_comparison( TString sample = "", TString in_dir = "", TString out_d
 	std::string h_name = it->second->GetName();
 	if (h_name.find(optCatStr+"_") != std::string::npos) {
 	  // Remove optional selection and category cuts from histogram names
+// cat name may be useful
 	  h_name.erase( h_name.find(optCatStr+"_"), optCatStr.length() + 1 );
 	  it->second->SetName(h_name.c_str());
 	  it->second->SetTitle(h_name.c_str());

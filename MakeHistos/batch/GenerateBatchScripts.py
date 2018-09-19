@@ -40,18 +40,21 @@ YEAR  = 2017    ## Dataset year (2016 or 2017)
 OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
 #LABEL   = 'Data_Aug18_v7'  ## Unique label for this set of jobs
 #LABEL   = 'GenRecoPtDiffVsD0VsPt_2016_Sep11_v1'  ## Unique label for this set of jobs
-LABEL   = 'MC_data_comparison_2017_v4_v2' ## ntuple v4, plot v1  
+LABEL   = 'VH_toy_2017_v4_v2' ## ntuple v4, plot v1  
 
 NJOBS   =    -1  ## Maximum number of jobs to generate
-JOBSIZE =   200  ## Size of input NTuples in MB, per job (default 1000)
+JOBSIZE =   250  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1    ## Maximum number of events to process per job
 PRT_EVT = 1000  ## Print every Nth event in each job
 
-DATA_ONLY = False  ## Only process data samples, not MC
+DATA_ONLY = True  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
-SAMP_LIST = ['ZJets_AMC', 'ZJets_MG', 'tt', 'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg']  ## Name of individual samples to process ([] to process multiple samples)
+#SAMP_LIST = ['ZJets_AMC', 'ZJets_MG', 'tt', 'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg']  ## Name of individual samples to process ([] to process multiple samples)
+#SAMP_LIST = ['tt']  #for the test of a bizzare error
+#SAMP_LIST = ['H2Mu_gg'] #gg needs to be run with smaller sized jobs
+SAMP_LIST = [] # for data_only
 
 VERBOSE = False ## Verbose printout
 
@@ -67,7 +70,7 @@ def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list, samp
     ## In submit_all.sh (subs_file), write a line that will submit a job (bsub) to the queue of lxplus machines
     ## that run jobs for up to 1 hour (-q 1nh), specifying the log and error output file location (-o, -e) and
     ## the script that will be run by this job (${run_dir}/batch/launchers/%s.sh)
-    subs_file.write( '\nbsub -q 1nh -o ${out_dir}/log/%s.log -e ${out_dir}/err/%s.err ${run_dir}/batch/launchers/%s.sh' % (job_name, job_name, job_name) )
+    subs_file.write( '\nbsub -q 8nh -o ${out_dir}/log/%s.log -e ${out_dir}/err/%s.err ${run_dir}/batch/launchers/%s.sh' % (job_name, job_name, job_name) )
 
     sub_files.append( open(launcher_name, 'w') )
 
