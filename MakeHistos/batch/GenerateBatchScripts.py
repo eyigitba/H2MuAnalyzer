@@ -29,15 +29,24 @@ from GetNormForSamples import GetNormForSample
 ## Command to list files in eos on lxplus
 eos_cmd = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select'
 
-# MACRO = 'macros/ReadNTupleChain.C'  ## Root macro to run from each job
-MACRO = 'macros/MC_data_comparison.C'  ## Root macro to run from each job
-# MACRO = 'macros/GenRecoPtDiffVsD0.C'  ## Root macro to run from each job
-# MACRO = 'macros/GenRecoPtDiffVsD0VsPt.C'  ## Root macro to run from each job
-# MACRO = 'macros/SignalPeakD0Corr.C'  ## Root macro to run from each job
+## Configure the script user
+if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
+if 'bortigno' in os.getcwd(): USER = 'bortigno'
+if 'xzuo'     in os.getcwd(): USER = 'xzuo'
+
+## Root macro to run from each job
+# MACRO = 'macros/ReadNTupleChain.C'
+MACRO = 'macros/MC_data_comparison.C'
+# MACRO = 'macros/GenRecoPtDiffVsD0.C'
+# MACRO = 'macros/GenRecoPtDiffVsD0VsPt.C'
+# MACRO = 'macros/SignalPeakD0Corr.C'
+
 LOC   = 'CERN'  ## Location of input files ('CERN' or 'UF')
 YEAR  = 2017    ## Dataset year (2016 or 2017)
 
-OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
+## Directory for logs and output root files
+if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
+if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 #LABEL   = 'Data_Aug18_v7'  ## Unique label for this set of jobs
 #LABEL   = 'GenRecoPtDiffVsD0VsPt_2016_Sep11_v1'  ## Unique label for this set of jobs
 LABEL   = 'VH_toy_2017_v4_v2' ## ntuple v4, plot v1  

@@ -2,7 +2,22 @@
 ###    make stack and ratio from added histos    ###
 ####################################################
 
+## Basic python includes for manipulating files
+import os
+
 from ROOT import *
+
+## Configure the script user
+if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
+if 'bortigno' in os.getcwd(): USER = 'bortigno'
+if 'xzuo'     in os.getcwd(): USER = 'xzuo'
+
+## Directory for input histograms and output plots
+if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
+if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
+
+LABEL = 'MC_data_comparison_2017_v4_v7'  ## Sub-folder within PLOT_DIR containing histograms
+
 
 def ratioplot( term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do not use TRatioPlot! It is a devil!    -XWZ 19.09.2018
     canv = TCanvas("ratio_"+term, "ratio_"+term, 1)
@@ -34,12 +49,12 @@ def ratioplot( term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do
 
     canv.Update()
     canv.Write()
-    canv.SaveAs("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/MC_data_comparison_2017_v4_v7/files/sum" + "/plots" + "/ratio_" + term + ".png")
+    canv.SaveAs(PLOT_DIR+"/"+LABEL+"/files/sum" + "/plots" + "/ratio_" + term + ".png")
 
 
 def main():
 
-    file_dir="/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/MC_data_comparison_2017_v4_v7/files/sum"
+    file_dir=PLOT_DIR+"/"+LABEL+"/files/sum"
     out_file = TFile( file_dir + "/stack" + ".root", "RECREATE")
     in_file = TFile.Open( file_dir + "/all.root", "READ")
 
@@ -117,7 +132,7 @@ def main():
 	ratioplot( term, stack_sig[term], stack_all[term], histos[term]["data"], ratios[term], legend[term])
 
 
-#	canvas["ratio_"+term].SaveAs("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/MC_data_comparison_2017_v4_v4/files/sum/plots/ratio"+term+".png")
+#	canvas["ratio_"+term].SaveAs(PLOT_DIR+"/"+LABEL+"/files/sum/plots/ratio"+term+".png")
 
 
 
