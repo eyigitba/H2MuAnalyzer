@@ -1,8 +1,8 @@
 
 /////////////////////////////////////////////////////////
-///             Macro to read H2Mu NTuples            ///
+///   Macro to make data/MC comparison for variables  ///
 ///                                                   ///
-///           Andrew Brinkerhoff 13.08.2018           ///
+///              Xunwu Zuo  12.09.2018                ///
 /////////////////////////////////////////////////////////
 
 // Basic ROOT includes to read and write files
@@ -25,7 +25,7 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H
 const int MIN_FILE = 1;     // Minimum index of input files to process
 const int MAX_FILE = 3;     // Maximum index of input files to process
 const int MAX_EVT  = 10000; // Maximum number of events to process
-const int PRT_EVT  = 100;   // Print every N events
+const int PRT_EVT  = 1000;   // Print every N events
 const float SAMP_WGT = 1.0;
 const bool verbose = false; // Print extra information
 
@@ -35,12 +35,12 @@ const TString OUT_DIR  = "plots";
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"NONE"}; // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> CAT_CUTS = {"NONE", "Mu1Pos", "Mu1Neg"}; // Event selection categories, also applied in parallel
+const std::vector<std::string> CAT_CUTS = {"NONE", "WHlep", "ZHmu", "ZHele"}; // Event selection categories, also applied in parallel
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
-void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir = "",
-		      std::vector<TString> in_files = {}, TString out_file_str = "",
-		      int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
+void MC_data_comparison( TString sample = "", TString in_dir = "", TString out_dir = "",
+		         std::vector<TString> in_files = {}, TString out_file_str = "",
+		         int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
 
   // Set variables to hard-coded values if they are not initialized
   if (sample.Length()  == 0) sample  	 = SAMPLE;
@@ -92,7 +92,7 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
     in_chain->Add( in_file_names.at(i) );
 
     // Set branch addresses, from interface/LoadNTupleBranches.h
-    SetBranchAddresses(*in_chain, br, {}, false); // Options in {} include "JES", "Flags", and "SFs"
+    SetBranchAddresses(*in_chain, br, {"Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
   std::cout << "\n******* About to enter the event loop *******" << std::endl;
@@ -146,25 +146,52 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
 	  if (not InCategory(br, CAT_CUTS.at(iCat), verbose)) continue;
 	  
 	  if (verbose) std::cout << "\nPassed cut " << OPT_CUTS.at(iOpt) << ", in category " << CAT_CUTS.at(iCat) << std::endl;
-	  std::string h_pre = "h_"+OPT_CUTS.at(iOpt)+"_"+CAT_CUTS.at(iCat)+"_";
+	  std::string h_pre = (std::string)sample + "_"+OPT_CUTS.at(iOpt)+"_"+CAT_CUTS.at(iCat)+"_";
 	  
 	  /////////////////////////////////
 	  ///  Generate and fill plots  ///
 	  /////////////////////////////////
 	  
 	  // Loop over opposite-charge dimuon pairs
-	  for (UInt_t iPair = 0; iPair < br.nMuPairs; iPair++) {
+	  for (UInt_t iPair = 0; iPair < br.nMuPairs; iPair++) { // muPair selection needed?
 	    
 	    if (verbose) std::cout << "  * Pair " << iPair+1 << " has mass = " << br.muPairs->at(iPair).mass << std::endl;
 	    
 	    // Function from interface/HistoHelper.h that books a histogram (if it has not already been booked), then fills it
-	    BookAndFill(h_map_1D, h_pre+"mass", 80, 70, 110, br.muPairs->at(iPair).mass, event_wgt);
-	    
+	    BookAndFill(h_map_1D, h_pre+"dimuon_mass", 80, 110, 160, br.muPairs->at(iPair).mass, event_wgt);
+	    BookAndFill(h_map_1D, h_pre+"dimuon_pt", 50, 20, 520, br.muPairs->at(iPair).pt, event_wgt);
+	    BookAndFill(h_map_1D, h_pre+"dimuon_eta", 50, -5, 5, br.muPairs->at(iPair).eta, event_wgt);
+	    BookAndFill(h_map_1D, h_pre+"dimuon_delta_eta", 50, -5, 5, br.muPairs->at(iPair).dEta, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dimuon_delta_phi", 50, -4, 4, br.muPairs->at(iPair).dPhi, event_wgt);
+
+            BookAndFill(h_map_1D, h_pre+"leading_muon_pt", 50, 20, 270, br.muons->at( br.muPairs->at(iPair).iMu1 ).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"leading_muon_eta", 50, -2.5, 2.5, br.muons->at( br.muPairs->at(iPair).iMu1 ).eta, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"subleading_muon_pt", 50, 20, 270, br.muons->at( br.muPairs->at(iPair).iMu2 ).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"subleading_muon_eta", 50, -2.5, 2.5, br.muons->at( br.muPairs->at(iPair).iMu2 ).eta, event_wgt);
+//            BookAndFill(h_map_1D, h_pre+, event_wgt);
+//            BookAndFill(h_map_1D, h_pre+, event_wgt);
 	  } // End loop: for (UInt_t iPair = 0; iPair < nPairs; iPair++)
 
-	  BookAndFill(h_map_1D, h_pre+"nJets", 6, -0.5, 5.5, br.nJets, event_wgt);
+	  if (br.nJetPairs > 0) { // jet selection needed here?
+	    BookAndFill(h_map_1D, h_pre+"dijet_mass", 100, 0, 1000, br.jetPairs->at(0).mass, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dijet_pt", 60, 0, 600, br.jetPairs->at(0).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dijet_eta", 50, -10, 10, br.jetPairs->at(0).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dijet_delta_eta", 50, -10, 10, br.jetPairs->at(0).dEta, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dijet_delta_phi", 50, -4, 4, br.jetPairs->at(0).dPhi, event_wgt);
+// add jet selection, leading in the event or in the pair
+            BookAndFill(h_map_1D, h_pre+"leading_jet_pt", 50, 30, 530, br.jets->at( br.jetPairs->at(0).iJet1 ).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"leading_jet_eta", 50, -5, 5, br.jets->at( br.jetPairs->at(0).iJet1 ).eta, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"subleading_jet_pt", 50, 30, 530, br.jets->at( br.jetPairs->at(0).iJet2 ).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"subleading_jet_eta", 50, -5, 5, br.jets->at( br.jetPairs->at(0).iJet2 ).eta, event_wgt);
+	  }
+
 	  BookAndFill(h_map_1D, h_pre+"MET", 40, 0, 200, (br.met)->pt, event_wgt);
-	  
+	  BookAndFill(h_map_1D, h_pre+"nJets", 6, -0.5, 5.5, br.nJets, event_wgt);
+	  BookAndFill(h_map_1D, h_pre+"nBjets", 5, 0, 5, br.nBMed, event_wgt);
+	  BookAndFill(h_map_1D, h_pre+"nMuons", 5, 0, 5, br.nMuons, event_wgt);
+          BookAndFill(h_map_1D, h_pre+"nElectrons", 4, 0, 4, br.nEles, event_wgt); 
+          BookAndFill(h_map_1D, h_pre+"nVertices", 100, 0, 100, br.nVertices, event_wgt); 
+          BookAndFill(h_map_1D, h_pre+"nPU", 100, 0, 100, br.nPU, event_wgt); 	  
 	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
       } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
     } // End conditional: if (pass_sel_cuts)
@@ -220,6 +247,7 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
 	std::string h_name = it->second->GetName();
 	if (h_name.find(optCatStr+"_") != std::string::npos) {
 	  // Remove optional selection and category cuts from histogram names
+// cat name may be useful
 	  h_name.erase( h_name.find(optCatStr+"_"), optCatStr.length() + 1 );
 	  it->second->SetName(h_name.c_str());
 	  it->second->SetTitle(h_name.c_str());
@@ -246,6 +274,6 @@ void ReadNTupleChain( TString sample = "", TString in_dir = "", TString out_dir 
     } // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
   } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
       
-  std::cout << "\nExiting ReadNTupleChain()\n";
+  std::cout << "\nExiting MC_data_comparison()\n";
   
-} // End void ReadNTupleChain()
+} // End void MC_data_comparison()

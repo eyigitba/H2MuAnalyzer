@@ -148,7 +148,7 @@ def GetSamples(location = 'CERN', year = '2017'):
     samples.append( SampleInfo('tt_ll_AMC', 'TTJets_Dilept_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8', 85.656 * 0.9, year, in_dir, 'Bkg') )
     samples.append( SampleInfo('tt_ll_MG',  'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',    85.656,       year, in_dir, 'Bkg') )
     if (year == 2017):
-        samples.append( SampleInfo('tt', 'TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8', -999, year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('tt', 'TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8', 815.96, year, in_dir, 'Bkg') ) ## was -999, number taken from xunwu's other code. why so different from L149?   - XWZ 17.09.2018
 
     ## SingleTop
     if (year == 2016): tZq_DAS = 'tZq_ll_4f_13TeV-amcatnlo-pythia8'
