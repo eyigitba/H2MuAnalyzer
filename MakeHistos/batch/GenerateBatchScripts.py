@@ -40,21 +40,23 @@ YEAR  = 2017    ## Dataset year (2016 or 2017)
 OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
 #LABEL   = 'Data_Aug18_v7'  ## Unique label for this set of jobs
 #LABEL   = 'GenRecoPtDiffVsD0VsPt_2016_Sep11_v1'  ## Unique label for this set of jobs
-LABEL   = 'VH_toy_2017_v4_v2' ## ntuple v4, plot v1  
+LABEL   = 'VH_toy_2017_v4_v7' ## ntuple v4, plot v1  
 
 NJOBS   =    -1  ## Maximum number of jobs to generate
-JOBSIZE =   250  ## Size of input NTuples in MB, per job (default 1000)
+JOBSIZE =   100  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1    ## Maximum number of events to process per job
 PRT_EVT = 1000  ## Print every Nth event in each job
 
-DATA_ONLY = True  ## Only process data samples, not MC
+DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
-#SAMP_LIST = ['ZJets_AMC', 'ZJets_MG', 'tt', 'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg']  ## Name of individual samples to process ([] to process multiple samples)
+SAMP_LIST = ['ZJets_AMC', 'tt',  
+	     'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # some diboson sample that are ready  --XWZ 25.09.2018
+	     'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## Name of individual samples to process ([] to process multiple samples)
 #SAMP_LIST = ['tt']  #for the test of a bizzare error
 #SAMP_LIST = ['H2Mu_gg'] #gg needs to be run with smaller sized jobs
-SAMP_LIST = [] # for data_only
+#SAMP_LIST = [] # for data_only
 
 VERBOSE = False ## Verbose printout
 
@@ -171,6 +173,8 @@ def main():
             versions.append([int(ver.split('_')[0]), int(ver.split('_')[1])])
 
         if len(versions) > 0:
+	    print versions
+	    print "\n"
             versions.sort(key = itemgetter(0, 1), reverse=True)  ## Choose the latest crab submission
         else:
             print '\n\nWARNING!!!  No crab output found for sample %s, from DAS %s' % (samp.name, samp.DAS_name)
@@ -178,8 +182,11 @@ def main():
             continue
 
         print 'Chose version %d_%d' % (versions[0][0], versions[0][1])
-        in_dir_name += '/%d_%d' % (versions[0][0], versions[0][1])
-        
+	if samp.name is 'SingleMu_2017F':
+		in_dir_name += '/180802_164117'
+	else:
+        	in_dir_name += '/%d_%d' % (versions[0][0], versions[0][1])
+ 
         in_files = [] ## List of input files with their size in MB
         eos_ls = Popen([eos_cmd, 'ls', in_dir_name], stdout=PIPE)
         for subdir in eos_ls.communicate()[0].split():

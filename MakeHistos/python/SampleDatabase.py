@@ -108,7 +108,7 @@ def GetSamples(location = 'CERN', year = '2017'):
     
     ## H2Mu_ttH
     if (year == 2017):
-        samples.append( SampleInfo('H2Mu_ttH', 'ttH_HToMuMu_M125_13TeV_powheg_pythia8', -999, year, in_dir, 'Sig') )
+        samples.append( SampleInfo('H2Mu_ttH', 'ttH_HToMuMu_M125_13TeV_powheg_pythia8', 0.00011, year, in_dir, 'Sig') )## 507.1 fb from LHC handbook, to be confirmed - XWZ 26.09.2018
 
     
     ####################

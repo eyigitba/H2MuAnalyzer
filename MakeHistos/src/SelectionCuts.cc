@@ -9,18 +9,15 @@ bool PassSelection(NTupleBranches & br, std::string sel, bool verbose) {
   
   if (sel.compare("NONE") == 0) pass = true;
   
-  else if (sel.compare("Presel2017") == 0) {
+  else if (sel.compare("Presel2017") == 0) {        //added dimuon selection into preselection, instead of a stand alone selection  - XWZ 20.09.2018
     if (verbose) std::cout << "  * Applying Presel2017 cuts" << std::endl;
-    bool passMu = false;
-    bool hltmatched  = true; // if not using hlts
+    bool passDimu = false;
+    bool hltmatched  = false; 
+    bool passflag = false;
 
     for (int i = 0; i < br.nMuPairs; i++) {
-      MuonInfo & Mu1 = br.muons->at(br.muPairs->at(i).iMu1);
-      MuonInfo & Mu2 = br.muons->at(br.muPairs->at(i).iMu2);      
-
-      if ( MuonPass(Mu1,30) and MuonPass(Mu2,20))  passMu = true;
-      if (verbose) std::cout << "    - Mu1 pT = " << Mu1.pt 
-			     << ", Mu2 pT = " << Mu2.pt << ", passMu = " << passMu << std::endl;
+      if ( DimuPass(br, br.muPairs->at(i)) ) passDimu = true;
+      if (verbose) std::cout  << " passDimu = " << passDimu << std::endl;
 
     } // End loop for (int i = 0; i < nMuPairs; i++)
 
@@ -30,7 +27,8 @@ bool PassSelection(NTupleBranches & br, std::string sel, bool verbose) {
       if (verbose) std::cout << "hltmatched = " << hltmatched << std::endl;
     } // End loop for (int iMu =0; iMu < br.nMuons; iMu++)
     
-    if (passMu and hltmatched) pass = true;
+    if (br.Flag_all == 1 ) passflag = true;
+    if (passDimu and hltmatched and passflag) pass = true;
     
   } // End if (sel.compare("Presel2017") == 0)
  

@@ -9,23 +9,6 @@
 #include "TH2.h"
 
 
-//struct Histo1 {
-//  TH1 * histo = 0;
-//  TString sample_name 	= "";
-//  TString begin_file_name = "";
-//  TString end_file_name = "";
-//  TString variable_name = "";
-//  TString sel_name 	= "";
-//  TString opt_sel_name	= "";
-//  TString cat_sel_name 	= "";
-//}
-//
-//struct Histo2 {
-//
-//}
-// wrapping histo may not make much sense, since information is passed on through the output root file, in which elements in this struct are lost // XWZ 31.08.2018
-
-
 // Map of <name, hist> for already-booked histograms
 //std::map<TString, TH1*> h_map_1D;
 //std::map<TString, TH2*> h_map_2D;
@@ -45,6 +28,12 @@ void FillHisto(TH2 * hist, double valX, double valY, float weight = 1.0);
 void BookAndFill(std::map<TString, TH1*> & h1_map, TString h_name, int nBins, float min, float max, double val, float weight = 1.0);
 // Book a 1D histogram (if it does not already exist), then fill it, default weight 1.0
 void BookAndFill(std::map<TString, TH2*> & h2_map, TString h_name, int nBinsX, float minX, float maxX, int nBinsY, float minY, float maxY, double valX, double valY, float weight = 1.0);
+
+
+//Initialize a default set of histos for data/MC comparison
+void BookForMCvsData(std::map<TString, TH1*> & h1_map, std::string sample, std::vector<std::string> OPT_CUTS, std::vector<std::string> CAT_CUTS);
+
+
 
 // Return maps from HistoHelper
 //void RetreiveMap(std::map<TString, TH1*> & new_map);

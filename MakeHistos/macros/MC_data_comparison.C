@@ -16,6 +16,7 @@
 #include "H2MuAnalyzer/MakeHistos/interface/HistoHelper.h"        // Use to book and fill output histograms
 #include "H2MuAnalyzer/MakeHistos/interface/SelectionCuts.h"      // Common event selections
 #include "H2MuAnalyzer/MakeHistos/interface/CategoryCuts.h"       // Common category definitions
+#include "H2MuAnalyzer/MakeHistos/interface/ObjectSelections.h"   // Common object selections 
 
 // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
 R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
@@ -85,6 +86,7 @@ void MC_data_comparison( TString sample = "", TString in_dir = "", TString out_d
   // Initialize empty map of histogram names to histograms
   std::map<TString, TH1*> h_map_1D;
   std::map<TString, TH2*> h_map_2D;
+  BookForMCvsData(h_map_1D, (std::string) sample, OPT_CUTS, CAT_CUTS); // initialize histomap 1D, all histos should be claimed here - XWZ 20.09.2018
 
   // Add trees from the input files to the TChain
   TChain * in_chain = new TChain("dimuons/tree");
@@ -92,7 +94,7 @@ void MC_data_comparison( TString sample = "", TString in_dir = "", TString out_d
     in_chain->Add( in_file_names.at(i) );
 
     // Set branch addresses, from interface/LoadNTupleBranches.h
-    SetBranchAddresses(*in_chain, br, {"Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
+    SetBranchAddresses(*in_chain, br, {"Wgts","Flags"}, false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
   std::cout << "\n******* About to enter the event loop *******" << std::endl;
@@ -153,41 +155,52 @@ void MC_data_comparison( TString sample = "", TString in_dir = "", TString out_d
 	  /////////////////////////////////
 	  
 	  // Loop over opposite-charge dimuon pairs
-	  for (UInt_t iPair = 0; iPair < br.nMuPairs; iPair++) { // muPair selection needed?
+	  bool found_good_dimu = false;
+	  for (UInt_t iPair = 0; iPair < br.nMuPairs; iPair++) { // added dimuon selection -- XWZ 25.09.2018
 	    
 	    if (verbose) std::cout << "  * Pair " << iPair+1 << " has mass = " << br.muPairs->at(iPair).mass << std::endl;
-	    
+	    if (found_good_dimu) continue;
+	    found_good_dimu = DimuPass(br, br.muPairs->at(iPair));
+	    if (!found_good_dimu) continue;
 	    // Function from interface/HistoHelper.h that books a histogram (if it has not already been booked), then fills it
-	    BookAndFill(h_map_1D, h_pre+"dimuon_mass", 80, 110, 160, br.muPairs->at(iPair).mass, event_wgt);
-	    BookAndFill(h_map_1D, h_pre+"dimuon_pt", 50, 20, 520, br.muPairs->at(iPair).pt, event_wgt);
+//	    if (br.muPairs->at(iPair).mass_Roch < 120 or br.muPairs->at(iPair).mass_Roch > 130) {
+	    BookAndFill(h_map_1D, h_pre+"dimuon_mass", 50, 110, 160, br.muPairs->at(iPair).mass_Roch, event_wgt);
+//	    }
+	    BookAndFill(h_map_1D, h_pre+"dimuon_pt", 50, 20, 520, br.muPairs->at(iPair).pt_Roch, event_wgt);
 	    BookAndFill(h_map_1D, h_pre+"dimuon_eta", 50, -5, 5, br.muPairs->at(iPair).eta, event_wgt);
 	    BookAndFill(h_map_1D, h_pre+"dimuon_delta_eta", 50, -5, 5, br.muPairs->at(iPair).dEta, event_wgt);
             BookAndFill(h_map_1D, h_pre+"dimuon_delta_phi", 50, -4, 4, br.muPairs->at(iPair).dPhi, event_wgt);
 
-            BookAndFill(h_map_1D, h_pre+"leading_muon_pt", 50, 20, 270, br.muons->at( br.muPairs->at(iPair).iMu1 ).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"leading_muon_pt", 50, 20, 270, br.muons->at( br.muPairs->at(iPair).iMu1 ).pt_Roch, event_wgt);
             BookAndFill(h_map_1D, h_pre+"leading_muon_eta", 50, -2.5, 2.5, br.muons->at( br.muPairs->at(iPair).iMu1 ).eta, event_wgt);
-            BookAndFill(h_map_1D, h_pre+"subleading_muon_pt", 50, 20, 270, br.muons->at( br.muPairs->at(iPair).iMu2 ).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"subleading_muon_pt", 50, 20, 270, br.muons->at( br.muPairs->at(iPair).iMu2 ).pt_Roch, event_wgt);
             BookAndFill(h_map_1D, h_pre+"subleading_muon_eta", 50, -2.5, 2.5, br.muons->at( br.muPairs->at(iPair).iMu2 ).eta, event_wgt);
 //            BookAndFill(h_map_1D, h_pre+, event_wgt);
 //            BookAndFill(h_map_1D, h_pre+, event_wgt);
 	  } // End loop: for (UInt_t iPair = 0; iPair < nPairs; iPair++)
 
-	  if (br.nJetPairs > 0) { // jet selection needed here?
-	    BookAndFill(h_map_1D, h_pre+"dijet_mass", 100, 0, 1000, br.jetPairs->at(0).mass, event_wgt);
-            BookAndFill(h_map_1D, h_pre+"dijet_pt", 60, 0, 600, br.jetPairs->at(0).pt, event_wgt);
-            BookAndFill(h_map_1D, h_pre+"dijet_eta", 50, -10, 10, br.jetPairs->at(0).pt, event_wgt);
-            BookAndFill(h_map_1D, h_pre+"dijet_delta_eta", 50, -10, 10, br.jetPairs->at(0).dEta, event_wgt);
-            BookAndFill(h_map_1D, h_pre+"dijet_delta_phi", 50, -4, 4, br.jetPairs->at(0).dPhi, event_wgt);
+	  if (!found_good_dimu) continue;
+	  bool found_good_dijet = false;
+	  for (UInt_t iDijet = 0; iDijet < br.nJetPairs; iDijet++) { // added dijet selection -- XWZ 25.09.2018
+	    if (found_good_dijet) continue;
+	    found_good_dijet = DijetPass(br, br.jetPairs->at(iDijet));
+	    if (!found_good_dijet) continue;
+
+	    BookAndFill(h_map_1D, h_pre+"dijet_mass", 100, 0, 1000, br.jetPairs->at(iDijet).mass, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dijet_pt", 60, 0, 600, br.jetPairs->at(iDijet).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dijet_eta", 50, -10, 10, br.jetPairs->at(iDijet).eta, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dijet_delta_eta", 50, -10, 10, br.jetPairs->at(iDijet).dEta, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"dijet_delta_phi", 50, -4, 4, br.jetPairs->at(iDijet).dPhi, event_wgt);
 // add jet selection, leading in the event or in the pair
-            BookAndFill(h_map_1D, h_pre+"leading_jet_pt", 50, 30, 530, br.jets->at( br.jetPairs->at(0).iJet1 ).pt, event_wgt);
-            BookAndFill(h_map_1D, h_pre+"leading_jet_eta", 50, -5, 5, br.jets->at( br.jetPairs->at(0).iJet1 ).eta, event_wgt);
-            BookAndFill(h_map_1D, h_pre+"subleading_jet_pt", 50, 30, 530, br.jets->at( br.jetPairs->at(0).iJet2 ).pt, event_wgt);
-            BookAndFill(h_map_1D, h_pre+"subleading_jet_eta", 50, -5, 5, br.jets->at( br.jetPairs->at(0).iJet2 ).eta, event_wgt);
-	  }
+            BookAndFill(h_map_1D, h_pre+"leading_jet_pt", 50, 30, 530, br.jets->at( br.jetPairs->at(iDijet).iJet1 ).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"leading_jet_eta", 50, -5, 5, br.jets->at( br.jetPairs->at(iDijet).iJet1 ).eta, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"subleading_jet_pt", 50, 30, 530, br.jets->at( br.jetPairs->at(iDijet).iJet2 ).pt, event_wgt);
+            BookAndFill(h_map_1D, h_pre+"subleading_jet_eta", 50, -5, 5, br.jets->at( br.jetPairs->at(iDijet).iJet2 ).eta, event_wgt);
+	  } // End loop: for (UInt_t iDijet = 0; iDijet < br.nJetPairs; iDijet++)
 
 	  BookAndFill(h_map_1D, h_pre+"MET", 40, 0, 200, (br.met)->pt, event_wgt);
 	  BookAndFill(h_map_1D, h_pre+"nJets", 6, -0.5, 5.5, br.nJets, event_wgt);
-	  BookAndFill(h_map_1D, h_pre+"nBjets", 5, 0, 5, br.nBMed, event_wgt);
+	  BookAndFill(h_map_1D, h_pre+"nBJets", 5, 0, 5, br.nBMed, event_wgt);
 	  BookAndFill(h_map_1D, h_pre+"nMuons", 5, 0, 5, br.nMuons, event_wgt);
           BookAndFill(h_map_1D, h_pre+"nElectrons", 4, 0, 4, br.nEles, event_wgt); 
           BookAndFill(h_map_1D, h_pre+"nVertices", 100, 0, 100, br.nVertices, event_wgt); 

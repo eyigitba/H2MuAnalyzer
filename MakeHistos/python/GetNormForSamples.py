@@ -21,7 +21,7 @@ def GetNormForSample(out_file, samp_name, xsec, in_dir_name, file_list):
 	print "no need for renormalization for data"
 	return 0
 
-    lumi = 41000.0
+    lumi = 41900.0
 
     file_chain = R.TChain("dimuons/metadata","chain_"+samp_name)
     for in_file in file_list:
