@@ -3,6 +3,7 @@
 #define LOAD_NTUPLE_BRANCHES
 
 #include <iostream>
+#include <assert.h>
 
 #include "TChain.h"
 
@@ -20,6 +21,9 @@ struct NTupleBranches {
   JetInfos * jets = 0;
   JetInfos * jets_JES_up = 0;
   JetInfos * jets_JES_down = 0;
+  SlimJetInfos * slimJets = 0;
+  SlimJetInfos * slimJets_JES_up = 0;
+  SlimJetInfos * slimJets_JES_down = 0;
   
   JetPairInfos * jetPairs = 0;
   JetPairInfos * jetPairs_JES_up = 0;
@@ -85,34 +89,50 @@ struct NTupleBranches {
   float IsoMu_eff_3 = -99;
   float IsoMu_eff_3_up = -99;
   float IsoMu_eff_3_down = -99;
+  float IsoMu_eff_4 = -99; // 2016 only
+  float IsoMu_eff_4_up = -99; // 2016 only
+  float IsoMu_eff_4_down = -99; // 2016 only
   float IsoMu_eff_bug = -99;
   float IsoMu_eff_bug_up = -99;
   float IsoMu_eff_bug_down = -99;
+
   float MuID_eff_3 = -99;
   float MuID_eff_3_up = -99;
   float MuID_eff_3_down = -99;
-  float MuID_eff_4 = -99;
-  float MuID_eff_4_up = -99;
-  float MuID_eff_4_down = -99;
+  float MuID_eff_4 = -99; // 2016 only
+  float MuID_eff_4_up = -99; // 2016 only
+  float MuID_eff_4_down = -99; // 2016 only
+
   float MuIso_eff_3 = -99;
   float MuIso_eff_3_up = -99;
   float MuIso_eff_3_down = -99;
+  float MuIso_eff_4 = -99; // 2016 only
+  float MuIso_eff_4_up = -99; // 2016 only
+  float MuIso_eff_4_down = -99; // 2016 only
 
   float IsoMu_SF_3 = -99;
   float IsoMu_SF_3_up = -99;
   float IsoMu_SF_3_down = -99;
+  float IsoMu_SF_4 = -99; // 2016 only
+  float IsoMu_SF_4_up = -99; // 2016 only
+  float IsoMu_SF_4_down = -99; // 2016 only
   float IsoMu_SF_bug = -99;
   float IsoMu_SF_bug_up = -99;
   float IsoMu_SF_bug_down = -99;
+
   float MuID_SF_3 = -99;
   float MuID_SF_3_up = -99;
   float MuID_SF_3_down = -99;
   float MuID_SF_4 = -99;
   float MuID_SF_4_up = -99;
   float MuID_SF_4_down = -99;
+
   float MuIso_SF_3 = -99;
   float MuIso_SF_3_up = -99;
   float MuIso_SF_3_down = -99;
+  float MuIso_SF_4 = -99; // 2016 only
+  float MuIso_SF_4_up = -99; // 2016 only
+  float MuIso_SF_4_down = -99; // 2016 only
 
   float PU_wgt = -99;
   float PU_wgt_up = -99;
@@ -123,6 +143,8 @@ struct NTupleBranches {
 
 
 void SetBranchAddresses(TChain & ch_, NTupleBranches & br_, std::vector<std::string> opts = {}, bool verbose = false);
+
+JetInfos ConvertSlimJets(SlimJetInfos & _slimJets);
 
 
 #endif  // #ifndef LOAD_NTUPLE_BRANCHES
