@@ -1,5 +1,6 @@
-#include "H2MuAnalyzer/MakeHistos/interface/ObjectSelections.h"
+
 #include "H2MuAnalyzer/MakeHistos/interface/CategoryCuts.h"
+
 
 bool InCategory(NTupleBranches & br, std::string sel, bool verbose) {
   
@@ -33,19 +34,19 @@ bool InCategory(NTupleBranches & br, std::string sel, bool verbose) {
     } // End loop for (int i = 0; i < nMuPairs; i++)
   } // End if (sel.compare("Mu1Neg") == 0)
 
-  else if (sel.compare("WHlep") == 0) {  // real toy category, needs more study on cuts
-    if (verbose) std::cout << "  * Applying WHlep cuts" << std::endl;
+  // else if (sel.compare("WHlep") == 0) {  // real toy category, needs more study on cuts
+  //   if (verbose) std::cout << "  * Applying WHlep cuts" << std::endl;
     
-    if (br.nMuons == 3) {
-	pass = true;
-	for (int i = 0; i < br.nMuons; i++) {
-	  if ( !MuonPass(br.muons->at(i),20) ) pass = false;
- 	}
-    }
-    if (br.nMuons == 2 and br.nEles == 1) {
-	if (br.eles->at(0).pt > 20) pass = true;
-    }
-  }
+  //   if (br.nMuons == 3) {
+  // 	pass = true;
+  // 	for (int i = 0; i < br.nMuons; i++) {
+  // 	  if ( !MuonPass(br.muons->at(i),20) ) pass = false;
+  // 	}
+  //   }
+  //   if (br.nMuons == 2 and br.nEles == 1) {
+  // 	if (br.eles->at(0).pt > 20) pass = true;
+  //   }
+  // }
 
   else if (sel.compare("ZHmu") == 0) {  // real toy category, needs more study on cuts
     if (verbose) std::cout << "  * Applying ZHmu cuts" << std::endl;

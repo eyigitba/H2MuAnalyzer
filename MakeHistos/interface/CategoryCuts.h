@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h"
+#include "H2MuAnalyzer/MakeHistos/interface/ObjectSelection.h"
 
 bool InCategory(NTupleBranches & br, std::string sel, bool verbose = false);
 
