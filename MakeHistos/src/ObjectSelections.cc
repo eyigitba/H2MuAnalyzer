@@ -11,12 +11,12 @@ bool MuonPass(MuonInfo & muon, int pt_cut , std::string id , bool verbose )   //
 	return muon_pass;
 }
 
-bool DimuPass(NTupleBranches & br, MuPairInfo & Dimu, int mass, int lead_pt_cut, std::string id, bool verbose)
+bool DimuPass(NTupleBranches & br, MuPairInfo & Dimu, int mass_low, int mass_high, int lead_pt_cut, std::string id, bool verbose)
 {
 	bool dimu_pass = false;
 	MuonInfo & Mu1 = br.muons->at(Dimu.iMu1);
       	MuonInfo & Mu2 = br.muons->at(Dimu.iMu2);	
-	if (Dimu.mass_Roch > mass and  MuonPass(Mu1,lead_pt_cut, id) and MuonPass(Mu2,20,id))  dimu_pass = true;
+	if (Dimu.mass_Roch > mass_low and Dimu.mass_Roch < mass_high and  MuonPass(Mu1,lead_pt_cut, id) and MuonPass(Mu2,20,id))  dimu_pass = true;
 	return dimu_pass;
 } 
 
@@ -100,6 +100,15 @@ bool JetPass(JetInfo & jet, int pt_cut , std::string PU_ID , bool verbose )
 	}
 	return jet_pass = true;
 }
+
+
+bool BJetPass(JetInfo & jet, int pt_cut , std::string PU_ID , bool verbose )
+{
+	bool bjet_pass = false;
+	if( JetPass(jet, pt_cut, PU_ID) and jet.CSV > 0.4941) bjet_pass = true;
+	return bjet_pass;
+}
+
 
 bool DijetPass(NTupleBranches & br, JetPairInfo & Dijet, int pt, std::string PU_ID, bool verbose)
 {

@@ -37,18 +37,43 @@ bool InCategory(NTupleBranches & br, std::string sel, bool verbose) {
   else if (sel.compare("WHlep") == 0) {  // real toy category, needs more study on cuts
     if (verbose) std::cout << "  * Applying WHlep cuts" << std::endl;
     
-    if (br.nMuons == 3) {
+    if (br.nBTight == 0 and (br.met)->pt > 20) {
+      if (br.nMuons == 3) {
 	pass = true;
 	for (int i = 0; i < br.nMuons; i++) {
-	  if ( !MuonPass(br.muons->at(i),20) ) pass = false;
+	  if ( !MuonPass(br.muons->at(i),20) or abs(br.muons->at(i).d0_PV)>0.02 ) pass = false;
  	}
-    }
-    if (br.nMuons == 2 and br.nEles == 1) {
-	if (br.eles->at(0).pt > 20) pass = true;
-    }
-    if ( (br.met)->pt < 30 ) pass = false;
-
+      }//end if (br.nMuons == 3)
+      if (br.nMuons == 2 and br.nEles == 1) {
+	if (br.eles->at(0).pt > 20 and abs(br.eles->at(0).d0_PV)<0.02 ) pass = true;
+      }
+    }//end if (br.nBTight == 0 and (br.met)->pt > 30)
   }//end if (sel.compare("WHlep") == 0)
+
+  else if (sel.compare("WHhad2J") == 0) {
+    if (verbose) std::cout << "  * Applying WHhad2J cuts" << std::endl;
+    
+    if (not InCategory(br, "WHlep", verbose) ) {
+	for (int i = 0; i < br.nJetPairs; i++) {
+	  JetPairInfo & dijet = br.jetPairs->at(i);
+	  if ( DijetPass(br, dijet) and abs(dijet.mass-80)<20 and abs(dijet.eta)<4 and dijet.dR<4 ) pass = true;
+	}//end for (int i = 0; i < br.nJetPairs; i++)
+    }
+  }//end if (sel.compare("WHhad2J") == 0) 
+
+  else if (sel.compare("WHhad1J") == 0) {
+    if (verbose) std::cout << "  * Applying WHhad1J cuts" << std::endl;
+
+    if (not InCategory(br, "WHlep", verbose) ) {
+      if (not InCategory(br, "WHhad2J", verbose) ) {
+	for (int i = 0; i < br.nJets; i++) {
+	   JetInfo & jet = br.jets->at(i);
+	   if ( JetPass(jet) and abs(jet.eta)<2 and not BJetPass(jet) ) pass = true;
+	}// end for (int i = 0; i < br.nJets; i++) {
+      }
+    }
+  }//end if (sel.compare("WHhad1J") == 0)
+
 
   else if (sel.compare("ZHmu") == 0) {  // real toy category, needs more study on cuts
     if (verbose) std::cout << "  * Applying ZHmu cuts" << std::endl;

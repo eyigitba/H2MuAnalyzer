@@ -63,31 +63,38 @@ void BookForMCvsData(std::map<TString, TH1*> & h1_map, std::string sample, std::
 	    h1_map[h_pre+"dimuon_eta"]          = BookHisto( h_pre+"dimuon_eta",          50, -5, 5	);
 	    h1_map[h_pre+"dimuon_delta_eta"]    = BookHisto( h_pre+"dimuon_delta_eta",    50, -5, 5	);
 	    h1_map[h_pre+"dimuon_delta_phi"]    = BookHisto( h_pre+"dimuon_delta_phi",    50, -4, 4	);
+	    h1_map[h_pre+"dimuon_dR"]    	= BookHisto( h_pre+"dimuon_dR",    	  50, 0, 5      );
+	    h1_map[h_pre+"dimuon_d0_diff"]      = BookHisto( h_pre+"dimuon_d0_diff",      50, -0.1, 0.1 );
 	    h1_map[h_pre+"leading_muon_pt"]     = BookHisto( h_pre+"leading_muon_pt",     50, 20, 270	);
 	    h1_map[h_pre+"leading_muon_eta"]    = BookHisto( h_pre+"leading_muon_eta",    50, -2.5, 2.5	);
+	    h1_map[h_pre+"leading_muon_d0"]     = BookHisto( h_pre+"leading_muon_d0",     50, -0.1, 0.1 );
 	    h1_map[h_pre+"subleading_muon_pt"]  = BookHisto( h_pre+"subleading_muon_pt",  50, 20, 270	);
 	    h1_map[h_pre+"subleading_muon_eta"] = BookHisto( h_pre+"subleading_muon_eta", 50, -2.5, 2.5	);
-	    h1_map[h_pre+"dijet_mass"]          = BookHisto( h_pre+"dijet_mass",          100, 0, 1000	);
-	    h1_map[h_pre+"dijet_pt"]            = BookHisto( h_pre+"dijet_pt",            60, 0, 600	);
+	    h1_map[h_pre+"subleading_muon_d0"]  = BookHisto( h_pre+"subleading_muon_d0",  50, -0.1, 0.1 );
+	    h1_map[h_pre+"dijet_mass_1000"]     = BookHisto( h_pre+"dijet_mass_1000",     50, 0, 1000	);
+	    h1_map[h_pre+"dijet_mass_200"]      = BookHisto( h_pre+"dijet_mass_200",      50, 0, 200    ); 
+	    h1_map[h_pre+"dijet_pt_800"]        = BookHisto( h_pre+"dijet_pt_800",        50, 0, 600	);
+	    h1_map[h_pre+"dijet_pt_200"]        = BookHisto( h_pre+"dijet_pt_200",        50, 0, 200    );
 	    h1_map[h_pre+"dijet_eta"]           = BookHisto( h_pre+"dijet_eta",           50, -10, 10	);
 	    h1_map[h_pre+"dijet_delta_eta"]     = BookHisto( h_pre+"dijet_delta_eta",     50, -10, 10	);
 	    h1_map[h_pre+"dijet_delta_phi"]     = BookHisto( h_pre+"dijet_delta_phi",     50, -4, 4	);
+	    h1_map[h_pre+"dijet_dR"]     	= BookHisto( h_pre+"dijet_dR",     	  50, 0, 10     );
 	    h1_map[h_pre+"leading_jet_pt"]      = BookHisto( h_pre+"leading_jet_pt",      50, 30, 530	);
 	    h1_map[h_pre+"leading_jet_eta"]     = BookHisto( h_pre+"leading_jet_eta",     50, -5, 5	);
 	    h1_map[h_pre+"subleading_jet_pt"]   = BookHisto( h_pre+"subleading_jet_pt",   50, 30, 530	);
 	    h1_map[h_pre+"subleading_jet_eta"]  = BookHisto( h_pre+"subleading_jet_eta",  50, -5, 5	);
-	    h1_map[h_pre+"MET"]                 = BookHisto( h_pre+"MET",                 40, 0, 200	);
+	    h1_map[h_pre+"MET"]                 = BookHisto( h_pre+"MET",                 50, 0, 300	);
+	    h1_map[h_pre+"mht_pt"]              = BookHisto( h_pre+"mht_pt",              50, 0, 300    );
 	    h1_map[h_pre+"nJets"]               = BookHisto( h_pre+"nJets",               6, -0.5, 5.5	);
 	    h1_map[h_pre+"nBJets"]              = BookHisto( h_pre+"nBJets",              6, -0.5, 5.5	);
 	    h1_map[h_pre+"nMuons"]              = BookHisto( h_pre+"nMuons",              5, 0, 5	);
 	    h1_map[h_pre+"nElectrons"]          = BookHisto( h_pre+"nElectrons",          4, 0, 4	);
-	    h1_map[h_pre+"nVertices"]           = BookHisto( h_pre+"nVertices",           100, 0, 100	);
-	    h1_map[h_pre+"nPU"]                 = BookHisto( h_pre+"nPU",                 100, 0, 100	);
+	    h1_map[h_pre+"nVertices"]           = BookHisto( h_pre+"nVertices",           50, 0, 100	);
+	    h1_map[h_pre+"nPU"]                 = BookHisto( h_pre+"nPU",                 50, 0, 100	);
         }//end of Cat loop
     }//end of Opt loop
   }//end of else
 }
-
 
 
 // Return maps from HistoHelper
