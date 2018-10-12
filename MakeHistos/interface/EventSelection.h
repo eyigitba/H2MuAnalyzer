@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h"
+#include "H2MuAnalyzer/MakeHistos/interface/EventHelper.h"
 #include "H2MuAnalyzer/MakeHistos/interface/ObjectSelection.h"
 
 
