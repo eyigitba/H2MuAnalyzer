@@ -36,12 +36,65 @@ float MuonPt ( const MuonInfo & muon, const std::string pt_corr ) {
   assert(false);
 }
 
+// Return PF, Rochester, or Kalman corrected dimuon invariant pT
+float MuPairPt ( const MuPairInfo & muPair, const std::string pt_corr ) {
+  if ( pt_corr == "PF"   ) return muPair.pt;
+  if ( pt_corr == "Roch" ) return muPair.pt_Roch;
+  if ( pt_corr == "KaMu" ) return muPair.pt_KaMu;
+  std::cout << "\n\nInside ObjectSelections.cc, invalid option pt_corr = " << pt_corr << std::endl;
+  assert(false);
+}
+
 // Return PF, Rochester, or Kalman corrected dimuon invariant mass
 float MuPairMass ( const MuPairInfo & muPair, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muPair.mass;
   if ( pt_corr == "Roch" ) return muPair.mass_Roch;
   if ( pt_corr == "KaMu" ) return muPair.mass_KaMu;
   std::cout << "\n\nInside ObjectSelections.cc, invalid option pt_corr = " << pt_corr << std::endl;
+  assert(false);
+}
+
+// Return PF, Rochester, or Kalman corrected dimuon invariant mass uncertainty
+float MuPairMassErr ( const MuPairInfo & muPair, const std::string pt_corr ) {
+  if ( pt_corr == "PF"   ) return muPair.massErr;
+  if ( pt_corr == "Roch" ) return muPair.massErr_Roch;
+  if ( pt_corr == "KaMu" ) return muPair.massErr_KaMu;
+  std::cout << "\n\nInside ObjectSelections.cc, invalid option pt_corr = " << pt_corr << std::endl;
+  assert(false);
+}
+
+// Determine if dimuon pair is matched to GEN pair
+bool IsGenMatched( const MuPairInfo & muPair, const MuonInfos & muons, const GenMuonInfos & genMuons, const std::string gen_ID ) {
+
+  TLorentzVector mu_vec1 = FourVec( muons.at(muPair.iMu1), "PF" );
+  TLorentzVector mu_vec2 = FourVec( muons.at(muPair.iMu2), "PF" );
+  bool mu1_matched = false;
+  bool mu2_matched = false;
+
+  for (const auto & genMu : genMuons) {
+    if      (gen_ID == "Z") { if (genMu.mother_ID != 23) continue; }
+    else if (gen_ID == "H") { if (genMu.mother_ID != 25) continue; }
+    else assert(gen_ID == "Z" || gen_ID == "H");
+
+    TLorentzVector gen_vec = FourVec( genMu );
+    if ( mu_vec1.DeltaR(gen_vec) < 0.05 ) mu1_matched = true;
+    if ( mu_vec2.DeltaR(gen_vec) < 0.05 ) mu2_matched = true;
+  }
+
+  return (mu1_matched && mu2_matched);
+} // End function: bool IsMatchedToGen()
+
+
+////////////////////////////
+///  Electron functions  ///
+////////////////////////////
+
+// Return loose, medium, or tight electron ID
+bool EleID ( const EleInfo & ele, const std::string ele_ID ) {
+  if ( ele_ID == "loose" ) return ele.isLooseID;
+  if ( ele_ID == "medium") return ele.isMediumID;
+  if ( ele_ID == "tight" ) return ele.isTightID;
+  std::cout << "\n\nInside ObjectSelections.cc, invalid option ele_ID = " << ele_ID << std::endl;
   assert(false);
 }
 
@@ -110,44 +163,70 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
 ///  Kinematic functions  ///
 /////////////////////////////
 
-TLorentzVector FourVec( const MuonInfo & muon, const float pT ) {
+TLorentzVector FourVec( const MuonInfo & muon, const std::string pt_corr, const std::string opt ) {
   TLorentzVector vec;
-  vec.SetPtEtaPhiM(pT, muon.eta, muon.phi, 0.105658367 );
+  if (opt == "T")
+    vec.SetPtEtaPhiM(MuonPt(muon, pt_corr),        0, muon.phi, 0 );
+  else
+    vec.SetPtEtaPhiM(MuonPt(muon, pt_corr), muon.eta, muon.phi, 0.105658367 );
   return vec;
 }
-TLorentzVector FourVec( const EleInfo & ele ) {
+TLorentzVector FourVec( const MuPairInfo & muPair, const std::string pt_corr, const std::string opt ) {
   TLorentzVector vec;
-  vec.SetPtEtaPhiM(ele.pt, ele.eta, ele.phi, 0.000511 );
+  if (opt == "T")
+    vec.SetPtEtaPhiM(MuPairPt(muPair, pt_corr),        0, muPair.phi, 0 );
+  else
+    vec.SetPtEtaPhiM(MuPairPt(muPair, pt_corr), muPair.eta, muPair.phi, MuPairMass(muPair, pt_corr) );
   return vec;
 }
-TLorentzVector FourVec( const JetInfo & jet ) {
+TLorentzVector FourVec( const EleInfo & ele, const std::string opt ) {
   TLorentzVector vec;
-  vec.SetPtEtaPhiM(jet.pt, jet.eta, jet.phi, jet.mass );
+  if (opt == "T")
+    vec.SetPtEtaPhiM(ele.pt,       0, ele.phi, 0 );
+  else
+    vec.SetPtEtaPhiM(ele.pt, ele.eta, ele.phi, 0.000511 );
   return vec;
 }
-TLorentzVector FourVec( const MetInfo & met ) {
+TLorentzVector FourVec( const JetInfo & jet, const std::string opt ) {
+  TLorentzVector vec;
+  if (opt == "T")
+    vec.SetPtEtaPhiM(jet.pt,       0, jet.phi, 0 );
+  else
+    vec.SetPtEtaPhiM(jet.pt, jet.eta, jet.phi, jet.mass );
+  return vec;
+}
+TLorentzVector FourVec( const MetInfo & met, const std::string opt ) {
   TLorentzVector vec;
   vec.SetPtEtaPhiM(met.pt, 0, met.phi, 0 );
   return vec;
 }
-TLorentzVector FourVec( const MhtInfo & mht ) {
+TLorentzVector FourVec( const MhtInfo & mht, const std::string opt ) {
   TLorentzVector vec;
   vec.SetPtEtaPhiM(mht.pt, 0, mht.phi, 0 );
   return vec;
 }
-TLorentzVector FourVec( const GenParentInfo & genPar ) {
+TLorentzVector FourVec( const GenParentInfo & genPar, const std::string opt ) {
   TLorentzVector vec;
-  vec.SetPtEtaPhiM(genPar.pt, genPar.eta, genPar.phi, genPar.mass );
+  if (opt == "T")
+    vec.SetPtEtaPhiM(genPar.pt,          0, genPar.phi, 0 );
+  else
+    vec.SetPtEtaPhiM(genPar.pt, genPar.eta, genPar.phi, genPar.mass );
   return vec;
 }
-TLorentzVector FourVec( const GenMuonInfo & genMu ) {
+TLorentzVector FourVec( const GenMuonInfo & genMu, const std::string opt ) {
   TLorentzVector vec;
-  vec.SetPtEtaPhiM(genMu.pt, genMu.eta, genMu.phi, 0.105658367 );
+  if (opt == "T")
+    vec.SetPtEtaPhiM(genMu.pt,         0, genMu.phi, 0 );
+  else
+    vec.SetPtEtaPhiM(genMu.pt, genMu.eta, genMu.phi, 0.105658367 );
   return vec;
 }
-TLorentzVector FourVec( const GenJetInfo & genJet ) {
+TLorentzVector FourVec( const GenJetInfo & genJet, const std::string opt ) {
   TLorentzVector vec;
-  vec.SetPtEtaPhiM(genJet.pt, genJet.eta, genJet.phi, genJet.mass );
+  if (opt == "T")
+    vec.SetPtEtaPhiM(genJet.pt,          0, genJet.phi, 0 );
+  else
+    vec.SetPtEtaPhiM(genJet.pt, genJet.eta, genJet.phi, genJet.mass );
   return vec;
 }
 
