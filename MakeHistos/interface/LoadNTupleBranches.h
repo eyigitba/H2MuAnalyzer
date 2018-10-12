@@ -44,6 +44,7 @@ struct NTupleBranches {
   
   int nVertices = -99;
   int nPU = -99;
+  float LHE_HT = -99;
   int nMuons = -99;
   int nMuPairs = -99;
   int nEles = -99;

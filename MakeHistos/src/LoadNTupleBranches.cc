@@ -47,7 +47,6 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   ch->SetBranchAddress("mht", &(br.mht));
 
   ch->SetBranchAddress("nVertices", &(br.nVertices));
-  ch->SetBranchAddress("nPU", &(br.nPU));
   ch->SetBranchAddress("nMuons", &(br.nMuons));
   ch->SetBranchAddress("nMuPairs", &(br.nMuPairs));
   ch->SetBranchAddress("nEles", &(br.nEles));
@@ -60,6 +59,8 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   ch->SetBranchAddress("nBTight", &(br.nBTight));
 
   if (loadGEN) {
+    ch->SetBranchAddress("nPU", &(br.nPU));
+    ch->SetBranchAddress("LHE_HT", &(br.LHE_HT));
     ch->SetBranchAddress("genParents", &(br.genParents));
     ch->SetBranchAddress("genMuons", &(br.genMuons));
     ch->SetBranchAddress("genMuPairs", &(br.genMuPairs));
