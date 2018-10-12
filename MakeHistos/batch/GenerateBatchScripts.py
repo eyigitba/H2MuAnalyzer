@@ -36,34 +36,30 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Root macro to run from each job
 # MACRO = 'macros/ReadNTupleChain.C'
-MACRO = 'macros/MC_data_comparison.C'
-# MACRO = 'macros/GenRecoPtDiffVsD0.C'
-# MACRO = 'macros/GenRecoPtDiffVsD0VsPt.C'
-# MACRO = 'macros/SignalPeakD0Corr.C'
+# MACRO = 'macros/MC_data_comparison.C'
+MACRO = 'macros/WH_lep_bkg_val.C'
 
-LOC   = 'CERN'  ## Location of input files ('CERN' or 'UF')
-YEAR  = 2017    ## Dataset year (2016 or 2017)
+LOC   = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
+YEAR  = 2016        ## Dataset year (2016 or 2017)
+LUMI  = 36814       ## 36814 for 2016, 41000 for 2017
 
 ## Directory for logs and output root files
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
-#LABEL   = 'Data_Aug18_v7'  ## Unique label for this set of jobs
-#LABEL   = 'GenRecoPtDiffVsD0VsPt_2016_Sep11_v1'  ## Unique label for this set of jobs
-LABEL   = 'VH_toy_2017_v4_v2' ## ntuple v4, plot v1  
+LABEL = 'WH_lep_bkg_val_CERN_08_10_2018_v1'
 
-NJOBS   =    -1  ## Maximum number of jobs to generate
-JOBSIZE =   250  ## Size of input NTuples in MB, per job (default 1000)
+NJOBS   =   -1  ## Maximum number of jobs to generate
+JOBSIZE =  250  ## Size of input NTuples in MB, per job (default 1000)
 
-MAX_EVT = -1    ## Maximum number of events to process per job
-PRT_EVT = 1000  ## Print every Nth event in each job
+MAX_EVT = -1     ## Maximum number of events to process per job
+PRT_EVT = 10000  ## Print every Nth event in each job
 
-DATA_ONLY = True  ## Only process data samples, not MC
+DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
-#SAMP_LIST = ['ZJets_AMC', 'ZJets_MG', 'tt', 'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg']  ## Name of individual samples to process ([] to process multiple samples)
-#SAMP_LIST = ['tt']  #for the test of a bizzare error
-#SAMP_LIST = ['H2Mu_gg'] #gg needs to be run with smaller sized jobs
-SAMP_LIST = [] # for data_only
+SAMP_LIST = []  ## Leave [] empty to process multiple samples
+# SAMP_LIST = ['ZJets_AMC_1j_A']  ## Name of individual samples to process ([] to process multiple samples)
+# SAMP_LIST = ['H2Mu_WH_pos']  ## Name of individual samples to process ([] to process multiple samples)
 
 VERBOSE = False ## Verbose printout
 
@@ -96,7 +92,9 @@ def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list, samp
     sub_files[-1].write('\ncd ${run_dir}')
     sub_files[-1].write('\neval `scramv1 runtime -sh`')
     sub_files[-1].write(run_macro)
-    print 'Wrote file %s' % launcher_name
+    sub_files[-1].close()
+    print 'Wrote file %s' % sub_files[-1].name
+    os.chmod(sub_files[-1].name, 0o777)
 
 ## End function: WriteSingleJob
                       
@@ -177,7 +175,7 @@ def main():
         for ver in eos_ls.communicate()[0].split():
             if 'root' in ver: continue
             if VERBOSE: print '  * Appending [%d, %d]' % ( int(ver.split('_')[0]), int(ver.split('_')[1]) )
-            versions.append([int(ver.split('_')[0]), int(ver.split('_')[1])])
+            versions.append([int(ver.split('_')[0]), int(ver.split('_')[1]), ver])
 
         if len(versions) > 0:
             versions.sort(key = itemgetter(0, 1), reverse=True)  ## Choose the latest crab submission
@@ -186,8 +184,8 @@ def main():
             print 'Looked in %s - maybe it is somewhere else?\n\n' % in_dir_name
             continue
 
-        print 'Chose version %d_%d' % (versions[0][0], versions[0][1])
-        in_dir_name += '/%d_%d' % (versions[0][0], versions[0][1])
+        print 'Chose version %s' % versions[0][2]
+        in_dir_name += '/%s' % versions[0][2]
         
         in_files = [] ## List of input files with their size in MB
         eos_ls = Popen([eos_cmd, 'ls', in_dir_name], stdout=PIPE)
@@ -214,7 +212,8 @@ def main():
 
         job_size  = 0.  ## Size of jobs in each input file in MB
         job_files = []  ## Files submitted to a single job 
-	samp_wgt = GetNormForSample(subs_file, samp.name, samp.xsec, in_dir_name, in_files) # all files used in that sample, not only for this job
+        ## Get XSec / nProcessed for all files used in the sample, not only for this job
+	samp_wgt = GetNormForSample(subs_file, samp.name, samp.xsec, LUMI, in_dir_name, in_files)
         for iFile in range(len(in_files)):
             if (len(sub_files) >= NJOBS - 1 and NJOBS > 0):
                 break
@@ -243,9 +242,7 @@ def main():
     print 'Wrote %s' % subs_file.name
     os.chmod(subs_file.name, 0o777) ## Render submit_all.sh executable
     for sub_file in sub_files:
-        sub_file.close()
         print sub_file.name
-        os.chmod(sub_file.name, 0o777)
 
         
 ## End function: main()
