@@ -2,6 +2,9 @@
 //////////////////////////////////////////////
 ///   Macro to study WH, W-->lv category   ///
 ///                                        ///
+/// Specifically, how to correctly choose  ///
+///    2 muons coming from Higgs decay     ///
+///                                        ///
 ///     Andrew Brinkerhoff  25.09.2018     ///
 //////////////////////////////////////////////
 
@@ -26,7 +29,7 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
 const int MIN_FILE = 1;     // Minimum index of input files to process
 const int MAX_FILE = 1;     // Maximum index of input files to process
-const int MAX_EVT  = -1;    // Maximum number of events to process
+const int MAX_EVT  = 10000; // Maximum number of events to process
 const int PRT_EVT  = 1000;  // Print every N events
 const float SAMP_WGT = 1.0;
 const bool verbose = false; // Print extra information
@@ -41,9 +44,9 @@ const std::vector<std::string> OPT_CUTS = {"NONE"}; // Multiple selection cuts, 
 const std::vector<std::string> CAT_CUTS = {"NONE", "3GenMu"}; // Event selection categories, also applied in parallel
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
-void WH_lep_AWB( TString sample = "", TString in_dir = "", TString out_dir = "",
-		 std::vector<TString> in_files = {}, TString out_file_str = "",
-		 int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
+void WH_lep_mu_sig( TString sample = "", TString in_dir = "", TString out_dir = "",
+		    std::vector<TString> in_files = {}, TString out_file_str = "",
+		    int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
 
   // Set variables to hard-coded values if they are not initialized
   if (sample.Length()  == 0) sample  	 = SAMPLE;
@@ -74,7 +77,7 @@ void WH_lep_AWB( TString sample = "", TString in_dir = "", TString out_dir = "",
   }
 
   // Open all input files
-  for (UInt_t i = 0; i < in_file_names.size(); i++) {
+  for (int i = 0; i < in_file_names.size(); i++) {
     if ( !gSystem->AccessPathName(in_file_names.at(i)) )
       file_tmp = TFile::Open( in_file_names.at(i) ); // Check if file exists
     if (!file_tmp) {
@@ -92,11 +95,14 @@ void WH_lep_AWB( TString sample = "", TString in_dir = "", TString out_dir = "",
 
   // Add trees from the input files to the TChain
   TChain * in_chain = new TChain("dimuons/tree");
-  for (UInt_t i = 0; i < in_file_names.size(); i++) {
+  for (int i = 0; i < in_file_names.size(); i++) {
     in_chain->Add( in_file_names.at(i) );
 
     // Set branch addresses, from interface/LoadNTupleBranches.h
-    SetBranchAddresses(*in_chain, br, {YEAR, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
+    if (sample.Contains("SingleMu"))
+      SetBranchAddresses(*in_chain, br, {YEAR}, false); // Options in {} include "JES", "Flags", and "SFs"
+    else
+      SetBranchAddresses(*in_chain, br, {YEAR, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
   // Configuration for object selection, event selection, and object weighting
@@ -110,9 +116,11 @@ void WH_lep_AWB( TString sample = "", TString in_dir = "", TString out_dir = "",
   if (verbose) evt_sel.Print();
   if (verbose) evt_wgt.Print();
 
+  std::string PTC = obj_sel.mu_pt_corr; // Store muon pT correction in a shorter string; not changed later
+
 
   std::cout << "\n******* About to enter the event loop *******" << std::endl;
-  for (UInt_t iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++) {
+  for (int iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++) {
     
     if (iEvt > max_evt && max_evt > 0) break;
     if ( (iEvt % prt_evt) == 0 ) {
@@ -164,7 +172,7 @@ void WH_lep_AWB( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    }
 	    if (not hasWToMu) continue;
 	  }
-	  else if (not InCategory(br, CAT_CUTS.at(iCat), verbose)) continue;
+	  else if (not InCategory(obj_sel, br, CAT_CUTS.at(iCat), verbose)) continue;
 	  
 	  if (verbose) std::cout << "\nPassed cut " << OPT_CUTS.at(iOpt) << ", in category " << CAT_CUTS.at(iCat) << std::endl;
 	  std::string h_pre = (std::string)sample + "_"+OPT_CUTS.at(iOpt)+"_"+CAT_CUTS.at(iCat)+"_";
@@ -222,48 +230,91 @@ void WH_lep_AWB( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  nu_W_vecT   .SetPtEtaPhiM(nu_W_vec.Pt(),    0, nu_W_vec.Phi(),    0);
 
 	  // GEN-level dimuon mass from true Higgs and OS muon pair from Higgs and W
-	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_mass", 100, 0, 500, dimu_H_vec.M(),  event_wgt);
-	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_mass", 100, 0, 500, dimu_W_vec.M(),  event_wgt);
-	  BookAndFill(h_map_1D, h_pre+"GEN_W_munu_mass", 100, 0, 500, munu_W_vec.M(),  event_wgt);
-	  BookAndFill(h_map_1D, h_pre+"GEN_W_munu_MT",   100, 0, 500, (mu_W_vecT + nu_W_vecT).M(), event_wgt);
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_mass", 100, 0, 500, dimu_H_vec.M(),  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_mass", 100, 0, 500, dimu_W_vec.M(),  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_W_munu_mass", 100, 0, 500, munu_W_vec.M(),  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_W_munu_MT",   100, 0, 500, (mu_W_vecT + nu_W_vecT).M(), event_wgt );
 
-	  // GEN-level dimuon pT from true Higgs and OS muon pair from Higgs and W
-	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_pt",  100, 0, 500, dimu_H_vec.Pt(), event_wgt);
-	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_pt", 100, 0, 500, dimu_W_vec.Pt(), event_wgt);
+	  // GEN-level muon and dimuon pT from true Higgs and OS muon pair from Higgs and W
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_SS_mu_pt", 100, 0, 500, mu_H_SS_vec.Pt(), event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_OS_mu_pt", 100, 0, 500, mu_H_OS_vec.Pt(), event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_W_mu_pt",    100, 0, 500, mu_W_vec.Pt(),    event_wgt );
+
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_pt",  100, 0, 500, dimu_H_vec.Pt(),  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_pt",  100, 0, 500, dimu_W_vec.Pt(),  event_wgt );
+
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_SS_minus_W_mu_pt", 100, -250, 250, mu_H_SS_vec.Pt() - mu_W_vec.Pt(),  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_SS_over_W_mu_pt",  100,  0.0, 4.0, mu_H_SS_vec.Pt() / mu_W_vec.Pt(),  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_dimu_pt",  100, -250, 250, dimu_H_vec.Pt() - dimu_W_vec.Pt(), event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_over_W_dimu_pt",   100,  0.0, 4.0, dimu_H_vec.Pt() / dimu_W_vec.Pt(), event_wgt );
 
 	  // GEN-level dimuon dR from true Higgs and OS muon pair from Higgs and W
-	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_dR",  32, 0, 6.4, mu_H_pos_vec.DeltaR(mu_H_neg_vec), event_wgt);
-	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_dR", 32, 0, 6.4, mu_H_OS_vec.DeltaR(mu_W_vec), event_wgt);
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_dR",  32, 0, 6.4, mu_H_pos_vec.DeltaR(mu_H_neg_vec), event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_dR", 32, 0, 6.4, mu_H_OS_vec.DeltaR(mu_W_vec), event_wgt );
 
 	  // GEN-level dimuon dEta from true Higgs and OS muon pair from Higgs and W
-	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_dEta",  50, -5, 5, mu_H_pos_vec.Eta() - mu_H_neg_vec.Eta(), event_wgt);
-	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_dEta", 50, -5, 5, mu_H_OS_vec.Eta() - mu_W_vec.Eta(), event_wgt);
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_dEta",  50, -5, 5, mu_H_pos_vec.Eta() - mu_H_neg_vec.Eta(), event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_dEta", 50, -5, 5, mu_H_OS_vec.Eta() - mu_W_vec.Eta(), event_wgt );
 
 	  // GEN-level dimuon dPhi from true Higgs and OS muon pair from Higgs and W
-	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_dPhi",  32, -3.2, 3.2, mu_H_pos_vec.DeltaPhi(mu_H_neg_vec), event_wgt);
-	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_dPhi", 32, -3.2, 3.2, mu_H_OS_vec.DeltaPhi(mu_W_vec), event_wgt);
-
-	  BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_dimu_pt", 100, -250, 250, dimu_H_vec.Pt() - dimu_W_vec.Pt() );
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_dPhi",  32, -3.2, 3.2, mu_H_pos_vec.DeltaPhi(mu_H_neg_vec), event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_dPhi", 32, -3.2, 3.2, mu_H_OS_vec.DeltaPhi(mu_W_vec), event_wgt );
 
 	  // Transverse mass ("MT") between muon from Higgs or W and MET vector
 	  BookAndFill(h_map_1D, h_pre+"GEN_H_mu_MET_MT", 100, 0, 500, (MET_vec + mu_H_SS_vecT).M() );
 	  BookAndFill(h_map_1D, h_pre+"GEN_W_mu_MET_MT", 100, 0, 500, (MET_vec + mu_W_vecT).M() );
 	  BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_mu_MET_MT", 100, -250, 250, (MET_vec + mu_H_SS_vecT).M() - (MET_vec + mu_W_vecT).M() );
+	  BookAndFill(h_map_1D, h_pre+"GEN_H_over_W_mu_MET_MT",  100,  0.0, 4.0, (MET_vec + mu_H_SS_vecT).M() / (MET_vec + mu_W_vecT).M() );
 
 	  // Plot specific cases where OS dimuon pair from W falls inside Higgs candidate mass window
 	  if (dimu_W_vec.M() > 110 && dimu_W_vec.M() < 150) {
-	    BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_dimu_pt_mass_110_150", 100, -250, 250, dimu_H_vec.Pt() - dimu_W_vec.Pt() );
-	    BookAndFill(h_map_1D, h_pre+"GEN_H_mu_MET_MT_mass_110_150", 100, 0, 500, (MET_vec + mu_H_SS_vecT).M() );
-	    BookAndFill(h_map_1D, h_pre+"GEN_W_mu_MET_MT_mass_110_150", 100, 0, 500, (MET_vec + mu_W_vecT).M() );
-	    BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_mu_MET_MT_mass_110_150", 100, -250, 250, (MET_vec + mu_H_SS_vecT).M() - (MET_vec + mu_W_vecT).M() );
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_SS_mu_pt_mass_110_150",  100, 0, 500, mu_H_SS_vec.Pt(), event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_W_mu_pt_mass_110_150",     100, 0, 500, mu_W_vec.Pt(),    event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_pt_mass_110_150",   100, 0, 500, dimu_H_vec.Pt(),  event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_pt_mass_110_150",   100, 0, 500, dimu_W_vec.Pt(),  event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_mu_MET_MT_mass_110_150", 100, 0, 500, (MET_vec + mu_H_SS_vecT).M(), event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_W_mu_MET_MT_mass_110_150", 100, 0, 500, (MET_vec + mu_W_vecT).M(), event_wgt );
+	    
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_SS_minus_W_mu_pt_mass_110_150_MT_150",  100, -250, 250, mu_H_SS_vec.Pt() - mu_W_vec.Pt(), event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_SS_over_W_mu_pt_mass_110_150_MT_150",   100,  0.0, 4.0, mu_H_SS_vec.Pt() / mu_W_vec.Pt(), event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_dimu_pt_mass_110_150_MT_150",   100, -250, 250, dimu_H_vec.Pt() - dimu_W_vec.Pt(), event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_over_W_dimu_pt_mass_110_150_MT_150",    100,  0.0, 4.0, dimu_H_vec.Pt() / dimu_W_vec.Pt(), event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_mu_MET_MT_mass_110_150_MT_150", 100, -250, 250, (MET_vec + mu_H_SS_vecT).M() - (MET_vec + mu_W_vecT).M(), event_wgt );
+	    BookAndFill(h_map_1D, h_pre+"GEN_H_over_W_mu_MET_MT_mass_110_150_MT_150",  100,  0.0, 4.0, (MET_vec + mu_H_SS_vecT).M() / (MET_vec + mu_W_vecT).M(), event_wgt );
 
-	    // Plot specific cases where MT(muon from Higgs, MET) < 120
-	    if ((MET_vec + mu_H_SS_vecT).M() < 120) {
-	      BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_dimu_pt_mass_110_150_MT_120", 100, -250, 250, dimu_H_vec.Pt() - dimu_W_vec.Pt() );
-	      BookAndFill(h_map_1D, h_pre+"GEN_H_mu_MET_MT_mass_110_150_MT_120", 100, 0, 500, (MET_vec + mu_H_SS_vecT).M() );
-	      BookAndFill(h_map_1D, h_pre+"GEN_W_mu_MET_MT_mass_110_150_MT_120", 100, 0, 500, (MET_vec + mu_W_vecT).M() );
-	      BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_mu_MET_MT_mass_110_150_MT_120", 100, -250, 250, (MET_vec + mu_H_SS_vecT).M() - (MET_vec + mu_W_vecT).M() );
-	    } // End if ((MET_vec + mu_H_SS_vecT).M() < 120)
+	    // Plot specific cases where MT(muon from Higgs, MET) < 150
+	    if ((MET_vec + mu_H_SS_vecT).M() < 150) {
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_SS_mu_pt_mass_110_150_MT_150",  100, 0, 500, mu_H_SS_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_W_mu_pt_mass_110_150_MT_150",     100, 0, 500, mu_W_vec.Pt(),    event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_pt_mass_110_150_MT_150",   100, 0, 500, dimu_H_vec.Pt(),  event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_pt_mass_110_150_MT_150",   100, 0, 500, dimu_W_vec.Pt(),  event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_mu_MET_MT_mass_110_150_MT_150", 100, 0, 500, (MET_vec + mu_H_SS_vecT).M(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_W_mu_MET_MT_mass_110_150_MT_150", 100, 0, 500, (MET_vec + mu_W_vecT).M(), event_wgt );
+
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_SS_minus_W_mu_pt_mass_110_150_MT_150",  100, -250, 250, mu_H_SS_vec.Pt() - mu_W_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_SS_over_W_mu_pt_mass_110_150_MT_150",   100,  0.0, 4.0, mu_H_SS_vec.Pt() / mu_W_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_dimu_pt_mass_110_150_MT_150",   100, -250, 250, dimu_H_vec.Pt() - dimu_W_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_over_W_dimu_pt_mass_110_150_MT_150",    100,  0.0, 4.0, dimu_H_vec.Pt() / dimu_W_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_mu_MET_MT_mass_110_150_MT_150", 100, -250, 250, (MET_vec + mu_H_SS_vecT).M() - (MET_vec + mu_W_vecT).M(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_over_W_mu_MET_MT_mass_110_150_MT_150",  100,  0.0, 4.0, (MET_vec + mu_H_SS_vecT).M() / (MET_vec + mu_W_vecT).M(), event_wgt );
+	    } // End if ((MET_vec + mu_H_SS_vecT).M() < 150)
+
+	    // Plot specific cases where MT(muon from Higgs, MET) < 110
+	    if ((MET_vec + mu_H_SS_vecT).M() < 110) {
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_SS_mu_pt_mass_110_150_MT_110",  100, 0, 500, mu_H_SS_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_W_mu_pt_mass_110_150_MT_110",     100, 0, 500, mu_W_vec.Pt(),    event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_dimu_pt_mass_110_150_MT_110",   100, 0, 500, dimu_H_vec.Pt(),  event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_W_dimu_pt_mass_110_150_MT_110",   100, 0, 500, dimu_W_vec.Pt(),  event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_mu_MET_MT_mass_110_150_MT_110", 100, 0, 500, (MET_vec + mu_H_SS_vecT).M(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_W_mu_MET_MT_mass_110_150_MT_110", 100, 0, 500, (MET_vec + mu_W_vecT).M(), event_wgt );
+
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_SS_minus_W_mu_pt_mass_110_150_MT_110",  100, -250, 250, mu_H_SS_vec.Pt() - mu_W_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_SS_over_W_mu_pt_mass_110_150_MT_110",   100,  0.0, 4.0, mu_H_SS_vec.Pt() / mu_W_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_dimu_pt_mass_110_150_MT_110",   100, -250, 250, dimu_H_vec.Pt() - dimu_W_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_over_W_dimu_pt_mass_110_150_MT_110",    100,  0.0, 4.0, dimu_H_vec.Pt() / dimu_W_vec.Pt(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_minus_W_mu_MET_MT_mass_110_150_MT_110", 100, -250, 250, (MET_vec + mu_H_SS_vecT).M() - (MET_vec + mu_W_vecT).M(), event_wgt );
+	      BookAndFill(h_map_1D, h_pre+"GEN_H_over_W_mu_MET_MT_mass_110_150_MT_110",  100,  0.0, 4.0, (MET_vec + mu_H_SS_vecT).M() / (MET_vec + mu_W_vecT).M(), event_wgt );
+	    } // End if ((MET_vec + mu_H_SS_vecT).M() < 150)
 
 	  } // End if (dimu_W_vec.M() > 110 && dimu_W_vec.M() < 150)
 
@@ -272,7 +323,7 @@ void WH_lep_AWB( TString sample = "", TString in_dir = "", TString out_dir = "",
     } // End conditional: if (pass_sel_cuts)
 
 
-  } // End loop: for (UInt_t iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++)
+  } // End loop: for (int iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++)
   std::cout << "\n******* Leaving the event loop *******" << std::endl;
 
   std::cout << "\n******* normalizing histos, weight =  " << samp_weight << " *******" << std::endl;
@@ -342,6 +393,6 @@ void WH_lep_AWB( TString sample = "", TString in_dir = "", TString out_dir = "",
     } // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
   } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
       
-  std::cout << "\nExiting WH_lep_AWB()\n";
+  std::cout << "\nExiting WH_lep_mu_sig()\n";
   
-} // End void WH_lep_AWB()
+} // End void WH_lep_mu_sig()
