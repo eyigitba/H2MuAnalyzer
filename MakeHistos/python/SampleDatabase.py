@@ -108,7 +108,7 @@ def GetSamples(location = 'CERN', year = '2017'):
     
     ## H2Mu_ttH
     if (year == 2017):
-        samples.append( SampleInfo('H2Mu_ttH', 'ttH_HToMuMu_M125_13TeV_powheg_pythia8', 0.00011, year, in_dir, 'Sig') )## 507.1 fb from LHC handbook, to be confirmed - XWZ 26.09.2018
+        samples.append( SampleInfo('H2Mu_ttH', 'ttH_HToMuMu_M125_13TeV_powheg_pythia8', 0.0001103, year, in_dir, 'Sig') )## 507.1 fb from LHC handbook, to be confirmed - XWZ 26.09.2018
 
     
     ####################
@@ -148,7 +148,7 @@ def GetSamples(location = 'CERN', year = '2017'):
     samples.append( SampleInfo('tt_ll_AMC', 'TTJets_Dilept_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8', 85.656 * 0.9, year, in_dir, 'Bkg') )
     samples.append( SampleInfo('tt_ll_MG',  'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',    85.656,       year, in_dir, 'Bkg') )
     if (year == 2017):
-        samples.append( SampleInfo('tt', 'TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8', 815.96, year, in_dir, 'Bkg') ) ## was -999, number taken from xunwu's other code. why so different from L149?   - XWZ 17.09.2018
+        samples.append( SampleInfo('tt', 'TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8', 815.96, year, in_dir, 'Bkg') ) ## agree with 85.656  - XWZ 28.09.2018
 
     ## SingleTop
     if (year == 2016): tZq_DAS = 'tZq_ll_4f_13TeV-amcatnlo-pythia8'
@@ -170,9 +170,9 @@ def GetSamples(location = 'CERN', year = '2017'):
         samples.append( SampleInfo('ttW_1', 'TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', 0.2043, year, in_dir, 'Bkg') )
         samples.append( SampleInfo('ttW_2', 'TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', 0.2043, year, in_dir, 'Bkg') )
     if (year == 2017):
-        samples.append( SampleInfo('ttW',   'ttWJets_TuneCP5_13TeV_madgraphMLM_pythia8',                      -999, year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('ttW',   'ttWJets_TuneCP5_13TeV_madgraphMLM_pythia8',                    0.6244, year, in_dir, 'Bkg') )# persumably ttWJetsToLNu divided by W to LNu?   
     samples.append(     SampleInfo('ttZ',   ttZ_DAS,                                                        0.2529, year, in_dir, 'Bkg') )
-    samples.append(     SampleInfo('ttH',   'ttHToNonbb_M125'+ttH_tune+'13TeV-powheg-pythia8',              0.2151, year, in_dir, 'Bkg') )
+    samples.append(     SampleInfo('ttH',   'ttHToNonbb_M125'+ttH_tune+'13TeV-powheg-pythia8',              0.2151, year, in_dir, 'Bkg') )# ttH times H to non bb BR
 
     ## Diboson
     if (year == 2016): WW_DAS = 'WWTo2L2Nu_13TeV-powheg'
@@ -192,10 +192,10 @@ def GetSamples(location = 'CERN', year = '2017'):
     if (year == 2016): WWZ_str = 'WWZ'
     if (year == 2017): WWZ_str = 'WWZ_4F'
 
-    samples.append( SampleInfo('WWW', 'WWW_4F'+py_tune+'13TeV-amcatnlo-pythia8', -999, year, in_dir, 'Bkg') )
-    samples.append( SampleInfo('WWZ', WWZ_str+py_tune+'13TeV-amcatnlo-pythia8',  -999, year, in_dir, 'Bkg') )
-    samples.append( SampleInfo('WZZ', 'WZZ'+py_tune+'13TeV-amcatnlo-pythia8',    -999, year, in_dir, 'Bkg') )
-    samples.append( SampleInfo('ZZZ', 'ZZZ'+py_tune+'13TeV-amcatnlo-pythia8',    -999, year, in_dir, 'Bkg') )
+    samples.append( SampleInfo('WWW', 'WWW_4F'+py_tune+'13TeV-amcatnlo-pythia8', 0.2086, year, in_dir, 'Bkg') )#2016 AN, but not same TUNE
+    samples.append( SampleInfo('WWZ', WWZ_str+py_tune+'13TeV-amcatnlo-pythia8',  0.1651, year, in_dir, 'Bkg') )#2016 AN, but not same TUNE
+    samples.append( SampleInfo('WZZ', 'WZZ'+py_tune+'13TeV-amcatnlo-pythia8',    0.05565, year, in_dir, 'Bkg') )#2016 AN, but not same TUNE
+    samples.append( SampleInfo('ZZZ', 'ZZZ'+py_tune+'13TeV-amcatnlo-pythia8',    0.01398, year, in_dir, 'Bkg') )#2016 AN, but not same TUNE
 
     return samples
 
