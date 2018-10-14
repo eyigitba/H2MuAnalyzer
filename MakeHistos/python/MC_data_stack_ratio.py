@@ -14,10 +14,10 @@ def ratioplot( direc, term, sig_stack, all_stack, h_data, ratio_graph, legend ):
     upper_pad.Draw()
     upper_pad.cd()
     upper_pad.SetLogy()
-    all_stack.SetMinimum(1e-5)
-    all_stack.SetMaximum(1e6)
-#    all_stack.SetMinimum(1e-3)
-#    all_stack.SetMaximum(1e10)
+#    all_stack.SetMinimum(1e-5)
+#    all_stack.SetMaximum(1e6)
+    all_stack.SetMinimum(1e-3)
+    all_stack.SetMaximum(1e10)
     all_stack.Draw("HIST")
     h_data.SetMarkerStyle(20)
     h_data.Draw("SAME")
@@ -31,10 +31,10 @@ def ratioplot( direc, term, sig_stack, all_stack, h_data, ratio_graph, legend ):
     lower_pad.SetGridy()
     lower_pad.Draw()
     lower_pad.cd()
-#    ratio_graph.SetMinimum(0.6)
-#    ratio_graph.SetMaximum(1.7)
-    ratio_graph.SetMinimum(0.5)
-    ratio_graph.SetMaximum(2.5)
+    ratio_graph.SetMinimum(0.6)
+    ratio_graph.SetMaximum(1.7)
+#    ratio_graph.SetMinimum(0.5)
+#    ratio_graph.SetMaximum(2.5)
     
     ratio_graph.GetXaxis().SetRangeUser( h_data.GetXaxis().GetXmin(), h_data.GetXaxis().GetXmax() )
     ratio_graph.SetMarkerStyle(20)
@@ -49,23 +49,37 @@ def ratioplot( direc, term, sig_stack, all_stack, h_data, ratio_graph, legend ):
 
     canv.Update()
     canv.Write()
-    canv.SaveAs("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_toy_2017_v4_v7/files/sum" + "/plots_WHlep" + "/ratio_" + term + ".png")
+    canv.SaveAs("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_toy_2017_v4_v9/files/sum" + "/plots_none" + "/ratio_" + term + ".png")
 
+
+def count_event(histos, term, samples):
+    print "counting events in plot " + term
+    sum_num = 0
+    for sample in samples:
+	print sample + "\t %6.3f" %histos[term][sample].Integral()
+        sum_num += histos[term][sample].Integral()
+    print "sum" + "\t %6.3f \n" %sum_num
+
+ 
 
 def main():
 
-    file_dir="/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_toy_2017_v4_v7/files/sum"
-    out_file = TFile( file_dir + "/WHlep_stack" + ".root", "RECREATE")
-    in_file = TFile.Open( file_dir + "/all_WHlep.root", "READ")
+    file_dir="/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_toy_2017_v4_v9/files/sum"
+    out_file = TFile( file_dir + "/none_stack" + ".root", "RECREATE")
+    in_file = TFile.Open( file_dir + "/all_none.root", "READ")
 
-    terms = ["dimuon_mass", "dimuon_pt","dimuon_eta", "dimuon_delta_eta", "dimuon_delta_phi",
+    terms = ["dimuon_mass", "dimuon_pt","dimuon_eta", "dimuon_delta_eta", "dimuon_delta_phi", "dimuon_dR",
 	     "leading_muon_pt", "leading_muon_eta", "subleading_muon_pt", "subleading_muon_eta",
-	     "dijet_mass", "dijet_pt", "dijet_eta", "dijet_delta_eta", "dijet_delta_phi",
+	     "dimuon_d0_diff", "leading_muon_d0", "subleading_muon_d0",
+	     "dijet_mass_1000", "dijet_mass_200", "dijet_pt_800", "dijet_pt_200",
+	     "dijet_eta", "dijet_delta_eta", "dijet_delta_phi", "dijet_dR",
 	     "leading_jet_pt", "leading_jet_eta", "subleading_jet_pt", "subleading_jet_eta",
-	     "MET", "nJets", "nBJets", "nVertices", "nElectrons",  "nMuons"]
+	     "MET", "mht_pt", "nJets", "nBJets", "nVertices", "nElectrons",  "nMuons"]
     signals = ["H2Mu_ttH", "H2Mu_WH_neg", "H2Mu_WH_pos", "H2Mu_ZH", "H2Mu_VBF", "H2Mu_gg"]
-    bkgs = ["diboson", "tt", "ZJets_AMC"]
-    diboson = ['WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l']
+    bkgs = ["triboson", "tX", "diboson", "tt", "ZJets_AMC"]
+    triboson = ['WWW', 'WWZ', 'WZZ', 'ZZZ']
+    tX = ['tZq', 'ttW','ttZ']  # 'ttH'
+    diboson = [ 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l']  # 'WW'
     data = ["SingleMu_2017B", "SingleMu_2017C", "SingleMu_2017D", "SingleMu_2017E", "SingleMu_2017F"]
     samples = signals + bkgs + data
 
@@ -80,6 +94,8 @@ def main():
     color["ZJets_AMC"] =  kAzure + 7
     color["tt"] =       kGreen - 9
     color["diboson"] =  kCyan - 7
+    color["tX"] = kYellow - 9
+    color["triboson"] = kViolet - 9
 #    color[] =
 
     directories = {}
@@ -101,7 +117,7 @@ def main():
 	histos[term]["diboson"] = None
 	for sample in diboson:
 	    if histos[term]["diboson"] is None:
-		print "copying first diboson  " + term
+		print "copying first diboson  " + sample + term 
 		if not in_file.GetListOfKeys().Contains(sample + "_" + term) :
 			print sample + "_" + term + "\n"
 		
@@ -110,15 +126,46 @@ def main():
 	    else:
 		histos[term]["diboson"].Add( in_file.Get(sample+ "_" +term) )
 
+	histos[term]["triboson"] = None
+	for sample in triboson:
+            if histos[term]["triboson"] is None:
+                print "copying first triboson  " + sample + term
+                if not in_file.GetListOfKeys().Contains(sample + "_" + term) :
+                        print sample + "_" + term + "\n"
+
+                histos[term]["triboson"] = in_file.Get(sample+ "_" +term).Clone()
+                histos[term]["triboson"].SetName(sample+ "_" + "triboson")
+            else:
+                histos[term]["triboson"].Add( in_file.Get(sample+ "_" +term) )
+
+	histos[term]["tX"] = None
+        for sample in tX:
+            if histos[term]["tX"] is None:
+                print "copying first tX  " + term
+                if not in_file.GetListOfKeys().Contains(sample + "_" + term) :
+                        print sample + "_" + term + "\n"
+            
+                histos[term]["tX"] = in_file.Get(sample+ "_" +term).Clone()
+                histos[term]["tX"].SetName(sample+ "_" + "tX")
+            else:
+                histos[term]["tX"].Add( in_file.Get(sample+ "_" +term) )
+
     for sample in samples:
 	for term in terms:
 	    if not in_file.GetListOfKeys().Contains(sample + "_" + term) :
 		print sample 
 		print term + "\n\n"
-#		histos[term][sample] = TH1F()
-#		histos[term][sample].SetName(sample + "_" + term)
 	    else:
 	        histos[term][sample] = in_file.Get(sample+ "_" +term).Clone()
+
+    if "none" not in in_file.GetName():
+      for term in terms:
+	for sample in samples:
+	    if histos[term][sample].GetNbinsX() == 50:   histos[term][sample].Rebin(2)
+
+
+    count_event(histos, "dimuon_mass", signals)
+    count_event(histos, "dimuon_mass", bkgs)
 
     out_file.cd()
     for term in terms:
@@ -149,11 +196,6 @@ def main():
         for sample in bkgs + signals:
             legend[term].AddEntry(histos[term][sample], sample )
 	ratioplot( directories[term], term, stack_sig[term], stack_all[term], histos[term]["data"], ratios[term], legend[term])
-
-
-#	canvas["ratio_"+term].SaveAs("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/MC_data_comparison_2017_v4_v4/files/sum/plots/ratio"+term+".png")
-
-
 
 
     out_file.Close()

@@ -40,7 +40,7 @@ YEAR  = 2017    ## Dataset year (2016 or 2017)
 OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'  ## Directory for logs and output root files
 #LABEL   = 'Data_Aug18_v7'  ## Unique label for this set of jobs
 #LABEL   = 'GenRecoPtDiffVsD0VsPt_2016_Sep11_v1'  ## Unique label for this set of jobs
-LABEL   = 'VH_toy_2017_v4_v7' ## ntuple v4, plot v1  
+LABEL   = 'WH_cat_2017_v4_v4' ## ntuple v4, plot v1  
 
 NJOBS   =    -1  ## Maximum number of jobs to generate
 JOBSIZE =   100  ## Size of input NTuples in MB, per job (default 1000)
@@ -48,15 +48,17 @@ JOBSIZE =   100  ## Size of input NTuples in MB, per job (default 1000)
 MAX_EVT = -1    ## Maximum number of events to process per job
 PRT_EVT = 1000  ## Print every Nth event in each job
 
-DATA_ONLY = False  ## Only process data samples, not MC
+DATA_ONLY = True  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
-SAMP_LIST = ['ZJets_AMC', 'tt',  
-	     'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # some diboson sample that are ready  --XWZ 25.09.2018
-	     'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## Name of individual samples to process ([] to process multiple samples)
+#SAMP_LIST = ['ZJets_AMC', 'tt',              # missing single top  --XWZ 28.09.2018
+#	     'tZq', 'ttW','ttZ','ttH'        # tx and ttX, so far only tZq for tx, missing 'tW', 'tZW' -XWZ 27.09.2018
+#	     'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # diboson samples, missing 'WZ_2l' and 'ZZ_2l_2q'  --XWZ 27.09.2018
+#	     'WWW', 'WWZ', 'WZZ', 'ZZZ',     # triboson, all the samples at hand included   - XWZ 27.09.2018
+#	     'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## Name of individual samples to process ([] to process multiple samples)
 #SAMP_LIST = ['tt']  #for the test of a bizzare error
 #SAMP_LIST = ['H2Mu_gg'] #gg needs to be run with smaller sized jobs
-#SAMP_LIST = [] # for data_only
+SAMP_LIST = [] # for data_only
 
 VERBOSE = False ## Verbose printout
 

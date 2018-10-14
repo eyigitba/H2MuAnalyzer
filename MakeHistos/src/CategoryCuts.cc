@@ -34,8 +34,8 @@ bool InCategory(NTupleBranches & br, std::string sel, bool verbose) {
     } // End loop for (int i = 0; i < nMuPairs; i++)
   } // End if (sel.compare("Mu1Neg") == 0)
 
-  else if (sel.compare("WHlep") == 0) {  // real toy category, needs more study on cuts
-    if (verbose) std::cout << "  * Applying WHlep cuts" << std::endl;
+  else if (sel.compare("WHlepM") == 0) {  // real toy category, needs more study on cuts
+    if (verbose) std::cout << "  * Applying WHlepM cuts" << std::endl;
     
     if (br.nBTight == 0 and (br.met)->pt > 20) {
       if (br.nMuons == 3) {
@@ -44,11 +44,18 @@ bool InCategory(NTupleBranches & br, std::string sel, bool verbose) {
 	  if ( !MuonPass(br.muons->at(i),20) or abs(br.muons->at(i).d0_PV)>0.02 ) pass = false;
  	}
       }//end if (br.nMuons == 3)
-      if (br.nMuons == 2 and br.nEles == 1) {
-	if (br.eles->at(0).pt > 20 and abs(br.eles->at(0).d0_PV)<0.02 ) pass = true;
-      }
     }//end if (br.nBTight == 0 and (br.met)->pt > 30)
   }//end if (sel.compare("WHlep") == 0)
+
+  else if (sel.compare("WHlepE") == 0) {
+    if (verbose) std::cout << "  * Applying WHlepE cuts" << std::endl;
+    if (br.nBTight == 0 and (br.met)->pt > 20) {
+      if (br.nMuons == 2 and br.nEles == 1) {
+        if (br.eles->at(0).pt > 20 and abs(br.eles->at(0).d0_PV)<0.02 ) pass = true;
+      }
+    }//end if (br.nBTight == 0 and (br.met)->pt > 20)
+  }//end if (sel.compare("WHlepE") == 0)
+
 
   else if (sel.compare("WHhad2J") == 0) {
     if (verbose) std::cout << "  * Applying WHhad2J cuts" << std::endl;
@@ -56,7 +63,7 @@ bool InCategory(NTupleBranches & br, std::string sel, bool verbose) {
     if (not InCategory(br, "WHlep", verbose) and br.nMuons == 2 and br.nBTight == 0 ) {
 	for (int i = 0; i < br.nJetPairs; i++) {
 	  JetPairInfo & dijet = br.jetPairs->at(i);
-	  if ( DijetPass(br, dijet) and abs(dijet.mass-80)<20 and abs(dijet.eta)<4 and dijet.dR<4 ) pass = true;
+	  if ( DijetPass(br, dijet) and abs(dijet.mass-80)<20 and abs(dijet.eta)<4 and dijet.dR<3 ) pass = true;
 	}//end for (int i = 0; i < br.nJetPairs; i++)
     }
   }//end if (sel.compare("WHhad2J") == 0) 
