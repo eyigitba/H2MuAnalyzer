@@ -8,6 +8,8 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   TChain * ch = (&ch_);
 
   // Configure special options
+  bool is2016    = false;
+  bool is2017    = false;
   bool loadGEN   = false;
   bool loadJES   = false;
   bool loadFlags = false;
@@ -16,14 +18,19 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
 
   for (uint i = 0; i < opts.size(); i++) {
     if (verbose) std::cout << "  * Using option " << opts.at(i) << std::endl;
-    if (opts.at(i).compare("GEN")   == 0) loadGEN   = true;
-    if (opts.at(i).compare("JES")   == 0) loadJES   = true;
-    if (opts.at(i).compare("Flags") == 0) loadFlags = true;
-    if (opts.at(i).compare("Effs")   == 0) loadEffs   = true;  // in 180802 tuples, SF are not stored in eff,  Xunwu Zuo 02.09.2018
-    if (opts.at(i).compare("Wgts")  == 0) loadWgts  = true;
+    if (opts.at(i) == "2016")  is2016    = true;
+    if (opts.at(i) == "2017")  is2017    = true;
+    if (opts.at(i) == "GEN")   loadGEN   = true;
+    if (opts.at(i) == "JES")   loadJES   = true;
+    if (opts.at(i) == "Flags") loadFlags = true;
+    if (opts.at(i) == "Effs")  loadEffs  = true;
+    if (opts.at(i) == "Wgts")  loadWgts  = true;
   }
 
-  if (verbose) std::cout << "loadGen = " << loadGEN << ", loadJES = " << loadJES
+  assert(is2016 || is2017);
+
+  if (verbose) std::cout << "is2016 = " << is2016 << ", is2017 = " << is2017
+			 << ", loadGen = " << loadGEN << ", loadJES = " << loadJES
 			 << ", loadFlags = " << loadFlags << ", loadEffs = " << loadEffs 
 			 << ", loadWgts = " << loadWgts << std::endl;
 
@@ -33,13 +40,13 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   ch->SetBranchAddress("muons", &(br.muons));
   ch->SetBranchAddress("muPairs", &(br.muPairs));
   ch->SetBranchAddress("eles", &(br.eles));
-  ch->SetBranchAddress("jets", &(br.jets));
+  if (is2016) ch->SetBranchAddress("jets", &(br.slimJets));
+  if (is2017) ch->SetBranchAddress("jets", &(br.jets));
   ch->SetBranchAddress("jetPairs", &(br.jetPairs));
   ch->SetBranchAddress("met", &(br.met));
   ch->SetBranchAddress("mht", &(br.mht));
 
   ch->SetBranchAddress("nVertices", &(br.nVertices));
-  ch->SetBranchAddress("nPU", &(br.nPU));
   ch->SetBranchAddress("nMuons", &(br.nMuons));
   ch->SetBranchAddress("nMuPairs", &(br.nMuPairs));
   ch->SetBranchAddress("nEles", &(br.nEles));
@@ -52,23 +59,27 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   ch->SetBranchAddress("nBTight", &(br.nBTight));
 
   if (loadGEN) {
+    ch->SetBranchAddress("nPU", &(br.nPU));
+    ch->SetBranchAddress("LHE_HT", &(br.LHE_HT));
     ch->SetBranchAddress("genParents", &(br.genParents));
     ch->SetBranchAddress("genMuons", &(br.genMuons));
     ch->SetBranchAddress("genMuPairs", &(br.genMuPairs));
-    ch->SetBranchAddress("genJets", &(br.genJets));
+    if (is2017) ch->SetBranchAddress("genJets", &(br.genJets));
 
     ch->SetBranchAddress("nGenParents", &(br.nGenParents));
     ch->SetBranchAddress("nGenMuons", &(br.nGenMuons));
     ch->SetBranchAddress("nGenMuPairs", &(br.nGenMuPairs));
-    ch->SetBranchAddress("nGenJets", &(br.nGenJets));
+    if (is2017) ch->SetBranchAddress("nGenJets", &(br.nGenJets));
   }
 
   // ch->SetBranchAddress("hltPaths", &(br.hltPaths));  // Causes error messages after exiting code, for some reason - AWB 15.08.2018
   // ch->SetBranchAddress("btagName", &(br.btagName));  // Causes segfault, for some reason - AWB 15.08.2018
 
   if (loadJES) {
-    ch->SetBranchAddress("jets_JES_up", &(br.jets_JES_up));
-    ch->SetBranchAddress("jets_JES_down", &(br.jets_JES_down));
+    if (is2016) ch->SetBranchAddress("jets_JES_up", &(br.slimJets_JES_up));
+    if (is2016) ch->SetBranchAddress("jets_JES_down", &(br.slimJets_JES_down));
+    if (is2017) ch->SetBranchAddress("jets_JES_up", &(br.jets_JES_up));
+    if (is2017) ch->SetBranchAddress("jets_JES_down", &(br.jets_JES_down));
     ch->SetBranchAddress("jetPairs_JES_up", &(br.jetPairs_JES_up));
     // ch->SetBranchAddress("jetPairs_JES_down", &(br.jetPairs_JES_down));  // Causes segfault, for some reason - AWB 15.08.2018
     ch->SetBranchAddress("met_JES_up", &(br.met_JES_up));
@@ -114,15 +125,30 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("MuID_eff_3", &(br.MuID_eff_3));
     ch->SetBranchAddress("MuID_eff_3_up", &(br.MuID_eff_3_up));
     ch->SetBranchAddress("MuID_eff_3_down", &(br.MuID_eff_3_down));
-    ch->SetBranchAddress("MuID_eff_4", &(br.MuID_eff_4));
-    ch->SetBranchAddress("MuID_eff_4_up", &(br.MuID_eff_4_up));
-    ch->SetBranchAddress("MuID_eff_4_down", &(br.MuID_eff_4_down));
     ch->SetBranchAddress("MuIso_eff_3", &(br.MuIso_eff_3));
     ch->SetBranchAddress("MuIso_eff_3_up", &(br.MuIso_eff_3_up));
     ch->SetBranchAddress("MuIso_eff_3_down", &(br.MuIso_eff_3_down));
+
+    if (is2016) {
+      ch->SetBranchAddress("IsoMu_eff_4", &(br.IsoMu_eff_4));
+      ch->SetBranchAddress("IsoMu_eff_4_up", &(br.IsoMu_eff_4_up));
+      ch->SetBranchAddress("IsoMu_eff_4_down", &(br.IsoMu_eff_4_down));
+      ch->SetBranchAddress("MuID_eff_4", &(br.MuID_eff_4));
+      ch->SetBranchAddress("MuID_eff_4_up", &(br.MuID_eff_4_up));
+      ch->SetBranchAddress("MuID_eff_4_down", &(br.MuID_eff_4_down));
+      ch->SetBranchAddress("MuIso_eff_4", &(br.MuIso_eff_4));
+      ch->SetBranchAddress("MuIso_eff_4_up", &(br.MuIso_eff_4_up));
+      ch->SetBranchAddress("MuIso_eff_4_down", &(br.MuIso_eff_4_down));
+    }
+
   }
 
   if (loadWgts) {
+
+    ch->SetBranchAddress("PU_wgt", &(br.PU_wgt));
+    ch->SetBranchAddress("PU_wgt_up", &(br.PU_wgt_up));
+    ch->SetBranchAddress("PU_wgt_down", &(br.PU_wgt_down));
+    ch->SetBranchAddress("GEN_wgt", &(br.GEN_wgt));
  
     ch->SetBranchAddress("IsoMu_SF_3", &(br.IsoMu_SF_3));
     ch->SetBranchAddress("IsoMu_SF_3_up", &(br.IsoMu_SF_3_up));
@@ -133,16 +159,21 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("MuID_SF_3", &(br.MuID_SF_3));
     ch->SetBranchAddress("MuID_SF_3_up", &(br.MuID_SF_3_up));
     ch->SetBranchAddress("MuID_SF_3_down", &(br.MuID_SF_3_down));
-    ch->SetBranchAddress("MuID_SF_4", &(br.MuID_SF_4));
-    ch->SetBranchAddress("MuID_SF_4_up", &(br.MuID_SF_4_up));
-    ch->SetBranchAddress("MuID_SF_4_down", &(br.MuID_SF_4_down));
     ch->SetBranchAddress("MuIso_SF_3", &(br.MuIso_SF_3));
     ch->SetBranchAddress("MuIso_SF_3_up", &(br.MuIso_SF_3_up));
     ch->SetBranchAddress("MuIso_SF_3_down", &(br.MuIso_SF_3_down));
-    ch->SetBranchAddress("PU_wgt", &(br.PU_wgt));
-    ch->SetBranchAddress("PU_wgt_up", &(br.PU_wgt_up));
-    ch->SetBranchAddress("PU_wgt_down", &(br.PU_wgt_down));
-    ch->SetBranchAddress("GEN_wgt", &(br.GEN_wgt));
+
+    if (is2016) {
+      ch->SetBranchAddress("IsoMu_SF_4", &(br.IsoMu_SF_4));
+      ch->SetBranchAddress("IsoMu_SF_4_up", &(br.IsoMu_SF_4_up));
+      ch->SetBranchAddress("IsoMu_SF_4_down", &(br.IsoMu_SF_4_down));
+      ch->SetBranchAddress("MuID_SF_4", &(br.MuID_SF_4));
+      ch->SetBranchAddress("MuID_SF_4_up", &(br.MuID_SF_4_up));
+      ch->SetBranchAddress("MuID_SF_4_down", &(br.MuID_SF_4_down));
+      ch->SetBranchAddress("MuIso_SF_4", &(br.MuIso_SF_4));
+      ch->SetBranchAddress("MuIso_SF_4_up", &(br.MuIso_SF_4_up));
+      ch->SetBranchAddress("MuIso_SF_4_down", &(br.MuIso_SF_4_down));
+    }
 
   }
 
@@ -150,3 +181,27 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
 
 } // End function: void SetBranchAddresses(TChain * ch)
 
+
+// Convert "slim jet" collection (used in 2016) into regular jet collection
+JetInfos ConvertSlimJets(SlimJetInfos & _slimJets) {
+
+  JetInfos _jets;
+  for (const auto & _slimJet : _slimJets) {
+    JetInfo _jet;
+    _jet.pt        = _slimJet.pt;
+    _jet.eta       = _slimJet.eta;
+    _jet.phi       = _slimJet.phi;
+    _jet.mass      = _slimJet.mass;
+    _jet.partonID  = _slimJet.partonID;
+
+    _jet.jecFactor  = _slimJet.jecFactor;
+    _jet.jecUnc     = _slimJet.jecUnc;
+
+    _jet.CSV   = _slimJet.CSV;
+    _jet.puID  = _slimJet.puID;
+    
+    _jets.push_back(_jet);
+  } // End loop: for (const auto & _slimJet : _slimJets)
+
+  return _jets;
+} // End function: JetInfos ConvertSlimJets()

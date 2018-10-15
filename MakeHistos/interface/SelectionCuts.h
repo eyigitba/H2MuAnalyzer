@@ -1,4 +1,3 @@
-
 #ifndef SELECTION_CUTS
 #define SELECTION_CUTS
 

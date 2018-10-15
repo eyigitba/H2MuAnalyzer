@@ -2,11 +2,25 @@
 ###    make stack and ratio from added histos    ###
 ####################################################
 
+## Basic python includes for manipulating files
+import os
+
 from ROOT import *
 
-def ratioplot( direc, term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do not use TRatioPlot! It is a devil!    -XWZ 19.09.2018
-#    direc.cd()
-    canv = TCanvas("ratio_"+term, "ratio_"+term, 600, 600)
+## Configure the script user
+if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
+if 'bortigno' in os.getcwd(): USER = 'bortigno'
+if 'xzuo'     in os.getcwd(): USER = 'xzuo'
+
+## Directory for input histograms and output plots
+if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
+if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
+
+LABEL = 'MC_data_comparison_2017_v4_v7'  ## Sub-folder within PLOT_DIR containing histograms
+
+
+def ratioplot( term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do not use TRatioPlot! It is a devil!    -XWZ 19.09.2018
+    canv = TCanvas("ratio_"+term, "ratio_"+term, 600,600)
     canv.Clear()
     
     upper_pad = TPad("upperpad_"+term, "upperpad_"+term, 0,0.2, 1,1)
@@ -49,8 +63,7 @@ def ratioplot( direc, term, sig_stack, all_stack, h_data, ratio_graph, legend ):
 
     canv.Update()
     canv.Write()
-    canv.SaveAs("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_toy_2017_v4_v9/files/sum" + "/plots_none" + "/ratio_" + term + ".png")
-
+    canv.SaveAs(PLOT_DIR+"/"+LABEL+"/files/sum" + "/plots_none" + "/ratio_" + term + ".png")
 
 def count_event(histos, term, samples):
     print "counting events in plot " + term
@@ -59,12 +72,11 @@ def count_event(histos, term, samples):
 	print sample + "\t %6.3f" %histos[term][sample].Integral()
         sum_num += histos[term][sample].Integral()
     print "sum" + "\t %6.3f \n" %sum_num
-
  
 
 def main():
 
-    file_dir="/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_toy_2017_v4_v9/files/sum"
+    file_dir=PLOT_DIR+"/"+LABEL+"/files/sum"
     out_file = TFile( file_dir + "/none_stack" + ".root", "RECREATE")
     in_file = TFile.Open( file_dir + "/all_none.root", "READ")
 
@@ -195,7 +207,7 @@ def main():
         legend[term].AddEntry(histos[term]["signal"], "signal sum")
         for sample in bkgs + signals:
             legend[term].AddEntry(histos[term][sample], sample )
-	ratioplot( directories[term], term, stack_sig[term], stack_all[term], histos[term]["data"], ratios[term], legend[term])
+	ratioplot( term, stack_sig[term], stack_all[term], histos[term]["data"], ratios[term], legend[term])
 
 
     out_file.Close()
