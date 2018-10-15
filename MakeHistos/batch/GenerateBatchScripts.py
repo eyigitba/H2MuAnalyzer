@@ -46,10 +46,11 @@ LUMI  = 36814       ## 36814 for 2016, 41000 for 2017
 ## Directory for logs and output root files
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
-LABEL = 'WH_lep_bkg_val_CERN_08_10_2018_v1'
+LABEL = 'WH_lep_bkg_val_CERN_15_10_2018_v1'
+#LABEL   = 'WH_cat_2017_v4_v4' 
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
-JOBSIZE =  250  ## Size of input NTuples in MB, per job (default 1000)
+JOBSIZE =  100  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
 PRT_EVT = 10000  ## Print every Nth event in each job
@@ -58,6 +59,11 @@ DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
 SAMP_LIST = []  ## Leave [] empty to process multiple samples
+#SAMP_LIST = ['ZJets_AMC', 'tt',              # missing single top  --XWZ 28.09.2018
+#            'tZq', 'ttW','ttZ','ttH'        # tx and ttX, so far only tZq for tx, missing 'tW', 'tZW' -XWZ 27.09.2018
+#            'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # diboson samples, missing 'WZ_2l' and 'ZZ_2l_2q'  --XWZ 27.09.2018
+#            'WWW', 'WWZ', 'WZZ', 'ZZZ',     # triboson, all the samples at hand included   - XWZ 27.09.2018
+#            'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## for keeping track of what is used
 # SAMP_LIST = ['ZJets_AMC_1j_A']  ## Name of individual samples to process ([] to process multiple samples)
 # SAMP_LIST = ['H2Mu_WH_pos']  ## Name of individual samples to process ([] to process multiple samples)
 
@@ -178,15 +184,20 @@ def main():
             versions.append([int(ver.split('_')[0]), int(ver.split('_')[1]), ver])
 
         if len(versions) > 0:
+	    print versions
+	    print "\n"
             versions.sort(key = itemgetter(0, 1), reverse=True)  ## Choose the latest crab submission
         else:
             print '\n\nWARNING!!!  No crab output found for sample %s, from DAS %s' % (samp.name, samp.DAS_name)
             print 'Looked in %s - maybe it is somewhere else?\n\n' % in_dir_name
             continue
 
-        print 'Chose version %s' % versions[0][2]
-        in_dir_name += '/%s' % versions[0][2]
-        
+        print 'Chose version %d_%d' % (versions[0][0], versions[0][1])
+	if samp.name is 'SingleMu_2017F':
+		in_dir_name += '/180802_164117'
+	else:
+        	in_dir_name += '/%d_%d' % (versions[0][0], versions[0][1])
+ 
         in_files = [] ## List of input files with their size in MB
         eos_ls = Popen([eos_cmd, 'ls', in_dir_name], stdout=PIPE)
         for subdir in eos_ls.communicate()[0].split():

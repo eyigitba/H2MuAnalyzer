@@ -24,7 +24,7 @@ import ROOT.RooFit as RF
 R.gROOT.SetBatch(True)  ## Don't display histograms or canvases when drawn
 
 
-INDIR  = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms/GenRecoPtDiffVsD0VsPt_2016_Sep01_v1/files'
+INDIR  = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/GenRecoPtDiffVsD0VsPt_2016_Sep01_v1/files'
 INFILE = 'histos_ZJets__NONE.root'
 # INDIR  = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms/GenRecoPtDiffVsD0VsPt_Aug29_v2/files'
 # INFILE = 'histos_ZJets_AMC__NONE.root'
@@ -66,8 +66,8 @@ def main():
     # dRelPt2 = 10000*(RECO - GEN) / (GEN pT)^2 
     # dPhi    = (RECO - GEN phi) * GEN charge
     # for var in ['dPt', 'dRelPt', 'dRelPt1p4', 'dRelPt1p6', 'dRelPt1p8', 'dRelPt2p0', 'dRelPt2p2', 'dPhi', 'dEta']:  ## Variables plotted vs. RECO d0 * charge
-    for var in ['dRelPt1p6', 'dRelPt1p8', 'dRelPt2p0', 'dRelPt2p2', 'dRelPt2p4', 'dPhi', 'dEta']:
-    # for var in ['dRelPt2p0']:
+    # for var in ['dRelPt1p6', 'dRelPt1p8', 'dRelPt2p0', 'dRelPt2p2', 'dRelPt2p4', 'dPhi', 'dEta']:
+    for var in ['dRelPt2p0']:
     # for var in ['dEta']:
         for corr in ['PF', 'Roch']:
         # for corr in ['Roch']:
@@ -141,20 +141,20 @@ def main():
                     data[g_str]['y'][iDat] = h_2D.GetYaxis().GetBinCenter(iMax)
                     data[g_str]['yerr'][iDat] = (h_2D.GetYaxis().GetBinLowEdge(iHi+1) - h_2D.GetYaxis().GetBinLowEdge(iLo)) / 2.
 
-                    # ## Canvas with the original histogram and its peak range
-                    # h_can = R.TCanvas('%s_d0_%s' % (g_str, iD0), '%s_d0_%s' % (g_str, iD0), 800, 600)
-                    # h_can.cd()
-                    # h_y = h_2D.ProjectionY('h_y', iX[0], iX[1])
-                    # h_y.SetLineColor(R.kBlack)
-                    # h_y.Draw()
-                    # h_y_peak = h_y.Clone()
-                    # h_y_peak.GetXaxis().SetRangeUser(h_y.GetBinLowEdge(iLo), h_y.GetBinLowEdge(iHi+1))
-                    # h_y_peak.SetLineWidth(2)
-                    # h_y_peak.SetLineColor(R.kBlue)
-                    # h_y_peak.Draw('same')
-                    # h_can.SaveAs('plots_2D/png/histos/%s_d0_%s.png' % (g_str, iD0))
-                    # # h_can.SaveAs('plots_2D/pdf/histos/%s_d0_%s.pdf' % (g_str, iD0))
-                    # h_can.Write()
+                    ## Canvas with the original histogram and its peak range
+                    h_can = R.TCanvas('%s_d0_%s' % (g_str, iD0), '%s_d0_%s' % (g_str, iD0), 800, 600)
+                    h_can.cd()
+                    h_y = h_2D.ProjectionY('h_y', iX[0], iX[1])
+                    h_y.SetLineColor(R.kBlack)
+                    h_y.Draw()
+                    h_y_peak = h_y.Clone()
+                    h_y_peak.GetXaxis().SetRangeUser(h_y.GetBinLowEdge(iLo), h_y.GetBinLowEdge(iHi+1))
+                    h_y_peak.SetLineWidth(2)
+                    h_y_peak.SetLineColor(R.kBlue)
+                    h_y_peak.Draw('same')
+                    h_can.SaveAs('plots_2D/png/histos/%s_d0_%s.png' % (g_str, iD0))
+                    # h_can.SaveAs('plots_2D/pdf/histos/%s_d0_%s.pdf' % (g_str, iD0))
+                    h_can.Write()
 
 
                 ## End loop: for iD0 in range(D0_BINS):

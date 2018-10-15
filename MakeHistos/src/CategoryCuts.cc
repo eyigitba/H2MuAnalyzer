@@ -1,5 +1,6 @@
 
 #include "H2MuAnalyzer/MakeHistos/interface/CategoryCuts.h"
+#include "TLorentzVector.h"
 
 
 bool InCategory( const ObjectSelectionConfig & cfg, const NTupleBranches & br,
@@ -35,40 +36,81 @@ bool InCategory( const ObjectSelectionConfig & cfg, const NTupleBranches & br,
     } // End loop for (int i = 0; i < nMuPairs; i++)
   } // End if (sel == "Mu1Neg")
 
-  // else if (sel == "WHlep") {  // real toy category, needs more study on cuts
-  //   if (verbose) std::cout << "  * Applying WHlep cuts" << std::endl;
-    
-  //   if (br.nMuons == 3) {
-  // 	PASS = true;
-  // 	for (int i = 0; i < br.nMuons; i++) {
-  // 	  if ( !MuonPass(br.muons->at(i),20) ) PASS = false;
-  // 	}
-  //   }
-  //   if (br.nMuons == 2 && br.nEles == 1) {
-  // 	if (br.eles->at(0).pt > 20) PASS = true;
-  //   }
-  // } // End if (sel == "WHlep")
+//  else if (sel.compare("WHlepM") == 0) {  // real toy category, needs more study on cuts
+//    if (verbose) std::cout << "  * Applying WHlepM cuts" << std::endl;
+//    
+//    if (br.nBTight == 0 and (br.met)->pt > 20) {
+//      if (br.nMuons == 3) {
+//	pass = true;
+//	for (int i = 0; i < br.nMuons; i++) {
+//	  if ( !MuonPass(br.muons->at(i),20) or abs(br.muons->at(i).d0_PV)>0.02 ) pass = false;
+// 	}
+//      }//end if (br.nMuons == 3)
+//    }//end if (br.nBTight == 0 and (br.met)->pt > 30)
+//  }//end if (sel.compare("WHlep") == 0)
+//
+//  else if (sel.compare("WHlepE") == 0) {
+//    if (verbose) std::cout << "  * Applying WHlepE cuts" << std::endl;
+//    if (br.nBTight == 0 and (br.met)->pt > 20) {
+//      if (br.nMuons == 2 and br.nEles == 1) {
+//        if (br.eles->at(0).pt > 20 and abs(br.eles->at(0).d0_PV)<0.02 ) pass = true;
+//      }
+//    }//end if (br.nBTight == 0 and (br.met)->pt > 20)
+//  }//end if (sel.compare("WHlepE") == 0)
+//
+//
+//  else if (sel.compare("WHhad2J") == 0) {
+//    if (verbose) std::cout << "  * Applying WHhad2J cuts" << std::endl;
+//    
+//    if (not InCategory(br, "WHlep", verbose) and br.nMuons == 2 and br.nBTight == 0 ) {
+//	for (int i = 0; i < br.nJetPairs; i++) {
+//	  JetPairInfo & dijet = br.jetPairs->at(i);
+//	  if ( DijetPass(br, dijet) and abs(dijet.mass-80)<20 and abs(dijet.eta)<4 and dijet.dR<3 ) pass = true;
+//	}//end for (int i = 0; i < br.nJetPairs; i++)
+//    }
+//  }//end if (sel.compare("WHhad2J") == 0) 
+//
+//  else if (sel.compare("WHhad1J") == 0) {
+//    if (verbose) std::cout << "  * Applying WHhad1J cuts" << std::endl;
+//
+//    if (not InCategory(br, "WHlep", verbose) and br.nMuons == 2 and br.nBTight == 0 ) {
+//      if (not InCategory(br, "WHhad2J", verbose) ) {
+//	for (int i = 0; i < br.nJets; i++) {
+//	   JetInfo & jet = br.jets->at(i);
+//	   if ( JetPass(jet) and abs(jet.eta)<2 and not BJetPass(jet) ) pass = true;
+//	}// end for (int i = 0; i < br.nJets; i++) {
+//      }
+//    }
+//  }//end if (sel.compare("WHhad1J") == 0)
 
-  else if (sel == "ZHmu") {  // real toy category, needs more study on cuts
-    if (verbose) std::cout << "  * Applying ZHmu cuts" << std::endl;
-
-    if (br.nMuons == 4) {
-	for (int i = 0; i < br.nMuPairs; i ++) {
-	  if (br.muPairs->at(i).iMu1 != 0 && br.muPairs->at(i).iMu1 != 1 && br.muPairs->at(i).iMu2 != 0 && br.muPairs->at(i).iMu2 != 1) {
-	    if (br.muPairs->at(i).mass > 80 && br.muPairs->at(i).mass < 100) PASS = true;
-	  }
-	} 
-    }
-  } // End if (sel == "ZHmu")
-
-  else if (sel == "ZHele") {   // real toy category, needs more study on cuts
-    if (verbose) std::cout << "  * Applying ZHele cuts" << std::endl;
-
-    if (br.nMuons == 2 && br.nEles == 2) {
-	if (br.eles->at(0).pt > 20 && br.eles->at(1).pt > 20) PASS = true;
-    }
-  } // End if (sel == "ZHele")
-
+//  else if (sel == "ZHmu") {  // real toy category, needs more study on cuts
+//    if (verbose) std::cout << "  * Applying ZHmu cuts" << std::endl;
+//
+//    if (br.nMuons == 4) {
+//	for (int i = 0; i < br.nMuPairs; i ++) {
+//	  if (br.muPairs->at(i).iMu1 != 0 && br.muPairs->at(i).iMu1 != 1 && br.muPairs->at(i).iMu2 != 0 && br.muPairs->at(i).iMu2 != 1) {
+//	    if (br.muPairs->at(i).mass > 80 && br.muPairs->at(i).mass < 100) PASS = true;
+//	  }
+//	} 
+//    }
+//  } // End if (sel == "ZHmu")
+//
+//  else if (sel == "ZHele") {   // real toy category, needs more study on cuts
+//    if (verbose) std::cout << "  * Applying ZHele cuts" << std::endl;
+//
+//    if (br.nMuons == 2 and br.nEles ==2) {
+//      EleInfo & ele1 = br.eles->at(0);
+//      EleInfo & ele2 = br.eles->at(1);
+//      if(ele1.pt > 20 and ele2.pt > 20 and ele1.charge + ele2.charge == 0) {
+//    	TLorentzVector v1, v2, vz;
+//    	v1.SetPtEtaPhiM( ele1.pt, ele1.eta, ele1.phi, 0.0005);
+//    	v2.SetPtEtaPhiM( ele2.pt, ele2.eta, ele2.phi, 0.0005);
+//    	vz = v1 + v2;
+//        std::cout << vz.M() << std::endl;
+//    	if( vz.M()>80 and vz.M()<100 ) pass = true;
+//      }
+//    }
+//  } // end if (sel.compare("ZHele") == 0)
 
   else if (sel == "WH_3l_mu") {  // WH --> 3 muon category
     if (verbose) std::cout << "  * Applying WH_3l_mu cuts" << std::endl;
