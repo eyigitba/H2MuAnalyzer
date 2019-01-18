@@ -28,24 +28,27 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
 const int MIN_FILE = 1;     // Minimum index of input files to process
 const int MAX_FILE = 1;     // Maximum index of input files to process
-const int MAX_EVT  = 100000;    // Maximum number of events to process
-const int PRT_EVT  = 1000;  // Print every N events
+const int MAX_EVT  = -1;    // Maximum number of events to process
+const int PRT_EVT  = 10000;  // Print every N events
 const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/WPlusH_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_WH_pos/170315_105045/0000";
-// const TString SAMPLE   = "H2Mu_WH_pos";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WplusH_HToMuMu_WToAll_M125_13TeV_powheg_pythia8/H2Mu_WH_pos_125";
+const TString SAMPLE   = "H2Mu_WH_pos_125";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/WZ_3l_AMC";
 // const TString SAMPLE   = "WZ_3l_AMC";
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
-const TString SAMPLE   = "SingleMu";
-const std::string YEAR = "2016";
+// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
+// const TString SAMPLE   = "SingleMu";
+
+const std::string YEAR = "2017";
+const std::string SLIM = "Slim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR  = "plots";
 
-const std::vector<std::string> SEL_CUTS = {"Presel2016"}; // Cuts which every event must pass
+const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu"}; // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> CAT_CUTS = {"NONE", "mass12_noZ", "0b_mt150_mass12_noZ", "tight_0b_mt150_mass12_noZ"}; // Event selection categories, also applied in parallel
+// const std::vector<std::string> CAT_CUTS = {"NONE", "mass12_noZ", "0b_mt150_mass12_noZ", "tight_0b_mt150_mass12_noZ"}; // Event selection categories, also applied in parallel
+const std::vector<std::string> CAT_CUTS = {"mass12_noZ"}; // Event selection categories, also applied in parallel
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -74,12 +77,14 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
     in_file_names.push_back(in_file_name);
   }
   if (in_files.size() == 0) {
-    for (int i = MIN_FILE; i <= MAX_FILE; i++) {
-      // in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
-      in_file_name.Form("%s/NTuple_0.root", in_dir.Data());
-      std::cout << "Adding file " << in_file_name.Data() << std::endl;
-      in_file_names.push_back(in_file_name.Data());
-    }
+    // for (int i = MIN_FILE; i <= MAX_FILE; i++) {
+    //   in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
+    //   std::cout << "Adding file " << in_file_name.Data() << std::endl;
+    //   in_file_names.push_back(in_file_name.Data());
+    // }
+    in_file_name.Form("%s/NTuple_0.root", in_dir.Data());
+    std::cout << "Adding file " << in_file_name.Data() << std::endl;
+    in_file_names.push_back(in_file_name.Data());
   }
 
   // Open all input files
@@ -131,9 +136,9 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   //   in_chain->Add( samp->filenames.at(i) );
     // Set branch addresses, from interface/LoadNTupleBranches.h
     if (sample.Contains("SingleMu"))
-      SetBranchAddresses(*in_chain, br, {YEAR}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM}, false); // Options in {} include "JES", "Flags", and "SFs"
     else
-      SetBranchAddresses(*in_chain, br, {YEAR, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
   }
   // float lumi_SF = samp->getLumiScaleFactor(LUMI);
   // std::cout << "For LUMI = " << LUMI << ", lumi_SF = " << lumi_SF << std::endl;
@@ -143,12 +148,11 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   ObjectSelectionConfig obj_sel;
   EventSelectionConfig  evt_sel;
   EventWeightConfig     evt_wgt;
-  ConfigureObjectSelection(obj_sel, YEAR);
+  ConfigureObjectSelection(obj_sel, YEAR, "lepMVA");
   ConfigureEventSelection (evt_sel, YEAR);
   ConfigureEventWeight    (evt_wgt, YEAR);
 
   evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair
-  obj_sel.mu_pt_min       =  10; // Lower muon pT threshold for muons not from Higgs
   obj_sel.muPair_Higgs = "sort_WH_3_mu_v1"; // Choose Higgs candidate based on MT(W muon, MET) 
 
   if (verbose) obj_sel.Print();
@@ -174,9 +178,9 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
     
     if (verbose) std::cout << "... after, event = " << br.event << std::endl;
 
-    // For 2016 NTuples, convert "SlimJets" collection into regular jets
+    // For original 2016 and some 2017 NTuples, convert "SlimJets" collection into regular jets
     JetInfos jets_tmp;
-    if (YEAR == "2016") {
+    if (SLIM == "Slim") {
       jets_tmp = ConvertSlimJets(*(br.slimJets));
       br.jets  = &jets_tmp;
     }
@@ -399,7 +403,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  //////////////////////////////////////
 	  ///  Compute a few more variables  ///
 	  //////////////////////////////////////
-	  
+
 	  // Leptons ordered by pT
 	  TLorentzVector lep1_vec;
 	  TLorentzVector lep2_vec;
@@ -418,22 +422,47 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  TLorentzVector SS_pair_vec = SS_lep1_vec + SS_lep2_vec;
 	  TLorentzVector trilep_vec  = OS_mu_vec + SS_pair_vec;
 
+	  float SS_mu_MVA  = 0;
+	  float SS_ele_MVA = 0;
 	  float SS_lep1_iso;
 	  float SS_lep2_iso;
+	  float SS_lep1_MVA;
+	  float SS_lep2_MVA;
+	  float SS_lep1_SIP;
+	  float SS_lep2_SIP;
+	  float SS_lep1_seg;
+	  float SS_lep2_seg;
 	  bool  SS_lep1_tID;
 	  bool  SS_lep2_tID;
 	  if (MU) {
 	    SS_lep1_iso = SS_mu1.relIso;
 	    SS_lep2_iso = SS_mu2.relIso;
+	    SS_lep1_MVA = SS_mu1.lepMVA;
+	    SS_lep2_MVA = SS_mu2.lepMVA;
+	    SS_lep1_SIP = SS_mu1.SIP_3D;
+	    SS_lep2_SIP = SS_mu2.SIP_3D;
+	    SS_lep1_seg = SS_mu1.segCompat;
+	    SS_lep2_seg = SS_mu2.segCompat;
 	    SS_lep1_tID = SS_mu1.isTightID;
 	    SS_lep2_tID = SS_mu2.isTightID;
 	  } else {
+	    SS_mu_MVA   = SS_mu1.lepMVA;
+	    SS_ele_MVA  = ele.lepMVA;
 	    SS_lep1_iso = (SS_mu1_vec.Pt() > ele.pt ? SS_mu1.relIso : ele.relIso);
 	    SS_lep2_iso = (SS_mu1_vec.Pt() > ele.pt ? ele.relIso : SS_mu1.relIso);
+	    SS_lep1_MVA = (SS_mu1_vec.Pt() > ele.pt ? SS_mu1.lepMVA : ele.lepMVA);
+	    SS_lep2_MVA = (SS_mu1_vec.Pt() > ele.pt ? ele.lepMVA : SS_mu1.lepMVA);
+	    SS_lep1_SIP = (SS_mu1_vec.Pt() > ele.pt ? SS_mu1.SIP_3D : ele.SIP_3D);
+	    SS_lep2_SIP = (SS_mu1_vec.Pt() > ele.pt ? ele.SIP_3D : SS_mu1.SIP_3D);
+	    SS_lep1_seg = (SS_mu1_vec.Pt() > ele.pt ? SS_mu1.segCompat : -0.01);
+	    SS_lep2_seg = (SS_mu1_vec.Pt() > ele.pt ? -0.01 : SS_mu1.segCompat);
 	    SS_lep1_tID = (SS_mu1_vec.Pt() > ele.pt ? SS_mu1.isTightID : ele.isTightID);
 	    SS_lep2_tID = (SS_mu1_vec.Pt() > ele.pt ? ele.isTightID : SS_mu1.isTightID);
 	  }
+
 	  
+
+
 	  /////////////////////////////////
 	  ///  Generate and fill plots  ///
 	  /////////////////////////////////
@@ -445,6 +474,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    BookAndFill(h_map_1D, h_pre+"GEN_wgt",   40, -2, 2, br.GEN_wgt );
 	    BookAndFill(h_map_1D, h_pre+"event_wgt", 40, -2, 2, event_wgt  );
 	  }
+
 
 	  // Plot kinematic histograms
 	  BookAndFill(h_map_1D, h_pre+"nJets",       8, -0.5, 7.5, SelectedJets(obj_sel, br).size(),               event_wgt );
@@ -481,9 +511,24 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(h_map_1D, h_pre+"SS_lep1_iso", 15, 0, 0.3, SS_lep1_iso,  event_wgt );
 	  BookAndFill(h_map_1D, h_pre+"SS_lep2_iso", 15, 0, 0.3, SS_lep2_iso,  event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"OS_mu_tightID",  2, -0.5, 1.5, OS_mu.isTightID, event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_mu1_tightID", 2, -0.5, 1.5, SS_lep1_tID,     event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_mu2_tightID", 2, -0.5, 1.5, SS_lep2_tID,     event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"OS_mu_tightID",   2, -0.5, 1.5, OS_mu.isTightID, event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_lep1_tightID", 2, -0.5, 1.5, SS_lep1_tID,     event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_lep2_tightID", 2, -0.5, 1.5, SS_lep2_tID,     event_wgt );
+
+	  BookAndFill(h_map_1D, h_pre+"OS_mu_lepMVA",   40, -1, 1, OS_mu.lepMVA, event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_lep1_lepMVA", 40, -1, 1, SS_lep1_MVA,  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_lep2_lepMVA", 40, -1, 1, SS_lep2_MVA,  event_wgt );
+
+	  BookAndFill(h_map_1D, h_pre+"SS_mu_lepMVA",  40, -1, 1, SS_mu_MVA,  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_ele_lepMVA", 40, -1, 1, SS_ele_MVA, event_wgt );
+
+	  BookAndFill(h_map_1D, h_pre+"OS_mu_SIP",   50, 0, 10, OS_mu.SIP_3D, event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_lep1_SIP", 50, 0, 10, SS_lep1_SIP,  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_lep2_SIP", 50, 0, 10, SS_lep2_SIP,  event_wgt );
+
+	  BookAndFill(h_map_1D, h_pre+"OS_mu_segCompat",   50, 0, 1, OS_mu.segCompat, event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_lep1_segCompat", 50, 0, 1, SS_lep1_seg,  event_wgt );
+	  BookAndFill(h_map_1D, h_pre+"SS_lep2_segCompat", 50, 0, 1, SS_lep2_seg,  event_wgt );
 
 	  if (not sample.Contains("SingleMu")) {
 	    BookAndFill(h_map_1D, h_pre+"H_mass_true", 55, 105, 160, MuPairMass(H_true, PTC), event_wgt, false );  // Don't include overflow
