@@ -36,7 +36,9 @@ const bool verbose = false; // Print extra information
 
 const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/WPlusH_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_WH_pos/170315_105045/0000";
 const TString SAMPLE   = "H2Mu_WH_pos";
+
 const std::string YEAR = "2016";
+const std::string SLIM = "Slim";
 const TString OUT_DIR  = "plots";
 
 const std::vector<std::string> SEL_CUTS = {"Presel2016"}; // Cuts which every event must pass
@@ -100,9 +102,9 @@ void WH_lep_mu_sig( TString sample = "", TString in_dir = "", TString out_dir = 
 
     // Set branch addresses, from interface/LoadNTupleBranches.h
     if (sample.Contains("SingleMu"))
-      SetBranchAddresses(*in_chain, br, {YEAR}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM}, false); // Options in {} include "JES", "Flags", and "SFs"
     else
-      SetBranchAddresses(*in_chain, br, {YEAR, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
   // Configuration for object selection, event selection, and object weighting
@@ -135,7 +137,7 @@ void WH_lep_mu_sig( TString sample = "", TString in_dir = "", TString out_dir = 
     
     if (verbose) std::cout << "... after, event = " << br.event << std::endl;
 
-    // For 2016 NTuples, convert "SlimJets" collection into regular jets
+    // For original 2016 and some 2017 NTuples, convert "SlimJets" collection into regular jets
     JetInfos jets_tmp;
     if (YEAR == "2016") {
       jets_tmp = ConvertSlimJets(*(br.slimJets));

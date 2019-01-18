@@ -10,6 +10,8 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   // Configure special options
   bool is2016    = false;
   bool is2017    = false;
+  bool isSlim    = false;
+  bool notSlim   = false;
   bool loadGEN   = false;
   bool loadJES   = false;
   bool loadFlags = false;
@@ -18,18 +20,21 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
 
   for (uint i = 0; i < opts.size(); i++) {
     if (verbose) std::cout << "  * Using option " << opts.at(i) << std::endl;
-    if (opts.at(i) == "2016")  is2016    = true;
-    if (opts.at(i) == "2017")  is2017    = true;
-    if (opts.at(i) == "GEN")   loadGEN   = true;
-    if (opts.at(i) == "JES")   loadJES   = true;
-    if (opts.at(i) == "Flags") loadFlags = true;
-    if (opts.at(i) == "Effs")  loadEffs  = true;
-    if (opts.at(i) == "Wgts")  loadWgts  = true;
+    if (opts.at(i) == "2016")    is2016    = true;
+    if (opts.at(i) == "2017")    is2017    = true;
+    if (opts.at(i) == "Slim")    isSlim    = true;
+    if (opts.at(i) == "notSlim") notSlim   = true;
+    if (opts.at(i) == "GEN")     loadGEN   = true;
+    if (opts.at(i) == "JES")     loadJES   = true;
+    if (opts.at(i) == "Flags")   loadFlags = true;
+    if (opts.at(i) == "Effs")    loadEffs  = true;
+    if (opts.at(i) == "Wgts")    loadWgts  = true;
   }
 
   assert(is2016 || is2017);
+  assert(isSlim || notSlim);
 
-  if (verbose) std::cout << "is2016 = " << is2016 << ", is2017 = " << is2017
+  if (verbose) std::cout << "is2016 = " << is2016 << ", is2017 = " << is2017 << ", isSlim = " << isSlim
 			 << ", loadGen = " << loadGEN << ", loadJES = " << loadJES
 			 << ", loadFlags = " << loadFlags << ", loadEffs = " << loadEffs 
 			 << ", loadWgts = " << loadWgts << std::endl;
@@ -40,8 +45,8 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   ch->SetBranchAddress("muons", &(br.muons));
   ch->SetBranchAddress("muPairs", &(br.muPairs));
   ch->SetBranchAddress("eles", &(br.eles));
-  if (is2016) ch->SetBranchAddress("jets", &(br.slimJets));
-  if (is2017) ch->SetBranchAddress("jets", &(br.jets));
+  if (is2016 ||  isSlim) ch->SetBranchAddress("jets", &(br.slimJets));
+  if (is2017 && !isSlim) ch->SetBranchAddress("jets", &(br.jets));
   ch->SetBranchAddress("jetPairs", &(br.jetPairs));
   ch->SetBranchAddress("met", &(br.met));
   ch->SetBranchAddress("mht", &(br.mht));
@@ -64,22 +69,22 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("genParents", &(br.genParents));
     ch->SetBranchAddress("genMuons", &(br.genMuons));
     ch->SetBranchAddress("genMuPairs", &(br.genMuPairs));
-    if (is2017) ch->SetBranchAddress("genJets", &(br.genJets));
+    if (is2017 && !isSlim) ch->SetBranchAddress("genJets", &(br.genJets));
 
     ch->SetBranchAddress("nGenParents", &(br.nGenParents));
     ch->SetBranchAddress("nGenMuons", &(br.nGenMuons));
     ch->SetBranchAddress("nGenMuPairs", &(br.nGenMuPairs));
-    if (is2017) ch->SetBranchAddress("nGenJets", &(br.nGenJets));
+    if (is2017 && !isSlim) ch->SetBranchAddress("nGenJets", &(br.nGenJets));
   }
 
   // ch->SetBranchAddress("hltPaths", &(br.hltPaths));  // Causes error messages after exiting code, for some reason - AWB 15.08.2018
   // ch->SetBranchAddress("btagName", &(br.btagName));  // Causes segfault, for some reason - AWB 15.08.2018
 
   if (loadJES) {
-    if (is2016) ch->SetBranchAddress("jets_JES_up", &(br.slimJets_JES_up));
-    if (is2016) ch->SetBranchAddress("jets_JES_down", &(br.slimJets_JES_down));
-    if (is2017) ch->SetBranchAddress("jets_JES_up", &(br.jets_JES_up));
-    if (is2017) ch->SetBranchAddress("jets_JES_down", &(br.jets_JES_down));
+    if (isSlim)  ch->SetBranchAddress("jets_JES_up", &(br.slimJets_JES_up));
+    if (isSlim)  ch->SetBranchAddress("jets_JES_down", &(br.slimJets_JES_down));
+    if (!isSlim) ch->SetBranchAddress("jets_JES_up", &(br.jets_JES_up));
+    if (!isSlim) ch->SetBranchAddress("jets_JES_down", &(br.jets_JES_down));
     ch->SetBranchAddress("jetPairs_JES_up", &(br.jetPairs_JES_up));
     // ch->SetBranchAddress("jetPairs_JES_down", &(br.jetPairs_JES_down));  // Causes segfault, for some reason - AWB 15.08.2018
     ch->SetBranchAddress("met_JES_up", &(br.met_JES_up));
@@ -119,9 +124,6 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("IsoMu_eff_3", &(br.IsoMu_eff_3));
     ch->SetBranchAddress("IsoMu_eff_3_up", &(br.IsoMu_eff_3_up));
     ch->SetBranchAddress("IsoMu_eff_3_down", &(br.IsoMu_eff_3_down));
-    ch->SetBranchAddress("IsoMu_eff_bug", &(br.IsoMu_eff_bug));
-    ch->SetBranchAddress("IsoMu_eff_bug_up", &(br.IsoMu_eff_bug_up));
-    ch->SetBranchAddress("IsoMu_eff_bug_down", &(br.IsoMu_eff_bug_down));
     ch->SetBranchAddress("MuID_eff_3", &(br.MuID_eff_3));
     ch->SetBranchAddress("MuID_eff_3_up", &(br.MuID_eff_3_up));
     ch->SetBranchAddress("MuID_eff_3_down", &(br.MuID_eff_3_down));
@@ -139,6 +141,9 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
       ch->SetBranchAddress("MuIso_eff_4", &(br.MuIso_eff_4));
       ch->SetBranchAddress("MuIso_eff_4_up", &(br.MuIso_eff_4_up));
       ch->SetBranchAddress("MuIso_eff_4_down", &(br.MuIso_eff_4_down));
+      ch->SetBranchAddress("IsoMu_eff_bug", &(br.IsoMu_eff_bug));
+      ch->SetBranchAddress("IsoMu_eff_bug_up", &(br.IsoMu_eff_bug_up));
+      ch->SetBranchAddress("IsoMu_eff_bug_down", &(br.IsoMu_eff_bug_down));
     }
 
   }
@@ -153,9 +158,6 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("IsoMu_SF_3", &(br.IsoMu_SF_3));
     ch->SetBranchAddress("IsoMu_SF_3_up", &(br.IsoMu_SF_3_up));
     ch->SetBranchAddress("IsoMu_SF_3_down", &(br.IsoMu_SF_3_down));
-    ch->SetBranchAddress("IsoMu_SF_bug", &(br.IsoMu_SF_bug));
-    ch->SetBranchAddress("IsoMu_SF_bug_up", &(br.IsoMu_SF_bug_up));
-    ch->SetBranchAddress("IsoMu_SF_bug_down", &(br.IsoMu_SF_bug_down));
     ch->SetBranchAddress("MuID_SF_3", &(br.MuID_SF_3));
     ch->SetBranchAddress("MuID_SF_3_up", &(br.MuID_SF_3_up));
     ch->SetBranchAddress("MuID_SF_3_down", &(br.MuID_SF_3_down));
@@ -173,6 +175,9 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
       ch->SetBranchAddress("MuIso_SF_4", &(br.MuIso_SF_4));
       ch->SetBranchAddress("MuIso_SF_4_up", &(br.MuIso_SF_4_up));
       ch->SetBranchAddress("MuIso_SF_4_down", &(br.MuIso_SF_4_down));
+      ch->SetBranchAddress("IsoMu_SF_bug", &(br.IsoMu_SF_bug));
+      ch->SetBranchAddress("IsoMu_SF_bug_up", &(br.IsoMu_SF_bug_up));
+      ch->SetBranchAddress("IsoMu_SF_bug_down", &(br.IsoMu_SF_bug_down));
     }
 
   }

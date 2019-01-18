@@ -35,7 +35,9 @@ const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntupl
 const TString SAMPLE   = "H2Mu_WH_pos";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 // const TString SAMPLE   = "SingleMu";
+
 const std::string YEAR = "2016";
+const std::string SLIM = "Slim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR  = "plots";
 
 const std::vector<std::string> SEL_CUTS = {"Presel2016"}; // Cuts which every event must pass
@@ -101,9 +103,9 @@ void WH_lep_bkg_val( TString sample = "", TString in_dir = "", TString out_dir =
 
     // Set branch addresses, from interface/LoadNTupleBranches.h
     if (sample.Contains("SingleMu"))
-      SetBranchAddresses(*in_chain, br, {YEAR}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM}, false); // Options in {} include "JES", "Flags", and "SFs"
     else
-      SetBranchAddresses(*in_chain, br, {YEAR, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
   // Configuration for object selection, event selection, and object weighting
@@ -141,9 +143,9 @@ void WH_lep_bkg_val( TString sample = "", TString in_dir = "", TString out_dir =
     
     if (verbose) std::cout << "... after, event = " << br.event << std::endl;
 
-    // For 2016 NTuples, convert "SlimJets" collection into regular jets
+    // For original 2016 and some 2017 NTuples, convert "SlimJets" collection into regular jets
     JetInfos jets_tmp;
-    if (YEAR == "2016") {
+    if (SLIM == "Slim") {
       jets_tmp = ConvertSlimJets(*(br.slimJets));
       br.jets  = &jets_tmp;
     }
