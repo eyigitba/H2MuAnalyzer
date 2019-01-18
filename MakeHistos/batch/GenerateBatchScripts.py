@@ -26,9 +26,6 @@ sys.path.insert(0, '%s/python' % os.getcwd())
 from SampleDatabase import GetSamples
 from GetNormForSamples import GetNormForSample
 
-## Command to list files in eos on lxplus
-eos_cmd = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select'
-
 ## Configure the script user
 if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
 if 'bortigno' in os.getcwd(): USER = 'bortigno'
@@ -175,10 +172,10 @@ def main():
         in_dir_name = samp.in_dir+'/'+samp.DAS_name+'/'+samp.name
         
         versions = []  ## In case of multiple crab submissions
-        print 'Running command eos ls %s' % in_dir_name
-        # for ver in subprocess.check_output([eos_cmd, 'ls', in_dir_name]).splitlines():  ## Only available in Python >= 2.7
-        eos_ls = Popen([eos_cmd, 'ls', in_dir_name], stdout=PIPE)
-        for ver in eos_ls.communicate()[0].split():
+        print 'Running command ls %s' % in_dir_name
+        # for ver in subprocess.check_output(['ls', in_dir_name]).splitlines():  ## Only available in Python >= 2.7
+        ls_files = Popen(['ls', in_dir_name], stdout=PIPE)
+        for ver in ls_files.communicate()[0].split():
             if 'root' in ver: continue
             if VERBOSE: print '  * Appending [%d, %d]' % ( int(ver.split('_')[0]), int(ver.split('_')[1]) )
             versions.append([int(ver.split('_')[0]), int(ver.split('_')[1]), ver])
@@ -199,14 +196,14 @@ def main():
         	in_dir_name += '/%d_%d' % (versions[0][0], versions[0][1])
  
         in_files = [] ## List of input files with their size in MB
-        eos_ls = Popen([eos_cmd, 'ls', in_dir_name], stdout=PIPE)
-        for subdir in eos_ls.communicate()[0].split():
-            eos_ls = Popen([eos_cmd, 'ls', in_dir_name+'/'+subdir], stdout=PIPE)
-            print 'Running command eos ls %s' % (in_dir_name+'/'+subdir)
-            for in_file in eos_ls.communicate()[0].split():
+        ls_files = Popen(['ls', in_dir_name], stdout=PIPE)
+        for subdir in ls_files.communicate()[0].split():
+            ls_files = Popen(['ls', in_dir_name+'/'+subdir], stdout=PIPE)
+            print 'Running command ls %s' % (in_dir_name+'/'+subdir)
+            for in_file in ls_files.communicate()[0].split():
                 if 'tuple' in in_file and '.root' in in_file: ## Only look at tuple_*.root files
-                    eos_du = Popen([eos_cmd, 'ls', '-l', in_dir_name+'/'+subdir+'/'+in_file], stdout=PIPE)
-                    fileMB = int(eos_du.communicate()[0].split()[4]) / 1000000. ## Get file size in MB
+                    du_file = Popen(['ls', '-l', in_dir_name+'/'+subdir+'/'+in_file], stdout=PIPE)
+                    fileMB  = int(du_file.communicate()[0].split()[4]) / 1000000. ## Get file size in MB
                     in_files.append(['%s/%s' % (subdir, in_file), fileMB])
 
         if len(in_files) > 0:

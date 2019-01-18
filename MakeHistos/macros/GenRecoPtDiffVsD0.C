@@ -28,7 +28,7 @@ const int MAX_EVT  = 5000;  // Maximum number of events to process
 const int PRT_EVT  = 100;   // Print every N events
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR   = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/180802_165055/0000";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/180802_165055/0000";
 const TString SAMPLE   = "ZJets_AMC";
 const TString OUT_DIR  = "plots";
 
@@ -56,13 +56,13 @@ void GenRecoPtDiffVsD0( TString sample = "", TString in_dir = "", TString out_di
   std::vector<TString> in_file_names;
   TString in_file_name;
   for (int i = 0; i < in_files.size(); i++) {
-    in_file_name.Form("root://eoscms.cern.ch/%s/%s", in_dir.Data(), in_files.at(i).Data());
+    in_file_name.Form("%s/%s", in_dir.Data(), in_files.at(i).Data());
     std::cout << "Adding file " << in_file_name.Data() << std::endl;
     in_file_names.push_back(in_file_name);
   }
   if (in_files.size() == 0) {
     for (int i = MIN_FILE; i <= MAX_FILE; i++) {
-      in_file_name.Form("root://eoscms.cern.ch/%s/tuple_%d.root", in_dir.Data(), i);
+      in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
       std::cout << "Adding file " << in_file_name.Data() << std::endl;
       in_file_names.push_back(in_file_name.Data());
     }

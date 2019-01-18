@@ -29,22 +29,22 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
   TString in_dir;
   TString data_dir;
   if (location == "UF")
-    in_dir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/simplified/"; 
+    in_dir = "/cms/data/eos/cms/store/user/t2/users/acarnes/h2mumu/awb_samples/simplified/"; 
   else if (location == "UF_DoubleMu")
   {
-    in_dir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/simplified/"; 
-    data_dir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/DoubleMuon/simplified/"; 
+    in_dir = "/cms/data/eos/cms/store/user/t2/users/acarnes/h2mumu/awb_samples/simplified/"; 
+    data_dir = "/cms/data/eos/cms/store/user/t2/users/acarnes/h2mumu/awb_samples/DoubleMuon/simplified/"; 
   }
   else if (location == "CERN")
-    in_dir = "root://eoscms.cern.ch//store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13";
+    in_dir = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13";
   else if (location == "CERN_hiM")
-    in_dir = "root://eoscms.cern.ch//store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM";
+    in_dir = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM";
   else
     std::cout << "\n\nInput location is " << location << ", not UF, CERN, or CERN_hiM.  NOT AN OPTION!!!\n\n" << std::endl;
 
   std::cout << "\nLoading files from directory " << in_dir << "\n" << std::endl;
   
-  TString in_dir_hiM = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/hiM_simplified/";
+  TString in_dir_hiM = "/cms/data/eos/cms/store/user/t2/users/acarnes/h2mumu/awb_samples/hiM_simplified/";
 
   // ================================================================
   // Data -----------------------------------------------------------
