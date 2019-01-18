@@ -18,12 +18,15 @@ struct ObjectSelectionConfig {  // Default values taken from 2016
   float       mu_eta_max =  -99.0;  // Maximum muon |eta|
   std::string mu_ID_cut  = "NONE";  // Muon ID: "loose", "medium", or "tight"
   float       mu_iso_max =  -99.0;  // Maximum muon relative isolation
+  float       mu_SIP_max =  -99.0;  // Maximum impact parameter significance
+  float       mu_seg_min =  -99.0;  // Minimum muon segment compatibility
 
   // Electron selection
   float       ele_pt_min  =  -99.0;  // Minimum electron pT
   float       ele_eta_max =  -99.0;  // Maximum electron |eta|
   std::string ele_ID_cut  = "NONE";  // Electron ID: "loose", "medium", or "tight"
   float       ele_iso_max =  -99.0;  // Maximum electron relative isolation
+  float       ele_SIP_max =  -99.0;  // Maximum impact parameter significance
 
   // Jet selection
   float jet_pt_min       =      -99.0;  // Minimum jet pT
@@ -38,14 +41,16 @@ struct ObjectSelectionConfig {  // Default values taken from 2016
 
   void Print() {
     std::cout << "\n*** ObjectSelectionConfig for year = " << year << " ***" << std::endl;
-    std::cout << "Muons: pt_corr = " << mu_pt_corr << ", pt_min = " << mu_pt_min << ", eta_max = " << mu_eta_max << ", ID_cut = " << mu_ID_cut << ", iso_max = " << mu_iso_max << std::endl;
-    std::cout << "Electrons: pt_min = " << ele_pt_min << ", eta_max = " << ele_eta_max << ", ID_cut = " << ele_ID_cut << ", iso_max = " << ele_iso_max << std::endl;
+    std::cout << "Muons: pt_corr = " << mu_pt_corr << ", pt_min = " << mu_pt_min << ", eta_max = " << mu_eta_max << ", ID_cut = " << mu_ID_cut
+	      << ", iso_max = " << mu_iso_max << ", SIP_max = " << mu_SIP_max << ", seg_min = " << mu_seg_min << std::endl;
+    std::cout << "Electrons: pt_min = " << ele_pt_min << ", eta_max = " << ele_eta_max << ", ID_cut = " << ele_ID_cut
+	      << ", iso_max = " << ele_iso_max << ", SIP_max = " << ele_SIP_max << std::endl;
     std::cout << "Jets: pt_min = " << jet_pt_min << ", eta_max = " << jet_eta_max << ", PU_ID_cut = " << jet_PU_ID_cut << "\n" << std::endl;
   } // End function: void Print()
 
 }; // End struct ObjectSelectionConfig
 
-void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _year );
+void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _year, const std::string _opt = "" );
 
 bool MuonPass ( const ObjectSelectionConfig & cfg, const MuonInfo & muon, const bool verbose = false );
 bool ElePass  ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const bool verbose = false );
