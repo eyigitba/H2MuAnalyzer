@@ -90,6 +90,10 @@ bool ElePass ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const boo
 // Select jets passing ID and kinematic cuts
 bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const MuonInfos & muons, const std::string sel, const bool verbose ) {
 
+  if (verbose) std::cout << "  * Inside JetPass, selection = " << sel << std::endl;
+  if (verbose) std::cout << "  * Jet pT = " << jet.pt << ", eta = " << jet.eta << ", phi = " << jet.phi
+                         << ", puID = " << jet.puID << ", CSV = " << jet.CSV << std::endl;
+
   // Find the jet closest to the muon
   float jet_mu_dR_min = 99.;
   for (const auto & mu : muons) {
@@ -108,6 +112,8 @@ bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const Muon
   if (sel == "BTagLoose"  && (abs(jet.eta) > 2.4 || jet.CSV < cfg.jet_btag_cuts.at(0))) return false;
   if (sel == "BTagMedium" && (abs(jet.eta) > 2.4 || jet.CSV < cfg.jet_btag_cuts.at(1))) return false;
   if (sel == "BTagTight"  && (abs(jet.eta) > 2.4 || jet.CSV < cfg.jet_btag_cuts.at(2))) return false;
+
+  if (verbose) std::cout << "    - PASSED selection!!!" << std::endl;
 
   return true;
 } // End function: bool JetPass()
