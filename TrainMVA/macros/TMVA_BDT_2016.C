@@ -27,7 +27,7 @@
 
 // Load the library of the local, compiled H2MuAnalyzer/MakeHistos and TrainMVA directories
 R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
-R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/TrainMVA/src/H2MuAnalyzerTrainMVA/libH2MuAnalyzerTrainMVA.so)
+// R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/TrainMVA/src/H2MuAnalyzerTrainMVA/libH2MuAnalyzerTrainMVA.so)
 
 // Hard-coded options for running locally / manually
 // Options passed in as arguments to TMVA_BDT_2016 when running in batch mode
