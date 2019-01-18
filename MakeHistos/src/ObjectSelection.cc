@@ -1,7 +1,7 @@
 #include "H2MuAnalyzer/MakeHistos/interface/ObjectSelection.h"
 
 // Configure constants related to object selection
-void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _year ) {
+void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _year, const std::string _opt ) {
 
   if (_year == "2016") {
     cfg.year = _year;
@@ -53,6 +53,20 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
 
     // Higgs candidate selection
     cfg.muPair_Higgs = "sort_OS_sum_muon_pt";
+
+    if (_opt == "lepMVA") {    // LepMVA pre-selection from TOP-18-008, for 3-lepton and 4-lepton channels
+      cfg.mu_pt_min   = 10.0;  // Lower minimum muon pT for higher acceptance
+      cfg.mu_iso_max  = 0.40;  // Looser relative isolation cut
+      cfg.mu_SIP_max  = 8.0;   // Maximum muon impact parameter significance
+      cfg.mu_seg_min  = 0.30;  // Minimum muon segment compatibility
+
+      cfg.ele_ID_cut  = "loose";  // Looser ID cut
+      cfg.ele_iso_max = 0.40;     // Looser relative isolation cut
+      cfg.ele_SIP_max = 8.0;      // Maximum muon impact parameter significance
+
+      cfg.jet_pt_min  = 20.0;  // Lower minimum jet pT for higher acceptance
+    }
+
   } // End if (_year == "2017")
 
   else {
@@ -70,6 +84,10 @@ bool MuonPass ( const ObjectSelectionConfig & cfg, const MuonInfo & muon, const 
   if ( fabs(muon.eta)               > cfg.mu_eta_max ) return false;
   if ( MuonID(muon, cfg.mu_ID_cut) != true           ) return false;
   if ( muon.relIso                  > cfg.mu_iso_max ) return false;
+  if ( cfg.mu_SIP_max != -99 )
+    if ( muon.SIP_3D                > cfg.mu_SIP_max ) return false;
+  if ( cfg.mu_seg_min != -99 )
+    if ( muon.segCompat             < cfg.mu_seg_min ) return false;
 
   return true;
 } // End function: bool MuonPass()
@@ -82,6 +100,8 @@ bool ElePass ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const boo
   if ( fabs(ele.eta)               > cfg.ele_eta_max ) return false;
   if ( EleID(ele, cfg.ele_ID_cut) != true            ) return false;
   if ( ele.relIso                  > cfg.ele_iso_max ) return false;
+  if ( cfg.ele_SIP_max != -99 )
+    if ( ele.SIP_3D                > cfg.ele_SIP_max ) return false;
 
   return true;
 } // End function: bool ElectronPass()
