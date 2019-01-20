@@ -20,10 +20,12 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     cfg.ele_iso_max = 0.25;     // Maximum electron relative isolation
 
     // Jet selection
-    cfg.jet_pt_min    = 30.0;   // Minimum jet pT
-    cfg.jet_eta_max   =  4.7;   // Maximum jet |eta|
-    cfg.jet_btag_cuts = {0.5426, 0.8484, 0.9535}; // CSVv2 recommendation from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco
-    cfg.jet_PU_ID_cut = "NONE"; // Jet passes PU ID cut
+    cfg.jet_pt_min     = 30.0;   // Minimum jet pT
+    cfg.jet_eta_max    =  4.7;   // Maximum jet |eta|
+    cfg.jet_mu_dR_min  =  0.4;   // Minimum dR(jet, muon)
+    cfg.jet_ele_dR_min =  0.4;   // Minimum dR(jet, electron)
+    cfg.jet_btag_cuts  = {0.5426, 0.8484, 0.9535}; // CSVv2 recommendation from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco
+    cfg.jet_PU_ID_cut  = "NONE"; // Jet passes PU ID cut
 
     // Higgs candidate selection
     cfg.muPair_Higgs = "sort_OS_sum_muon_pt";
@@ -46,10 +48,12 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     cfg.ele_iso_max = 0.25;     // Maximum electron relative isolation
 
     // Jet selection
-    cfg.jet_pt_min    = 30.0;    // Minimum jet pT
-    cfg.jet_eta_max   =  4.7;    // Maximum jet |eta|
-    cfg.jet_btag_cuts = {0.1522, 0.4941, 0.8001}; // DeepCSV recommendation from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
-    cfg.jet_PU_ID_cut = "loose"; // Jet passes PU ID cut
+    cfg.jet_pt_min     = 30.0;   // Minimum jet pT
+    cfg.jet_eta_max    =  4.7;   // Maximum jet |eta|
+    cfg.jet_mu_dR_min  =  0.4;   // Minimum dR(jet, muon)
+    cfg.jet_ele_dR_min =  0.4;   // Minimum dR(jet, electron)
+    cfg.jet_btag_cuts  = {0.1522, 0.4941, 0.8001}; // DeepCSV recommendation from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+    cfg.jet_PU_ID_cut  = "loose"; // Jet passes PU ID cut
 
     // Higgs candidate selection
     cfg.muPair_Higgs = "sort_OS_sum_muon_pt";
@@ -108,30 +112,40 @@ bool ElePass ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const boo
 
 
 // Select jets passing ID and kinematic cuts
-bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const MuonInfos & muons, const std::string sel, const bool verbose ) {
+bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const MuonInfos & muons,
+	      const EleInfos & eles, const std::string sel, const bool verbose ) {
 
   if (verbose) std::cout << "  * Inside JetPass, selection = " << sel << std::endl;
   if (verbose) std::cout << "  * Jet pT = " << jet.pt << ", eta = " << jet.eta << ", phi = " << jet.phi
-                         << ", puID = " << jet.puID << ", CSV = " << jet.CSV << std::endl;
+                         << ", puID = " << jet.puID << ", CSV = " << jet.CSV << ", deepCSV = " << jet.deepCSV << std::endl;
+
+  float jet_CSV = (cfg.year == "2016" ? jet.CSV : jet.deepCSV);  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
 
   // Find the jet closest to the muon
-  float jet_mu_dR_min = 99.;
+  float jet_mu_dR_min  = 99.;
+  float jet_ele_dR_min = 99.;
   for (const auto & mu : muons) {
     float jet_mu_dR = FourVec(jet).DeltaR( FourVec(mu, cfg.mu_pt_corr) );
     if ( MuonPass(cfg, mu) && jet_mu_dR < jet_mu_dR_min )
       jet_mu_dR_min = jet_mu_dR;
   }
+  for (const auto & ele : eles) {
+    float jet_ele_dR = FourVec(jet).DeltaR( FourVec(ele) );
+    if ( ElePass(cfg, ele) && jet_ele_dR < jet_ele_dR_min )
+      jet_ele_dR_min = jet_ele_dR;
+  }
 
-  if ( jet.pt        < cfg.jet_pt_min    )           return false;
-  if ( fabs(jet.eta) > cfg.jet_eta_max   )           return false;
-  if ( jet_mu_dR_min < cfg.jet_mu_dR_min )           return false;
+  if ( jet.pt         < cfg.jet_pt_min     )         return false;
+  if ( fabs(jet.eta)  > cfg.jet_eta_max    )         return false;
+  if ( jet_mu_dR_min  < cfg.jet_mu_dR_min  )         return false;
+  if ( jet_ele_dR_min < cfg.jet_ele_dR_min )         return false;
   if ( !JetPUID(jet, cfg.jet_PU_ID_cut, cfg.year ) ) return false;
 
   if (sel == "Central"    &&  abs(jet.eta) >  2.4) return false;
   if (sel == "Forward"    &&  abs(jet.eta) <= 2.4) return false;
-  if (sel == "BTagLoose"  && (abs(jet.eta) > 2.4 || jet.CSV < cfg.jet_btag_cuts.at(0))) return false;
-  if (sel == "BTagMedium" && (abs(jet.eta) > 2.4 || jet.CSV < cfg.jet_btag_cuts.at(1))) return false;
-  if (sel == "BTagTight"  && (abs(jet.eta) > 2.4 || jet.CSV < cfg.jet_btag_cuts.at(2))) return false;
+  if (sel == "BTagLoose"  && (abs(jet.eta) > 2.4 || jet_CSV < cfg.jet_btag_cuts.at(0))) return false;
+  if (sel == "BTagMedium" && (abs(jet.eta) > 2.4 || jet_CSV < cfg.jet_btag_cuts.at(1))) return false;
+  if (sel == "BTagTight"  && (abs(jet.eta) > 2.4 || jet_CSV < cfg.jet_btag_cuts.at(2))) return false;
 
   if (verbose) std::cout << "    - PASSED selection!!!" << std::endl;
 
@@ -185,14 +199,14 @@ MuPairInfo SelectedCandPair ( const ObjectSelectionConfig & cfg, const NTupleBra
     }
   } // End if (cfg.muPair_Higgs == "sort_OS_sum_muon_pt")
   
-  else if (cfg.muPair_Higgs == "sort_OS_sum_muon_pt") {
+  else if (cfg.muPair_Higgs == "sort_OS_dimuon_pt") {
     float dimu_pt = -99;
     for (const auto & muPair : SelectedMuPairs(cfg, br)) {
       if ( MuPairPt(muPair, cfg.mu_pt_corr) <= dimu_pt ) continue;
       dimu_pt  = MuPairPt(muPair, cfg.mu_pt_corr);
       candPair = muPair;
     }
-  } // End if (cfg.muPair_Higgs == "sort_OS_sum_muon_pt")
+  } // End if (cfg.muPair_Higgs == "sort_OS_dimuon_pt")
 
   else if (cfg.muPair_Higgs == "sort_WH_3_mu_v1") {
     assert( SelectedMuPairs(cfg, br).size() == 2 ); // Only viable for events with 3 selected muons
@@ -272,7 +286,7 @@ JetInfos SelectedJets ( const ObjectSelectionConfig & cfg, const NTupleBranches 
 
   JetInfos selJets;
   for (const auto & jet : (*br.jets)) {
-    if ( JetPass(cfg, jet, (*br.muons), sel) ) {
+    if ( JetPass(cfg, jet, (*br.muons), (*br.eles), sel) ) {
 	selJets.push_back(jet);
     }
   }
@@ -287,8 +301,8 @@ JetPairInfos SelectedJetPairs ( const ObjectSelectionConfig & cfg, const NTupleB
   for (const auto & jetPair : (*br.jetPairs)) {
     JetInfo jet1 = br.jets->at(jetPair.iJet1);
     JetInfo jet2 = br.jets->at(jetPair.iJet2);
-    if ( JetPass(cfg, jet1, (*br.muons), sel) &&
-	 JetPass(cfg, jet2, (*br.muons), sel) ) {
+    if ( JetPass(cfg, jet1, (*br.muons), (*br.eles), sel) &&
+	 JetPass(cfg, jet2, (*br.muons), (*br.eles), sel) ) {
 	selJetPairs.push_back(jetPair);
     }
   }

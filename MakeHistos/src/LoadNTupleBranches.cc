@@ -202,8 +202,9 @@ JetInfos ConvertSlimJets(SlimJetInfos & _slimJets) {
     _jet.jecFactor  = _slimJet.jecFactor;
     _jet.jecUnc     = _slimJet.jecUnc;
 
-    _jet.CSV   = _slimJet.CSV;
-    _jet.puID  = _slimJet.puID;
+    _jet.CSV     = _slimJet.CSV;
+    _jet.deepCSV = _slimJet.deepCSV;
+    _jet.puID    = _slimJet.puID;
     
     _jets.push_back(_jet);
   } // End loop: for (const auto & _slimJet : _slimJets)
