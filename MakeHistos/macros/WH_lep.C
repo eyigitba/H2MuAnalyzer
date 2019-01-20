@@ -48,7 +48,7 @@ const TString OUT_DIR  = "plots";
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu"}; // Multiple selection cuts, applied independently in parallel
 // const std::vector<std::string> CAT_CUTS = {"NONE", "mass12_noZ", "0b_mt150_mass12_noZ", "tight_0b_mt150_mass12_noZ"}; // Event selection categories, also applied in parallel
-const std::vector<std::string> CAT_CUTS = {"mass12_noZ"}; // Event selection categories, also applied in parallel
+const std::vector<std::string> CAT_CUTS = {"0b_mt150_mass12_noZ", "tight_0b_mt150_mass12_noZ"}; // Event selection categories, also applied in parallel
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -213,7 +213,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 
       for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++) {
 	std::string OPT_CUT = OPT_CUTS.at(iOpt);
-	if (MU) {
+	if (OPT_CUT == "3mu") {
 	  // Require exactly 0 selected electrons
 	  if ( SelectedEles(obj_sel, br).size() != 0 ) continue;
 	  // Require exactly 3 selected muons whose charge sums to +/-1
@@ -225,7 +225,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	       H_pair_vec.M() > 160 ) continue;
 	  MU = true;
 	}
-	else {
+	else if (OPT_CUT == "e2mu") {
 	  // Require exactly 1 selected electron
 	  if ( SelectedEles(obj_sel, br).size() != 1 ) continue;
 	  // Require exactly 2 selected muons whose charge sums to +/-1
@@ -237,7 +237,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	       H_pair_vec.M() > 160 ) continue;
 	  MU = false;
 	}
-	assert(OPT_CUT == "3mu" || OPT_CUT == "e2mu");
+	else assert(OPT_CUT == "3mu" || OPT_CUT == "e2mu");
 	// else if (not PassSelection(br, evt_sel, obj_sel, OPT_CUT, verbose)) continue;
 
 	
@@ -380,18 +380,23 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    if ( MU && nonH_pair_vec.M() < 12 )                       { pass_cat_cut = false; continue; }
 	    if ( MU && abs(nonH_pair_vec.M() - 91) < 10 )             { pass_cat_cut = false; continue; }
 	    if ( SelectedJets(obj_sel, br, "BTagMedium").size() > 0 ) { pass_cat_cut = false; continue; }
+	    if ( SelectedJets(obj_sel, br, "BTagLoose").size()  > 1 ) { pass_cat_cut = false; continue; }
 	    if ( nonH_lep_MET_vec.M() > 150 )                         { pass_cat_cut = false; continue; }
 	  }
 	  else if (CAT_CUT == "tight_0b_mt150_mass12_noZ") {
 	    if ( MU && nonH_pair_vec.M() < 12 )                       { pass_cat_cut = false; continue; }
 	    if ( MU && abs(nonH_pair_vec.M() - 91) < 10 )             { pass_cat_cut = false; continue; }
 	    if ( SelectedJets(obj_sel, br, "BTagMedium").size() > 0 ) { pass_cat_cut = false; continue; }
+	    if ( SelectedJets(obj_sel, br, "BTagLoose").size()  > 1 ) { pass_cat_cut = false; continue; }
 	    if ( nonH_lep_MET_vec.M() > 150 )                         { pass_cat_cut = false; continue; }
-	    for (const auto & mu : muons) {
-	      if ( mu.charge != sum_lep_charge ) continue; // Don't require OS muon to be tight
-	      if ( MuonPt(mu, PTC) < 20 || !mu.isTightID || mu.relIso > 0.12)  { pass_cat_cut = false; break; };
-	    }
-	    if ( !MU && (ele.pt < 20 || !ele.isTightID || ele.relIso > 0.12) ) { pass_cat_cut = false; continue; }
+	    if ( OS_mu.lepMVA < 0.4 )                                 { pass_cat_cut = false; continue; }
+	    if ( MU && (SS_mu1.lepMVA < 0.8 || SS_mu2.lepMVA < 0.8) ) { pass_cat_cut = false; continue; }
+	    if (!MU && (SS_mu1.lepMVA < 0.8 ||    ele.lepMVA < 0.8) ) { pass_cat_cut = false; continue; }
+	    // for (const auto & mu : muons) {
+	    //   if ( mu.charge != sum_lep_charge ) continue; // Don't require OS muon to be tight
+	    //   if ( MuonPt(mu, PTC) < 20 || !mu.isTightID || mu.relIso > 0.12)  { pass_cat_cut = false; break; };
+	    // }
+	    // if ( !MU && (ele.pt < 20 || !ele.isTightID || ele.relIso > 0.12) ) { pass_cat_cut = false; continue; }
 	  }
 	  else { pass_cat_cut = InCategory(obj_sel, br, CAT_CUT, verbose); }
 
@@ -518,9 +523,11 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(h_map_1D, h_pre+"OS_mu_lepMVA",   40, -1, 1, OS_mu.lepMVA, event_wgt );
 	  BookAndFill(h_map_1D, h_pre+"SS_lep1_lepMVA", 40, -1, 1, SS_lep1_MVA,  event_wgt );
 	  BookAndFill(h_map_1D, h_pre+"SS_lep2_lepMVA", 40, -1, 1, SS_lep2_MVA,  event_wgt );
+	  BookAndFill(h_map_2D, h_pre+"SS_lep2_vs_lep2_lepMVA", 40, -1, 1, 40, -1, 1, SS_lep1_MVA, SS_lep2_MVA,  event_wgt );
 
 	  BookAndFill(h_map_1D, h_pre+"SS_mu_lepMVA",  40, -1, 1, SS_mu_MVA,  event_wgt );
 	  BookAndFill(h_map_1D, h_pre+"SS_ele_lepMVA", 40, -1, 1, SS_ele_MVA, event_wgt );
+	  BookAndFill(h_map_2D, h_pre+"SS_ele_vs_mu_lepMVA", 40, -1, 1, 40, -1, 1, SS_mu_MVA, SS_ele_MVA, event_wgt );
 
 	  BookAndFill(h_map_1D, h_pre+"OS_mu_SIP",   50, 0, 10, OS_mu.SIP_3D, event_wgt );
 	  BookAndFill(h_map_1D, h_pre+"SS_lep1_SIP", 50, 0, 10, SS_lep1_SIP,  event_wgt );
