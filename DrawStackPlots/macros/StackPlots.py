@@ -27,15 +27,15 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Settings for this stack-drawing job
 if USER == 'abrinke1':
-    PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
-    CONFIG   = 'WH_3l_bkg_val'  ## Pre-defined stack configuration from python/StackPlotConfig.py
-    YEAR     = '2016'           ## Dataset year (2016 or 2017)
-    # LABEL    = 'WH_lep_bkg_val_CERN_08_10_2018_v4'     ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORY = '3LooseMu_ttbar_3l_val_mu'              ## Category for which to draw plots
-    LABEL    = 'WH_lep_CERN_hiM_11_10_2018_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    CATEGORY = 'e2mu_NONE'  ## Category for which to draw plots
+    PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
+    CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
+    YEAR     = '2017'     ## Dataset year (2016 or 2017)
+    LABEL    = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    CATEGORY = '3mu_tight_0b_mt150_mass12_noZ'       ## Category for which to draw plots
+    # LABEL    = 'WH_lep_CERN_hiM_11_10_2018_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = 'e2mu_NONE'  ## Category for which to draw plots
     # CATEGORY = '3mu_tight_0b_mt150_mass12_noZ'  ## Category for which to draw plots
-    IN_FILE  = 'histos_Presel2016_%s.root' % CATEGORY  ## File with input histograms
+    IN_FILE  = 'histos_Presel2017_%s.root' % CATEGORY  ## File with input histograms
     SCALE     = 'lin' ## 'log' or 'lin' scaling of y-axis
     RATIO_MIN = 0.0   ## Minimum value in ratio plot
     RATIO_MAX = 2.0   ## Maximum value in ratio plot
@@ -277,6 +277,7 @@ def main():
     for dist in dists:
         iDist += 1
         # if iDist < 38: continue
+        if not 'Jets' in dist and not 'lepMVA' in dist and not 'mass' in dist: continue
         print '  * Looking at distribution %s (#%d)' % (dist, iDist)
 
 	group_hist = {}  ## Summed sample histograms by group
@@ -290,10 +291,18 @@ def main():
                 for samp in samps:
                     try:
                         hist = in_file.Get(samp+'_'+dist).Clone('tmp')
-                        ## Include both AMC and MG samples scaled by 60%/40% to increase stats
-                        if 'ZJets_AMC' in samp: hist.Scale(0.6)
-                        if 'ZJets_MG'  in samp: hist.Scale(0.4)
-                        if 'tt_ll_MG'  in samp: hist.Scale(0.4)  ## Experimental SF from 3LooseMu_ttbar_3l_val_mu category
+
+                        ## Include multiple samples scaled by available statistics
+                        if YEAR == '2016':
+                            if 'ZJets_AMC' in samp: hist.Scale(0.6)
+                            if 'ZJets_MG'  in samp: hist.Scale(0.4)
+                            # if 'tt_ll_MG'  in samp: hist.Scale(0.4)  ## Experimental SF from 3LooseMu_ttbar_3l_val_mu category
+                        if YEAR == '2017':
+                            if 'ZJets_AMC' in samp: hist.Scale(0.5)
+                            if 'ZJets_MG'  in samp: hist.Scale(0.5)
+                            if 'tt_ll_POW' in samp: hist.Scale(0.7)
+                            if 'tt_ll_MG'  in samp: hist.Scale(0.3)
+
                         if not group in group_hist.keys():
                             group_hist[group] = hist.Clone('hist_'+dist+'_'+group)
                         else:
