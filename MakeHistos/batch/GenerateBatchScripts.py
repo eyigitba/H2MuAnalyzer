@@ -35,6 +35,7 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 # MACRO = 'macros/ReadNTupleChain.C'
 # MACRO = 'macros/MC_data_comparison.C'
 MACRO = 'macros/WH_lep.C'
+# MACRO = 'macros/ttH_3l.C'
 
 LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
 YEAR   = 2017    ## Dataset year (2016 or 2017)
@@ -48,7 +49,8 @@ if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
 
-LABEL  = 'WH_lep_AWB_2019_01_18_lepMVA_test_v2'
+LABEL  = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'
+# LABEL  = 'ttH_3l_AWB_2019_01_19_lepMVA_test_v1'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 JOBSIZE =  100  ## Size of input NTuples in MB, per job (default 1000)
@@ -72,7 +74,7 @@ VERBOSE = False ## Verbose printout
 
 
 ## Function to write the launcher script for a single job, and add that job to the main submit_all.sh script
-def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list, samp_wgt):
+def WriteSingleJob(subs_file, runs_file, sub_files, samp_name, in_dir_name, file_list, samp_wgt):
 
     out_dir = OUT_DIR+'/'+LABEL
 
@@ -83,6 +85,7 @@ def WriteSingleJob(subs_file, sub_files, samp_name, in_dir_name, file_list, samp
     ## that run jobs for up to 1 hour (-q 1nh), specifying the log and error output file location (-o, -e) and
     ## the script that will be run by this job (${run_dir}/batch/launchers/%s.sh)
     subs_file.write( '\nbsub -q 8nh -o ${out_dir}/log/%s.log -e ${out_dir}/err/%s.err ${run_dir}/batch/launchers/%s.sh' % (job_name, job_name, job_name) )
+    runs_file.write( '\n${run_dir}/batch/launchers/%s.sh' % job_name )
 
     sub_files.append( open(launcher_name, 'w') )
 
@@ -134,12 +137,16 @@ def main():
     os.makedirs('batch/launchers')
 
     subs_file = open('submit_all.sh', 'w') ## Master submission script
+    runs_file = open('run_all.sh', 'w')    ## Master script to run all jobs locally
     # hadd_file = open('hadd_all.sh', 'w') ## Script to hadd output files
 
     ## Set directories to run the jobs from, and to output files to
     subs_file.write('\npwd_cmd="/bin/pwd"')
+    runs_file.write('\npwd_cmd="/bin/pwd"')
     subs_file.write('\nrun_dir=`${pwd_cmd}`')
+    runs_file.write('\nrun_dir=`${pwd_cmd}`')
     subs_file.write('\nout_dir="%s"\n' % out_dir)
+    runs_file.write('\nout_dir="%s"\n' % out_dir)
 
     # hadd_file.write('\nout_dir="%s"\n' % out_dir)
     
@@ -241,19 +248,19 @@ def main():
         job_size  = 0.  ## Size of jobs in each input file in MB
         job_files = []  ## Files submitted to a single job 
         ## Get XSec / nProcessed for all files used in the sample, not only for this job
-	samp_wgt = GetNormForSample(subs_file, samp.name, samp.xsec, LUMI, in_dir_name, in_files)
+	samp_wgt = GetNormForSample(samp.name, samp.xsec, LUMI, in_dir_name, in_files)
         for iFile in range(len(in_files)):
             if (len(sub_files) >= NJOBS - 1 and NJOBS > 0):
                 break
             if (job_size > JOBSIZE and JOBSIZE > 0):
-                WriteSingleJob(subs_file, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
+                WriteSingleJob(subs_file, runs_file, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
                 if VERBOSE: print 'Writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
                 job_size  = 0.
                 job_files = []
             job_files.append( in_files[iFile][0] )
             job_size += in_files[iFile][1]
         ## End loop: for iFile in range(len(in_files))
-        WriteSingleJob(subs_file, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
+        WriteSingleJob(subs_file, runs_file, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
         if VERBOSE: print 'Writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
 
         print 'We have now written a total of %d launcher files' % len(sub_files)
@@ -273,12 +280,15 @@ def main():
         print '\n\nNo input ntuples found for %d samples in SampleDatabase.py!!!' % len(miss_samp_db)
         print miss_samp_db
 
-    subs_file.write('\necho "Jobs will be output to ${out_dir}"\n')
+    subs_file.write('\n\necho "Jobs will be output to ${out_dir}"\n')
+    runs_file.write('\n\necho "Jobs will be output to ${out_dir}"\n')
 
     ## Write the output files
     subs_file.close()
-    print '\n\nWrote %s :\n' % subs_file.name
+    runs_file.close()
+    print '\n\nWrote %s and %s :\n' % (subs_file.name, runs_file.name)
     os.chmod(subs_file.name, 0o777) ## Render submit_all.sh executable
+    os.chmod(runs_file.name, 0o777) ## Render runs_all.sh executable
     for sub_file in sub_files:
         print sub_file.name
 

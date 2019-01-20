@@ -1,9 +1,8 @@
 ###################################################################
 ###     macro for calculating normalization for each sample     ###
 ###                                                             ###
-###  currently envisioned to be used in GenerateBatchScript,py  ###
-###  out_file for storing normalization info which will be      ###
-###  taken by batch jobs as an arg input                        ###
+###  Used in GenerateBatchScript.py for storing normalization   ###
+###     info which is taken by batch jobs as an arg input       ###
 ###                                                             ###
 ###             Xunwu Zuo   01.09.2018                          ###
 ###################################################################
@@ -16,7 +15,7 @@ import sys
 #def GetNormForFile():
 
 
-def GetNormForSample(out_file, samp_name, xsec, lumi, in_dir_name, file_list):
+def GetNormForSample(samp_name, xsec, lumi, in_dir_name, file_list):
 # file_list as taken from GenerateBatchScript.py  (name, size)
     if "SingleMu" in samp_name:
 	print "No need to renormalize data"
