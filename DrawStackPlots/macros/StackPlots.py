@@ -34,10 +34,10 @@ if USER == 'abrinke1':
     PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
     CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
     YEAR     = '2017'     ## Dataset year (2016 or 2017)
-    # LABEL    = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    LABEL    = 'ttH_3l_AWB_2019_01_19_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORY = '3mu_0b_mt150_mass12_noZ'  ## Category for which to draw plots
-    CATEGORY = 'e2mu_noZ_btag_ge3j_mass12'  ## Category for which to draw plots
+    # LABEL    = 'WH_lep_AWB_2019_01_21_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    LABEL    = 'ttH_3l_AWB_2019_01_21_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = 'e2mu_tightLepMVA_mass12'  ## Category for which to draw plots
+    CATEGORY = 'e2mu_looseLepMVA_noZ_ge3j_btag_mass12'  ## Category for which to draw plots
     # LABEL    = 'WH_lep_CERN_hiM_11_10_2018_v1'  ## Sub-folder within PLOT_DIR containing histograms
     # CATEGORY = 'e2mu_NONE'  ## Category for which to draw plots
     # CATEGORY = '3mu_tight_0b_mt150_mass12_noZ'  ## Category for which to draw plots
@@ -329,6 +329,9 @@ def main():
                     except:
                         print '  - Could not find histogram '+samp+'_'+dist
 
+        if 'Other' in groups['Bkg'].keys() and not 'Other' in group_hist.keys():
+            del groups['Bkg']['Other']
+
         ## Fill the signal stack
 	for group in groups['Sig'].keys():
             group_hist[group].SetLineColor(colors[group])
@@ -358,7 +361,12 @@ def main():
         for evt_type in groups.keys():
             for group in groups[evt_type].keys():
                 if MC_only and group == 'Data': continue
-                legend.AddEntry(group_hist[group], group)
+                if evt_type == 'Data':  ## Display data integral and data / MC ration in the legend
+                    legend.AddEntry( group_hist[group], group+' (%d, %.2f)' % (group_hist['Data'].Integral(), group_hist['Data'].Integral() / group_hist['MC'].Integral()) )
+                elif evt_type == 'Sig' and group_hist['Sig'].Integral() > 0.0:  ## Display signal integral and scale factor in the legend
+                    legend.AddEntry( group_hist[group], group+' (%.2f x %d)' % (group_hist['Sig'].Integral(), group_hist['MC'].Integral() / group_hist['Sig'].Integral()) )
+                else:
+                    legend.AddEntry(group_hist[group], group)
 
 
         ## Draw stack plot
