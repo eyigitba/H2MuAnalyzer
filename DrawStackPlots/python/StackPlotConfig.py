@@ -89,7 +89,7 @@ def ConfigStackPlot(known_config, year):
     ###  Configuration for validation of WH backgrounds (Z+jets, ttbar, ttW, ttZ)  ###
     ##################################################################################
 
-    if (known_config == 'ttH_3l'):
+    if (known_config == 'WH_lep' or 'ttH_3l'):
 
         cfg.year       = year
         cfg.ntuple_loc = 'CERN'
@@ -99,20 +99,23 @@ def ConfigStackPlot(known_config, year):
 
             cfg.groups['Data']['Data']   = []  ## By default, all data samples go into 'Data'
             cfg.groups['Sig']['Signal']  = []  ## By default, all signal samples go into 'Signal'
-            ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
-            ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
-            cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
             cfg.groups['Bkg']['WZ']         = ['WZ_3l']
             cfg.groups['Bkg']['ZZ']         = ['ZZ_4l']
             ## Powheg sample has ~70% of the stats, MadGraph sample has ~30%.  Weight by 0.7 and 0.3.
             cfg.groups['Bkg']['ttbar']      = ['tt_ll_POW', 'tt_ll_MG']
-            cfg.groups['Bkg']['single top'] = ['tW_pos', 'tW_neg']
-            cfg.groups['Bkg']['ttX']        = ['ttW', 'ttZ', 'ttH', 'tZq']
-            # cfg.groups['Bkg']['top+X']      = ['tZq'] ## Missing tZW
-            # cfg.groups['Bkg']['ttW']        = ['ttW']
-            # cfg.groups['Bkg']['ttZ']        = ['ttZ']
-            # cfg.groups['Bkg']['ttH']        = ['ttH']
             cfg.groups['Bkg']['Other']      = []  ## Any background sample not of a specified type goes into 'Other'
+
+            if known_config == 'WH_lep':
+                ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
+                ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
+                cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
+                cfg.groups['Bkg']['single top'] = ['tW_pos', 'tW_neg']
+                cfg.groups['Bkg']['ttX']        = ['ttW', 'ttZ', 'ttH', 'tZq']
+            else:
+                cfg.groups['Bkg']['top+X']      = ['tZq'] ## Missing tZW
+                cfg.groups['Bkg']['ttW']        = ['ttW']
+                cfg.groups['Bkg']['ttZ']        = ['ttZ']
+                cfg.groups['Bkg']['ttH']        = ['ttH']
 
             ## Preserve ordering of groups
             cfg.groups['Data'] = OrderedDict(cfg.groups['Data'])
@@ -128,17 +131,21 @@ def ConfigStackPlot(known_config, year):
         cfg.colors = {}
         cfg.colors['Signal']     = R.kRed
         cfg.colors['Data']       = R.kBlack
-        cfg.colors['ZJets']      = R.kAzure
         cfg.colors['WZ']         = R.kViolet
         cfg.colors['ZZ']         = R.kPink+7
         cfg.colors['ttbar']      = R.kOrange+2
-        cfg.colors['single top'] = R.kOrange
-        # cfg.colors['top+X']      = R.kOrange
-        cfg.colors['ttX']        = R.kSpring
-        # cfg.colors['ttW']        = R.kSpring
-        # cfg.colors['ttZ']        = R.kGreen+3
-        # cfg.colors['ttH']        = R.kAzure
         cfg.colors['Other']      = R.kCyan
+
+        if known_config == 'WH_lep':
+            cfg.colors['ZJets']      = R.kAzure
+            cfg.colors['single top'] = R.kOrange
+            cfg.colors['ttX']        = R.kSpring
+        else:
+            cfg.colors['top+X']      = R.kOrange
+            cfg.colors['ttW']        = R.kSpring
+            cfg.colors['ttZ']        = R.kGreen+3
+            cfg.colors['ttH']        = R.kAzure
+
 
     ## End conditional: if (known_config == 'ttH_3l')
 
