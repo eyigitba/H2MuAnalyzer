@@ -1,8 +1,12 @@
 #! /usr/bin/env python
 
 ####################################################
-###    make stack and ratio from added histos    ###
+###    Make stack and ratio from added histos    ###
 ####################################################
+
+## N.B. For some reason frequently segfaults after plotting ~20 stacks - AWB 21.01.2019
+## Can run as ./macros/StackPlots.py i j to plots stacks with indices [i, j]
+## Script prints index of each stack so you can see the last one which succeded
 
 ## Basic python includes for manipulating files
 import os
@@ -30,8 +34,10 @@ if USER == 'abrinke1':
     PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
     CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
     YEAR     = '2017'     ## Dataset year (2016 or 2017)
-    LABEL    = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    CATEGORY = '3mu_tight_0b_mt150_mass12_noZ'       ## Category for which to draw plots
+    # LABEL    = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    LABEL    = 'ttH_3l_AWB_2019_01_19_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = '3mu_0b_mt150_mass12_noZ'  ## Category for which to draw plots
+    CATEGORY = 'e2mu_noZ_btag_ge3j_mass12'  ## Category for which to draw plots
     # LABEL    = 'WH_lep_CERN_hiM_11_10_2018_v1'  ## Sub-folder within PLOT_DIR containing histograms
     # CATEGORY = 'e2mu_NONE'  ## Category for which to draw plots
     # CATEGORY = '3mu_tight_0b_mt150_mass12_noZ'  ## Category for which to draw plots
@@ -48,7 +54,7 @@ else: print 'Invalid USER = %s' % USER
 
 
 ## Function to draw each stack plot and ratio plot on the same canvas
-def DrawOneStack( dist, sig_stack, all_stack, h_data, legend ):   # Do not use TRatioPlot! It is a devil! - XWZ 19.09.2018
+def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):   # Do not use TRatioPlot! It is a devil! - XWZ 19.09.2018
 
     ## Create a new TCanvas
     canv = R.TCanvas('can_'+dist, 'can_'+dist, 1)
@@ -115,10 +121,17 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend ):   # Do not use T
         ratio_hist.Draw()
 
     canv.Update()
-    canv.Write()
     canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.png')
 
-    del h_sig
+    ## Open output root file and save canvas
+    out_file_loc = R.TFile.Open(out_file_name, 'UPDATE')
+    out_file_loc.cd()
+    canv.Write()
+    out_file_loc.Close()
+
+    ## Delete objects created in DrawOneStack()
+    del canv, upper_pad, lower_pad, h_sig, out_file_loc
+    if h_data: del ratio_hist
 
 ## End function: DrawOneStack()
 
@@ -136,14 +149,22 @@ def main():
     else:                  in_file_dir = PLOT_DIR+'/'+LABEL+'/files/sum'
 
     in_file_name  = in_file_dir+'/'+IN_FILE
-    out_file_name = in_file_dir+'/StackPlots.root'
+    out_dir       = PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY
+    out_file_name = out_dir+'/StackPlots.root'
+    if not os.path.exists(out_dir): os.makedirs(out_dir)
     
+    ## If this is the first time running StackPlots.py, create new output file
+    if ( len(sys.argv) == 1 or int(sys.argv[1]) <= 1 ):
+        print 'Creating output file %s' % out_file_name
+        out_file = R.TFile.Open(out_file_name, 'RECREATE')
+    else:  ## If StackPlots.py crashed and you are finishing the plots, update existing file
+        print 'Re-opening output file %s' % out_file_name
+        out_file = R.TFile.Open(out_file_name, 'UPDATE')
+    out_file.Close()  ## Re-open later when saving stack
+    del out_file
     print 'Opening input file %s' % in_file_name
     in_file = R.TFile.Open(in_file_name, 'READ')
-    print 'Creating output file %s' % out_file_name
-    out_file = R.TFile.Open(out_file_name, 'RECREATE')
-    try: os.makedirs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY)
-    except: True
+
 
     #########################################
     ###  Configure stack plot properties  ###
@@ -178,7 +199,6 @@ def main():
 
     dists       = []  ## All distributions contained in the file
     found_samps = []  ## All samples found in the file
-    in_file.cd('')
     ## Loop over all the histograms in the file
     ## Histogram name composed of sample+'_'+distribution
     for key in R.gDirectory.GetListOfKeys():
@@ -270,14 +290,12 @@ def main():
     ##########################################
 
     print '\nAbout to start creating and filling the plots'
-    out_file.cd()
-
-    print '\nLooping over samples and distributions to get histograms'
+    print 'Looping over samples and distributions to get histograms'
     iDist = 0
     for dist in dists:
         iDist += 1
-        # if iDist < 38: continue
-        if not 'Jets' in dist and not 'lepMVA' in dist and not 'mass' in dist: continue
+        ## Only plot stacks in certain index range, if speficied by the user
+        if ( len(sys.argv) > 1 and (iDist < int(sys.argv[1]) or iDist > int(sys.argv[2])) ): continue
         print '  * Looking at distribution %s (#%d)' % (dist, iDist)
 
 	group_hist = {}  ## Summed sample histograms by group
@@ -299,7 +317,7 @@ def main():
                             # if 'tt_ll_MG'  in samp: hist.Scale(0.4)  ## Experimental SF from 3LooseMu_ttbar_3l_val_mu category
                         if YEAR == '2017':
                             if 'ZJets_AMC' in samp: hist.Scale(0.5)
-                            if 'ZJets_MG'  in samp: hist.Scale(0.5)
+                            if 'ZJets_MG'  in samp: hist.Scale(0.25)  ## Using both MG_1 and MG_2
                             if 'tt_ll_POW' in samp: hist.Scale(0.7)
                             if 'tt_ll_MG'  in samp: hist.Scale(0.3)
 
@@ -342,16 +360,15 @@ def main():
                 if MC_only and group == 'Data': continue
                 legend.AddEntry(group_hist[group], group)
 
-        # print '    - About to run DrawOneStack'
-	DrawOneStack( dist, stack_sig, stack_all, group_hist['Dat'], legend)
 
-        del stack_sig, stack_all, group_hist, legend
+        ## Draw stack plot
+	DrawOneStack( dist, stack_sig, stack_all, group_hist['Dat'], legend, out_file_name )
+        ## Delete objects created in loop over dists
+        del group_hist, stack_all, stack_sig, stack_dat, legend
         
     ## End loop: for dist in dists
 
-    ## Finished with output
-    out_file.Close()
-
+    print '\nFinished looping over all distributions.  Done!'
 
 main()  ## End of main function
 
