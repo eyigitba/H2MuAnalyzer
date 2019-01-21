@@ -47,8 +47,10 @@ const TString OUT_DIR  = "plots";
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu"}; // Multiple selection cuts, applied independently in parallel
-// const std::vector<std::string> CAT_CUTS = {"NONE", "mass12_noZ", "0b_mt150_mass12_noZ", "tight_0b_mt150_mass12_noZ"}; // Event selection categories, also applied in parallel
-const std::vector<std::string> CAT_CUTS = {"0b_mt150_mass12_noZ", "tight_0b_mt150_mass12_noZ"}; // Event selection categories, also applied in parallel
+const std::vector<std::string> CAT_CUTS = { "NONE", "noZ_mass12", "mt150_noBtag_noZ_mass12", "tightLepMVA_mass12",
+					    "looseLepMVA_mt150_noBtag_noZ_mass12",
+					    "tightLepMVA_mt150_noBtag_noZ_mass12",
+					    "tightLepCut_mt150_noBtag_noZ_mass12" }; // Event selection categories, also applied in parallel
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -153,7 +155,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   ConfigureEventWeight    (evt_wgt, YEAR);
 
   evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair
-  obj_sel.muPair_Higgs = "sort_WH_3_mu_v1"; // Choose Higgs candidate based on MT(W muon, MET) 
+  // obj_sel.muPair_Higgs = "sort_WH_3_mu_v1"; // Choose Higgs candidate based on MT(W muon, MET)
 
   if (verbose) obj_sel.Print();
   if (verbose) evt_sel.Print();
@@ -202,8 +204,9 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
       float event_wgt = ( sample.Contains("SingleMu") ? 1.0 : EventWeight(br, evt_wgt, verbose) );
 
       // Initialize the selected Higgs candidate dimuon pair
-      MuPairInfo     H_pair;
-      TLorentzVector H_pair_vec;
+      std::vector<int> iCandPairs;  // Indices of Higgs candidate pairs (can have up to 2)
+      MuPairInfo        H_pair;     // When filling histograms, have only one candidate pair at a time
+      TLorentzVector    H_pair_vec;
       
       bool MU = false;  // Says whether event has 3 muons or 1 electron + 2 muons
 
@@ -218,12 +221,15 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  if ( SelectedEles(obj_sel, br).size() != 0 ) continue;
 	  // Require exactly 3 selected muons whose charge sums to +/-1
 	  if ( SelectedMuPairs(obj_sel, br).size() != 2 ) continue;
-	  // Require selected Higgs candidate dimuon pair to fall inside mass window
-	  H_pair     = SelectedCandPair(obj_sel, br);
-	  H_pair_vec = FourVec(H_pair, PTC);
-	  if ( H_pair_vec.M() < 105 ||
-	       H_pair_vec.M() > 160 ) continue;
-	  MU = true;
+	  // Require at least one Higgs candidate dimuon pair to fall inside mass window
+	  for (int iPair = 0; iPair < 2; iPair++) {
+	    H_pair     = SelectedMuPairs(obj_sel, br).at(iPair);
+	    H_pair_vec = FourVec(H_pair, PTC);
+	    if ( H_pair_vec.M() < 105 ||
+		 H_pair_vec.M() > 160 ) continue;
+	    iCandPairs.push_back(iPair);
+	    MU = true;
+	  }
 	}
 	else if (OPT_CUT == "e2mu") {
 	  // Require exactly 1 selected electron
@@ -235,6 +241,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  H_pair_vec = FourVec(H_pair, PTC);
 	  if ( H_pair_vec.M() < 105 ||
 	       H_pair_vec.M() > 160 ) continue;
+	  iCandPairs.push_back(0);
 	  MU = false;
 	}
 	else assert(OPT_CUT == "3mu" || OPT_CUT == "e2mu");
@@ -245,7 +252,17 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	/// Loop through category cuts defined in src/CategoryCuts.cc  ///
 	//////////////////////////////////////////////////////////////////
 	
-	for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++) {
+	for (int iCat = 0; iCat < CAT_CUTS.size()*iCandPairs.size(); iCat++) {
+
+	  // In case of two valid Higgs candidate pairs, choose based on even/odd iCat
+	  if (iCandPairs.size() == 2 ) {
+	    int iCandPair = iCat % 2;
+	    H_pair     = SelectedMuPairs(obj_sel, br).at(iCandPair);
+	    H_pair_vec = FourVec(H_pair, PTC);
+	  } else {  // Otherwise pick the single pair that fell in the mass [105, 160] range
+	    H_pair     = SelectedMuPairs(obj_sel, br).at(iCandPairs.at(0));
+	    H_pair_vec = FourVec(H_pair, PTC);
+	  }
 
 	  //////////////////////////////////////////////////////
 	  ///  Compute variables relevent for category cuts  ///
@@ -370,35 +387,58 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  ///  Apply the category selection cuts  ///
 	  ///////////////////////////////////////////
 
-	  std::string CAT_CUT = CAT_CUTS.at(iCat);
+	  std::string CAT_CUT   = CAT_CUTS.at(iCat / iCandPairs.size());
+	  std::string CAT_UNCUT = CAT_CUT; // Track what sub-strings don't match any known cuts
 	  bool pass_cat_cut = true;
-	  if (CAT_CUT == "mass12_noZ") {  // Cuts only relevant for 3 muon events
-	    if ( MU && nonH_pair_vec.M() < 12 )           { pass_cat_cut = false; continue; }
-	    if ( MU && abs(nonH_pair_vec.M() - 91) < 10 ) { pass_cat_cut = false; continue; }
+	  if ( CAT_CUT.find("mass12") != std::string::npos ) {
+	    if ( nonH_pair_vec.M() < 12 )                             { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("mass12"), std::string("mass12").length() );
 	  }
-	  else if (CAT_CUT == "0b_mt150_mass12_noZ") {
-	    if ( MU && nonH_pair_vec.M() < 12 )                       { pass_cat_cut = false; continue; }
+	  if ( CAT_CUT.find("noZ") != std::string::npos ) {
 	    if ( MU && abs(nonH_pair_vec.M() - 91) < 10 )             { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("noZ"), std::string("noZ").length() );
+	  }
+	  if ( CAT_CUT.find("mt150") != std::string::npos ) {
+	    if ( nonH_lep_MET_vec.M() > 150 )                         { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("mt150"), std::string("mt150").length() );
+	  }
+	  if ( CAT_CUT.find("noBtag") != std::string::npos ) {
 	    if ( SelectedJets(obj_sel, br, "BTagMedium").size() > 0 ) { pass_cat_cut = false; continue; }
 	    if ( SelectedJets(obj_sel, br, "BTagLoose").size()  > 1 ) { pass_cat_cut = false; continue; }
-	    if ( nonH_lep_MET_vec.M() > 150 )                         { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("noBtag"), std::string("noBtag").length() );
 	  }
-	  else if (CAT_CUT == "tight_0b_mt150_mass12_noZ") {
-	    if ( MU && nonH_pair_vec.M() < 12 )                       { pass_cat_cut = false; continue; }
-	    if ( MU && abs(nonH_pair_vec.M() - 91) < 10 )             { pass_cat_cut = false; continue; }
-	    if ( SelectedJets(obj_sel, br, "BTagMedium").size() > 0 ) { pass_cat_cut = false; continue; }
-	    if ( SelectedJets(obj_sel, br, "BTagLoose").size()  > 1 ) { pass_cat_cut = false; continue; }
-	    if ( nonH_lep_MET_vec.M() > 150 )                         { pass_cat_cut = false; continue; }
+	  if ( CAT_CUT.find("looseLepMVA") != std::string::npos ) {
+	    if ( OS_mu.lepMVA < 0.4 )                                 { pass_cat_cut = false; continue; }
+	    if ( MU && (SS_mu1.lepMVA < 0.4 || SS_mu2.lepMVA < 0.4) ) { pass_cat_cut = false; continue; }
+	    if (!MU && (SS_mu1.lepMVA < 0.4 ||    ele.lepMVA < 0.4) ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("looseLepMVA"), std::string("looseLepMVA").length() );
+	  }
+	  if ( CAT_CUT.find("tightLepMVA") != std::string::npos ) {
 	    if ( OS_mu.lepMVA < 0.4 )                                 { pass_cat_cut = false; continue; }
 	    if ( MU && (SS_mu1.lepMVA < 0.8 || SS_mu2.lepMVA < 0.8) ) { pass_cat_cut = false; continue; }
 	    if (!MU && (SS_mu1.lepMVA < 0.8 ||    ele.lepMVA < 0.8) ) { pass_cat_cut = false; continue; }
-	    // for (const auto & mu : muons) {
-	    //   if ( mu.charge != sum_lep_charge ) continue; // Don't require OS muon to be tight
-	    //   if ( MuonPt(mu, PTC) < 20 || !mu.isTightID || mu.relIso > 0.12)  { pass_cat_cut = false; break; };
-	    // }
-	    // if ( !MU && (ele.pt < 20 || !ele.isTightID || ele.relIso > 0.12) ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("tightLepMVA"), std::string("tightLepMVA").length() );
 	  }
-	  else { pass_cat_cut = InCategory(obj_sel, br, CAT_CUT, verbose); }
+	  if ( CAT_CUT.find("tightLepCut") != std::string::npos ) {
+	    if (         MuonPt(OS_mu,  PTC) < 10 || !OS_mu.isMediumID || OS_mu.relIso  > 0.25  ) { pass_cat_cut = false; continue; };
+	    if (  MU && (MuonPt(SS_mu1, PTC) < 20 || !SS_mu1.isTightID || SS_mu1.relIso > 0.12) ) { pass_cat_cut = false; continue; };
+	    if (  MU && (MuonPt(SS_mu2, PTC) < 20 || !SS_mu2.isTightID || SS_mu2.relIso > 0.12) ) { pass_cat_cut = false; continue; };
+	    if ( !MU && (             ele.pt < 20 ||    !ele.isTightID ||    ele.relIso > 0.12) ) { pass_cat_cut = false; continue; };
+	    CAT_UNCUT.erase( CAT_UNCUT.find("tightLepCut"), std::string("tightLepCut").length() );
+	  }
+	  // Remove "_" characters left over after all known category sub-strings have been removed
+	  while ( CAT_UNCUT.find("_") != std::string::npos ) {
+	    CAT_UNCUT.erase( CAT_UNCUT.find("_"), std::string("_").length() );
+	  }
+	  // If CAT_CUT contains unknown elements, look for it in the central repository
+	  if ( CAT_UNCUT.length() > 0 ) pass_cat_cut = InCategory(obj_sel, br, CAT_CUT, verbose);
+
+	  ///  *** SPECIAL CUTS ***  ///
+	  // Only keep signal events if the chosen Higgs candidate pair really comes from the Higgs
+	  if (  sample.Contains("H2Mu") && H_true_vec.M() != H_pair_vec.M() ) pass_cat_cut = false;
+	  // Throw away background events if the chosen Higgs candidate pair actually comes from the Higgs (e.g. ttH, tHq, etc.)
+	  if ( !sample.Contains("H2Mu") && H_true_vec.M() == H_pair_vec.M() ) pass_cat_cut = false;
+
 
 	  if (not pass_cat_cut) continue;
 	  if (verbose) std::cout << "\nPassed cut " << OPT_CUT << ", in category " << CAT_CUT << std::endl;
@@ -464,8 +504,6 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    SS_lep1_tID = (SS_mu1_vec.Pt() > ele.pt ? SS_mu1.isTightID : ele.isTightID);
 	    SS_lep2_tID = (SS_mu1_vec.Pt() > ele.pt ? ele.isTightID : SS_mu1.isTightID);
 	  }
-
-	  
 
 
 	  /////////////////////////////////
@@ -550,7 +588,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(h_map_1D, h_pre+"SS_dilep_mass",      40,   0, 400, SS_pair_vec.M(),      event_wgt );
 	  BookAndFill(h_map_1D, h_pre+"trilep_mass",        30,   0, 600, trilep_vec.M(),       event_wgt );
 
-	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
+	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size()*iCandCuts.size(); iCat++)
       } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
     } // End conditional: if (pass_sel_cuts)
 
