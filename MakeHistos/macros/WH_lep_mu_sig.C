@@ -139,7 +139,7 @@ void WH_lep_mu_sig( TString sample = "", TString in_dir = "", TString out_dir = 
 
     // For original 2016 and some 2017 NTuples, convert "SlimJets" collection into regular jets
     JetInfos jets_tmp;
-    if (YEAR == "2016") {
+    if (SLIM == "Slim") {
       jets_tmp = ConvertSlimJets(*(br.slimJets));
       br.jets  = &jets_tmp;
     }

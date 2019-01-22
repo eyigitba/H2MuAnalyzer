@@ -35,11 +35,11 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 # MACRO = 'macros/ReadNTupleChain.C'
 # MACRO = 'macros/MC_data_comparison.C'
 
-MACRO = 'macros/WH_lep.C'
+#MACRO = 'macros/WH_lep.C'
 # MACRO = 'macros/ttH_3l.C'
 #MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/lepMVA_efficiency.C'
-#MACRO = 'macros/lepMVA_variables.C'
+MACRO = 'macros/lepMVA_variables.C'
 
 LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
 #LOC   = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
@@ -53,9 +53,9 @@ HADD_IN = True   ## Use pre-hadded root files (NTuple_*.root) instead of origina
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
-LABEL  = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'
+#LABEL  = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'
 # LABEL  = 'ttH_3l_AWB_2019_01_19_lepMVA_test_v1'
-#LABEL = 'lepMVA_variables_v3'
+LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'miniNtuple_WH_2017_v5'
 #LABEL   = 'WH_cat_2017_v4_v4' 
 
@@ -170,7 +170,7 @@ def main():
     ## Loop over available samples
     for samp in samples:
 
-        # if (YEAR == 2017):  ## Some samples not yet available for 2017 - AWB 17.08.2018
+        # if (YEAR == 2017 and LOC == 'CERN'):  ## Some samples not yet available for 2017 - AWB 17.08.2018
         #     if ('_120' in samp.name or '_130' in samp.name): continue
         #     if ('ZJets' in samp.name):
         #         if not (samp.name == 'ZJets_AMC' or samp.name == 'ZJets_AMC_2' or samp.name == 'ZJets_m_10_50'): continue

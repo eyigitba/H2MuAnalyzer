@@ -41,13 +41,14 @@ const float SAMP_WGT = 1.0;
 const float LUMI = 36814; // pb-1   36814 for 2016, 41000 for 2017
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR   = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/WPlusH_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_WH_pos";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/WPlusH_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_WH_pos";
 const TString SAMPLE   = "H2Mu_WH_pos";
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/WZ_3l_AMC";
 //const TString SAMPLE   = "WZ_3l_AMC";
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 //const TString SAMPLE   = "SingleMu";
 const std::string YEAR = "2016";
+const std::string SLIM = "Slim";
 const TString OUT_DIR  = "plots";
 
 const std::vector<std::string> SEL_CUTS = {"Presel2016"}; // Cuts which every event must pass
@@ -76,14 +77,14 @@ void Extra_MNT( TString sample = "", TString in_dir = "", TString out_dir = "",
   std::vector<TString> in_file_names;
   TString in_file_name;
   for (int i = 0; i < in_files.size(); i++) {
-    in_file_name.Form("root://eoscms.cern.ch/%s/%s", in_dir.Data(), in_files.at(i).Data());
+    in_file_name.Form("%s/%s", in_dir.Data(), in_files.at(i).Data());
     std::cout << "Adding file " << in_file_name.Data() << std::endl;
     in_file_names.push_back(in_file_name);
   }
   if (in_files.size() == 0) {
     for (int i = MIN_FILE; i <= MAX_FILE; i++) {
-      // in_file_name.Form("root://eoscms.cern.ch/%s/tuple_%d.root", in_dir.Data(), i);
-      in_file_name.Form("root://eoscms.cern.ch/%s/NTuple_0.root", in_dir.Data());
+      // in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
+      in_file_name.Form("%s/NTuple_0.root", in_dir.Data());
       std::cout << "Adding file " << in_file_name.Data() << std::endl;
       in_file_names.push_back(in_file_name.Data());
     }
@@ -345,9 +346,9 @@ void Extra_MNT( TString sample = "", TString in_dir = "", TString out_dir = "",
   //   in_chain->Add( samp->filenames.at(i) );
     // Set branch addresses, from interface/LoadNTupleBranches.h
     if (sample.Contains("SingleMu"))
-      SetBranchAddresses(*in_chain, br, {YEAR}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM}, false); // Options in {} include "JES", "Flags", and "SFs"
     else
-      SetBranchAddresses(*in_chain, br, {YEAR, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
   // Configuration for object selection, event selection, and object weighting
@@ -386,7 +387,7 @@ void Extra_MNT( TString sample = "", TString in_dir = "", TString out_dir = "",
 
     // For 2016 NTuples, convert "SlimJets" collection into regular jets
     JetInfos jets_tmp;
-    if (YEAR == "2016") {
+    if (SLIM == "Slim") {
       jets_tmp = ConvertSlimJets(*(br.slimJets));
       br.jets  = &jets_tmp;
     }

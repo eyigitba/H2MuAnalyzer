@@ -224,7 +224,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  // Require at least one Higgs candidate dimuon pair to fall inside mass window
 	  for (int iPair = 0; iPair < 2; iPair++) {
 	    H_pair     = SelectedMuPairs(obj_sel, br).at(iPair);
-	    H_pair_vec = FourVec(H_pair, PTC);
+	    H_pair_vec = FourVec(H_pair, *br.muons, PTC);
 	    if ( H_pair_vec.M() < 105 ||
 		 H_pair_vec.M() > 160 ) continue;
 	    iCandPairs.push_back(iPair);
@@ -238,7 +238,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  if ( SelectedMuPairs(obj_sel, br).size() != 1 ) continue;
 	  // Require selected Higgs candidate dimuon pair to fall inside mass window
 	  H_pair     = SelectedMuPairs(obj_sel, br).at(0);
-	  H_pair_vec = FourVec(H_pair, PTC);
+	  H_pair_vec = FourVec(H_pair, *br.muons, PTC);
 	  if ( H_pair_vec.M() < 105 ||
 	       H_pair_vec.M() > 160 ) continue;
 	  iCandPairs.push_back(0);
@@ -258,10 +258,10 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  if (iCandPairs.size() == 2 ) {
 	    int iCandPair = iCat % 2;
 	    H_pair     = SelectedMuPairs(obj_sel, br).at(iCandPair);
-	    H_pair_vec = FourVec(H_pair, PTC);
+	    H_pair_vec = FourVec(H_pair, *br.muons, PTC);
 	  } else {  // Otherwise pick the single pair that fell in the mass [105, 160] range
 	    H_pair     = SelectedMuPairs(obj_sel, br).at(iCandPairs.at(0));
-	    H_pair_vec = FourVec(H_pair, PTC);
+	    H_pair_vec = FourVec(H_pair, *br.muons, PTC);
 	  }
 
 	  //////////////////////////////////////////////////////
@@ -318,17 +318,17 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    if (not sample.Contains("SingleMu")) {
 	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, "H") ) {
 		H_true     = muPair;
-		H_true_vec = FourVec(muPair, PTC);
+		H_true_vec = FourVec(muPair, *br.muons, PTC);
 	      }
 	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, "Z") ) {
 		Z_true     = muPair;
-		Z_true_vec = FourVec(muPair, PTC);
+		Z_true_vec = FourVec(muPair, *br.muons, PTC);
 	      }
 	    }
 	    // Check if the pair does not match the selected Higgs candidate pair
 	    if ( muPair.iMu1 != H_pair.iMu1 || muPair.iMu2 != H_pair.iMu2 ) {
 	      nonH_pair     = muPair;
-	      nonH_pair_vec = FourVec(muPair, PTC);
+	      nonH_pair_vec = FourVec(muPair, *br.muons, PTC);
 	    }
 	  }
 
