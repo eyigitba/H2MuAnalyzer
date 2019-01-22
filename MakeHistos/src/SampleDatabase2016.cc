@@ -36,11 +36,13 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
     data_dir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/DoubleMuon/simplified/"; 
   }
   else if (location == "CERN")
-    in_dir = "root://eoscms.cern.ch//store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13";
+    in_dir = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13";
   else if (location == "CERN_hiM")
-    in_dir = "root://eoscms.cern.ch//store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM";
+    in_dir = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM";
   else
     std::cout << "\n\nInput location is " << location << ", not UF, CERN, or CERN_hiM.  NOT AN OPTION!!!\n\n" << std::endl;
+
+  std::cout << "\nLoading files from directory " << in_dir << "\n" << std::endl;
   
   TString in_dir_hiM = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/hiM_simplified/";
 
@@ -145,10 +147,10 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
     if (location.Contains("UF")) {
       in_files.push_back( TString(in_dir_hiM+"signal/GluGlu_HToMuMu_M120_13TeV_powheg_pythia8_H2Mu_gg_120.root") );
     } 
-    //else {
-    //  in_file.Form( "%s/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/NTuple_0.root", in_dir.Data() );
-    //  in_files.push_back(in_file);
-    //}
+    else {
+     in_file.Form( "%s/GluGlu_HToMuMu_M120_13TeV_powheg_pythia8/H2Mu_gg_120/NTuple_0.root", in_dir.Data() );
+     in_files.push_back(in_file);
+    }
     samples["H2Mu_gg_120"] = new Sample("H2Mu_gg_120", "signal", in_files);
     samples["H2Mu_gg_120"]->xsec = 0.009618; // pb
     if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
@@ -161,10 +163,10 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
     if (location.Contains("UF")) {
       in_files.push_back( TString(in_dir_hiM+"signal/GluGlu_HToMuMu_M130_13TeV_powheg_pythia8_H2Mu_gg_130.root") );
     } 
-    //else {
-    //  in_file.Form( "%s/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/NTuple_0.root", in_dir.Data() );
-    //  in_files.push_back(in_file);
-    //}
+    else {
+     in_file.Form( "%s/GluGlu_HToMuMu_M130_13TeV_powheg_pythia8/H2Mu_gg_130/NTuple_0.root", in_dir.Data() );
+     in_files.push_back(in_file);
+    }
     samples["H2Mu_gg_130"] = new Sample("H2Mu_gg_130", "signal", in_files);
     samples["H2Mu_gg_130"]->xsec = 0.009618; // pb
     if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
@@ -422,7 +424,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if ((select.Contains("ALL") && select.Contains("AMC")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC") {
+  if ((select.Contains("ALL") && select.Contains("AMC")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC" || select == "ZJets_AMC_0j") {
     std::cout << "Adding files for ZJets_AMC_0j ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -442,7 +444,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if ((select.Contains("ALL") && select.Contains("AMC")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC") {
+  if ((select.Contains("ALL") && select.Contains("AMC")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC" || select == "ZJets_AMC_1j") {
     std::cout << "Adding files for ZJets_AMC_1j ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -462,7 +464,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if ((select.Contains("ALL") && select.Contains("AMC")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC") {
+  if ((select.Contains("ALL") && select.Contains("AMC")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC" || select == "ZJets_AMC_2j") {
     std::cout << "Adding files for ZJets_AMC_2j ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -516,7 +518,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG" || select == "ZJets_MG_HT100") {
     std::cout << "Adding files for ZJets_MG_HT_100_200 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -547,7 +549,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG" || select == "ZJets_MG_HT200") {
     std::cout << "Adding files for ZJets_MG_HT_200_400 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -566,7 +568,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG" || select == "ZJets_MG_HT400") {
     std::cout << "Adding files for ZJets_MG_HT_400_600 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -585,7 +587,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG" || select == "ZJets_MG_HT600") {
     std::cout << "Adding files for ZJets_MG_HT_600_800 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -602,7 +604,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG" || select == "ZJets_MG_HT800") {
     std::cout << "Adding files for ZJets_MG_HT_800_1200 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -619,7 +621,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG" || select == "ZJets_MG_HT1200") {
     std::cout << "Adding files for ZJets_MG_HT_1200_2500 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -636,7 +638,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if ((select.Contains("ALL") && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL") && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG" || select == "ZJets_MG_HT2500") {
     std::cout << "Adding files for ZJets_MG_HT_2500_inf ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -913,7 +915,7 @@ std::map<TString, Sample*> GetSamples2016(std::map<TString, Sample*>& samples, T
      in_files.push_back(in_file);
     }
     samples["WZ_3l"] = new Sample("WZ_3l", "background", in_files);
-    samples["WZ_3l"]->xsec = 2.113; // pb
+    samples["WZ_3l"]->xsec = 4.430;  // pb, from TOP-18-008. We used 2.113 in 2016 - AWB 09.10.2018
     if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 

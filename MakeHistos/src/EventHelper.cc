@@ -6,7 +6,7 @@ int NumJets ( const ObjectSelectionConfig & cfg, const NTupleBranches & br, cons
 
   int nJets = 0;
   for (const auto & jet : (*br.jets)) {
-    if (JetPass(cfg, jet, (*br.muons), sel)) nJets += 1;
+    if (JetPass(cfg, jet, (*br.muons), (*br.eles), sel)) nJets += 1;
   }
   return nJets;
 }

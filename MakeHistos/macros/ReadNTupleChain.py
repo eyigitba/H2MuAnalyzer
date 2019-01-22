@@ -18,13 +18,12 @@ def main():
 
     ## Location of input files in eos on lxplus : SingleMuon data from 2017
     file_names = []
-    store  = 'root://eoscms.cern.ch//store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/'
+    store  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/'
     in_dir = 'SingleMuon/SingleMu_2017F/180802_164117/0000/' ## 2017 v4 - https://github.com/UFLX2MuMu/Ntupliser/releases/tag/prod-v4.0
 
     ## List all files in directory
-    eos_cmd = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select'
 
-    for in_file_name in subprocess.check_output([eos_cmd, 'ls', store+in_dir]).splitlines():
+    for in_file_name in subprocess.check_output(['ls', store+in_dir]).splitlines():
         if not '.root' in in_file_name: continue
         if (len(file_names) >= MAX_FILE): break
         file_names.append(store+in_dir+in_file_name)

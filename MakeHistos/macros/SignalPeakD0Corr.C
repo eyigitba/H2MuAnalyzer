@@ -28,8 +28,8 @@ const int MAX_EVT  = -1;    // Maximum number of events to process
 const int PRT_EVT  = 10000; // Print every N events
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR   = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/170313_225533/0000";
-// const TString IN_DIR   = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/GluGlu_HToMuMu_M125_13TeV_amcatnloFXFX_pythia8/H2Mu_gg/180802_164158/0000";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/170313_225533/0000";
+// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/GluGlu_HToMuMu_M125_13TeV_amcatnloFXFX_pythia8/H2Mu_gg/180802_164158/0000";
 const TString SAMPLE   = "H2Mu_gg";
 const TString OUT_DIR  = "plots";
 
@@ -46,7 +46,7 @@ void SignalPeakD0Corr( TString sample = "", TString in_dir = "", TString out_dir
 		       std::vector<TString> in_files = {}, TString out_file_str = "",
 		       int max_evt = 0, int prt_evt = 0) {
 
-  // in_dir = "/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/GluGlu_HToMuMu_M125_13TeV_amcatnloFXFX_pythia8/H2Mu_gg";
+  // in_dir = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/GluGlu_HToMuMu_M125_13TeV_amcatnloFXFX_pythia8/H2Mu_gg";
   // in_files.push_back("NTuple_0.root");
 
   // Set variables to hard-coded values if they are not initialized
@@ -63,13 +63,13 @@ void SignalPeakD0Corr( TString sample = "", TString in_dir = "", TString out_dir
   std::vector<TString> in_file_names;
   TString in_file_name;
   for (int i = 0; i < in_files.size(); i++) {
-    in_file_name.Form("root://eoscms.cern.ch/%s/%s", in_dir.Data(), in_files.at(i).Data());
+    in_file_name.Form("%s/%s", in_dir.Data(), in_files.at(i).Data());
     std::cout << "Adding file " << in_file_name.Data() << std::endl;
     in_file_names.push_back(in_file_name);
   }
   if (in_files.size() == 0) {
     for (int i = MIN_FILE; i <= MAX_FILE; i++) {
-      in_file_name.Form("root://eoscms.cern.ch/%s/tuple_%d.root", in_dir.Data(), i);
+      in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
       std::cout << "Adding file " << in_file_name.Data() << std::endl;
       in_file_names.push_back(in_file_name.Data());
     }

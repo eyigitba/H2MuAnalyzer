@@ -1,0 +1,5 @@
+Input .dat files from https://github.com/bregnery/FEWZforHiggs2mumu/tree/master/FEWZ/FEWZ_3.1.b2/bin/NLOresults
+
+Email chain with complete information on FEWZ studies: "Re: FEWZ Studies"
+
+See in particular docs/FEWZ_fit_studies_Regnery_2017_03_27.pdf

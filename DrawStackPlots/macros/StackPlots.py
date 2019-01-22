@@ -1,8 +1,12 @@
 #! /usr/bin/env python
 
 ####################################################
-###    make stack and ratio from added histos    ###
+###    Make stack and ratio from added histos    ###
 ####################################################
+
+## N.B. For some reason frequently segfaults after plotting ~20 stacks - AWB 21.01.2019
+## Can run as ./macros/StackPlots.py i j to plots stacks with indices [i, j]
+## Script prints index of each stack so you can see the last one which succeded
 
 ## Basic python includes for manipulating files
 import os
@@ -27,15 +31,17 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Settings for this stack-drawing job
 if USER == 'abrinke1':
-    PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
-    CONFIG   = 'WH_3l_bkg_val'  ## Pre-defined stack configuration from python/StackPlotConfig.py
-    YEAR     = '2016'           ## Dataset year (2016 or 2017)
-    # LABEL    = 'WH_lep_bkg_val_CERN_08_10_2018_v4'     ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORY = '3LooseMu_ttbar_3l_val_mu'              ## Category for which to draw plots
-    LABEL    = 'WH_lep_CERN_hiM_11_10_2018_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    CATEGORY = 'e2mu_NONE'  ## Category for which to draw plots
+    PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
+    CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
+    YEAR     = '2017'     ## Dataset year (2016 or 2017)
+    # LABEL    = 'WH_lep_AWB_2019_01_21_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    LABEL    = 'ttH_3l_AWB_2019_01_21_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = 'e2mu_tightLepMVA_mass12'  ## Category for which to draw plots
+    CATEGORY = 'e2mu_looseLepMVA_noZ_ge3j_btag_mass12'  ## Category for which to draw plots
+    # LABEL    = 'WH_lep_CERN_hiM_11_10_2018_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = 'e2mu_NONE'  ## Category for which to draw plots
     # CATEGORY = '3mu_tight_0b_mt150_mass12_noZ'  ## Category for which to draw plots
-    IN_FILE  = 'histos_Presel2016_%s.root' % CATEGORY  ## File with input histograms
+    IN_FILE  = 'histos_Presel2017_%s.root' % CATEGORY  ## File with input histograms
     SCALE     = 'lin' ## 'log' or 'lin' scaling of y-axis
     RATIO_MIN = 0.0   ## Minimum value in ratio plot
     RATIO_MAX = 2.0   ## Maximum value in ratio plot
@@ -48,7 +54,7 @@ else: print 'Invalid USER = %s' % USER
 
 
 ## Function to draw each stack plot and ratio plot on the same canvas
-def DrawOneStack( dist, sig_stack, all_stack, h_data, legend ):   # Do not use TRatioPlot! It is a devil! - XWZ 19.09.2018
+def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):   # Do not use TRatioPlot! It is a devil! - XWZ 19.09.2018
 
     ## Create a new TCanvas
     canv = R.TCanvas('can_'+dist, 'can_'+dist, 1)
@@ -115,10 +121,17 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend ):   # Do not use T
         ratio_hist.Draw()
 
     canv.Update()
-    canv.Write()
     canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.png')
 
-    del h_sig
+    ## Open output root file and save canvas
+    out_file_loc = R.TFile.Open(out_file_name, 'UPDATE')
+    out_file_loc.cd()
+    canv.Write()
+    out_file_loc.Close()
+
+    ## Delete objects created in DrawOneStack()
+    del canv, upper_pad, lower_pad, h_sig, out_file_loc
+    if h_data: del ratio_hist
 
 ## End function: DrawOneStack()
 
@@ -136,14 +149,22 @@ def main():
     else:                  in_file_dir = PLOT_DIR+'/'+LABEL+'/files/sum'
 
     in_file_name  = in_file_dir+'/'+IN_FILE
-    out_file_name = in_file_dir+'/StackPlots.root'
+    out_dir       = PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY
+    out_file_name = out_dir+'/StackPlots.root'
+    if not os.path.exists(out_dir): os.makedirs(out_dir)
     
+    ## If this is the first time running StackPlots.py, create new output file
+    if ( len(sys.argv) == 1 or int(sys.argv[1]) <= 1 ):
+        print 'Creating output file %s' % out_file_name
+        out_file = R.TFile.Open(out_file_name, 'RECREATE')
+    else:  ## If StackPlots.py crashed and you are finishing the plots, update existing file
+        print 'Re-opening output file %s' % out_file_name
+        out_file = R.TFile.Open(out_file_name, 'UPDATE')
+    out_file.Close()  ## Re-open later when saving stack
+    del out_file
     print 'Opening input file %s' % in_file_name
     in_file = R.TFile.Open(in_file_name, 'READ')
-    print 'Creating output file %s' % out_file_name
-    out_file = R.TFile.Open(out_file_name, 'RECREATE')
-    try: os.makedirs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY)
-    except: True
+
 
     #########################################
     ###  Configure stack plot properties  ###
@@ -178,7 +199,6 @@ def main():
 
     dists       = []  ## All distributions contained in the file
     found_samps = []  ## All samples found in the file
-    in_file.cd('')
     ## Loop over all the histograms in the file
     ## Histogram name composed of sample+'_'+distribution
     for key in R.gDirectory.GetListOfKeys():
@@ -270,13 +290,12 @@ def main():
     ##########################################
 
     print '\nAbout to start creating and filling the plots'
-    out_file.cd()
-
-    print '\nLooping over samples and distributions to get histograms'
+    print 'Looping over samples and distributions to get histograms'
     iDist = 0
     for dist in dists:
         iDist += 1
-        # if iDist < 38: continue
+        ## Only plot stacks in certain index range, if speficied by the user
+        if ( len(sys.argv) > 1 and (iDist < int(sys.argv[1]) or iDist > int(sys.argv[2])) ): continue
         print '  * Looking at distribution %s (#%d)' % (dist, iDist)
 
 	group_hist = {}  ## Summed sample histograms by group
@@ -290,10 +309,18 @@ def main():
                 for samp in samps:
                     try:
                         hist = in_file.Get(samp+'_'+dist).Clone('tmp')
-                        ## Include both AMC and MG samples scaled by 60%/40% to increase stats
-                        if 'ZJets_AMC' in samp: hist.Scale(0.6)
-                        if 'ZJets_MG'  in samp: hist.Scale(0.4)
-                        if 'tt_ll_MG'  in samp: hist.Scale(0.4)  ## Experimental SF from 3LooseMu_ttbar_3l_val_mu category
+
+                        ## Include multiple samples scaled by available statistics
+                        if YEAR == '2016':
+                            if 'ZJets_AMC' in samp: hist.Scale(0.6)
+                            if 'ZJets_MG'  in samp: hist.Scale(0.4)
+                            # if 'tt_ll_MG'  in samp: hist.Scale(0.4)  ## Experimental SF from 3LooseMu_ttbar_3l_val_mu category
+                        if YEAR == '2017':
+                            if 'ZJets_AMC' in samp: hist.Scale(0.5)
+                            if 'ZJets_MG'  in samp: hist.Scale(0.25)  ## Using both MG_1 and MG_2
+                            if 'tt_ll_POW' in samp: hist.Scale(0.7)
+                            if 'tt_ll_MG'  in samp: hist.Scale(0.3)
+
                         if not group in group_hist.keys():
                             group_hist[group] = hist.Clone('hist_'+dist+'_'+group)
                         else:
@@ -301,6 +328,9 @@ def main():
                         del hist
                     except:
                         print '  - Could not find histogram '+samp+'_'+dist
+
+        if 'Other' in groups['Bkg'].keys() and not 'Other' in group_hist.keys():
+            del groups['Bkg']['Other']
 
         ## Fill the signal stack
 	for group in groups['Sig'].keys():
@@ -331,18 +361,22 @@ def main():
         for evt_type in groups.keys():
             for group in groups[evt_type].keys():
                 if MC_only and group == 'Data': continue
-                legend.AddEntry(group_hist[group], group)
+                if evt_type == 'Data':  ## Display data integral and data / MC ration in the legend
+                    legend.AddEntry( group_hist[group], group+' (%d, %.2f)' % (group_hist['Data'].Integral(), group_hist['Data'].Integral() / group_hist['MC'].Integral()) )
+                elif evt_type == 'Sig' and group_hist['Sig'].Integral() > 0.0:  ## Display signal integral and scale factor in the legend
+                    legend.AddEntry( group_hist[group], group+' (%.2f x %d)' % (group_hist['Sig'].Integral(), group_hist['MC'].Integral() / group_hist['Sig'].Integral()) )
+                else:
+                    legend.AddEntry(group_hist[group], group)
 
-        # print '    - About to run DrawOneStack'
-	DrawOneStack( dist, stack_sig, stack_all, group_hist['Dat'], legend)
 
-        del stack_sig, stack_all, group_hist, legend
+        ## Draw stack plot
+	DrawOneStack( dist, stack_sig, stack_all, group_hist['Dat'], legend, out_file_name )
+        ## Delete objects created in loop over dists
+        del group_hist, stack_all, stack_sig, stack_dat, legend
         
     ## End loop: for dist in dists
 
-    ## Finished with output
-    out_file.Close()
-
+    print '\nFinished looping over all distributions.  Done!'
 
 main()  ## End of main function
 
