@@ -22,7 +22,7 @@ bool JetPUID ( const JetInfo & jet, const std::string pu_ID, const std::string y
 
 
 TLorentzVector FourVec( const MuonInfo & muon, const std::string pt_corr, const std::string opt = "" );
-TLorentzVector FourVec( const MuPairInfo & muPair, const std::string pt_corr, const std::string opt = "" );
+TLorentzVector FourVec( const MuPairInfo & muPair, const MuonInfos & muons, const std::string pt_corr, const std::string opt = "" );
 TLorentzVector FourVec( const EleInfo & ele, const std::string opt = "" );
 TLorentzVector FourVec( const JetInfo & jet, const std::string opt = "" );
 TLorentzVector FourVec( const MetInfo & met, const std::string opt = "" );
@@ -31,5 +31,6 @@ TLorentzVector FourVec( const GenParentInfo & genPar, const std::string opt = ""
 TLorentzVector FourVec( const GenMuonInfo & genMu, const std::string opt = "" );
 TLorentzVector FourVec( const GenJetInfo & genJet, const std::string opt = "" );
 
+float CosThetaStar( TLorentzVector vec1, TLorentzVector vec2 );
 
 #endif  // #ifndef OBJECT_HELPER

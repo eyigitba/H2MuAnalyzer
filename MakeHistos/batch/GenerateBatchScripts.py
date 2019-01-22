@@ -24,7 +24,7 @@ from operator import itemgetter
 ## Info about data and MC NTuples from H2MuAnalyzer/MakeHistos/python/SampleDatabase.py
 sys.path.insert(0, '%s/python' % os.getcwd())
 from SampleDatabase import GetSamples
-from GetNormForSamples import GetNormForSample
+from SampleHelper import GetNormForSample, GetSampleID
 
 ## Command to list files in eos on lxplus
 eos_cmd = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select'
@@ -37,16 +37,19 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 ## Root macro to run from each job
 # MACRO = 'macros/ReadNTupleChain.C'
 # MACRO = 'macros/MC_data_comparison.C'
-MACRO = 'macros/WH_lep_bkg_val.C'
+#MACRO = 'macros/MiniNTupliser.C'
+#MACRO = 'macros/lepMVA_efficiency.C'
+MACRO = 'macros/lepMVA_variables.C'
 
-LOC   = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
-YEAR  = 2016        ## Dataset year (2016 or 2017)
-LUMI  = 36814       ## 36814 for 2016, 41000 for 2017
+LOC   = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
+YEAR  = 2017        ## Dataset year (2016 or 2017)
+LUMI  = 41000       ## 36814 for 2016, 41000 for 2017
 
 ## Directory for logs and output root files
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
-LABEL = 'WH_lep_bkg_val_CERN_15_10_2018_v1'
+LABEL = 'lepMVA_variables_v3'
+#LABEL = 'miniNtuple_WH_2017_v5'
 #LABEL   = 'WH_cat_2017_v4_v4' 
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
@@ -59,6 +62,9 @@ DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
 SAMP_LIST = []  ## Leave [] empty to process multiple samples
+#SAMP_LIST = ['H2Mu_WH_pos', 'H2Mu_WH_pos_120', 'H2Mu_WH_pos_130', 
+#	     'H2Mu_WH_neg', 'H2Mu_WH_neg_120', 'H2Mu_WH_neg_130',
+#	     'WZ_3l_AMC'] 
 #SAMP_LIST = ['ZJets_AMC', 'tt',              # missing single top  --XWZ 28.09.2018
 #            'tZq', 'ttW','ttZ','ttH'        # tx and ttX, so far only tZq for tx, missing 'tW', 'tZW' -XWZ 27.09.2018
 #            'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # diboson samples, missing 'WZ_2l' and 'ZZ_2l_2q'  --XWZ 27.09.2018
@@ -150,7 +156,7 @@ def main():
     ## Loop over available samples
     for samp in samples:
 
-        if (YEAR == 2017):  ## Some samples not yet available for 2017 - AWB 17.08.2018
+        if (YEAR == 2017 and LOC == 'CERN'):  ## Some samples not yet available for 2017 - AWB 17.08.2018
             if ('_120' in samp.name or '_130' in samp.name): continue
             if ('ZJets' in samp.name):
                 if not (samp.name == 'ZJets_AMC' or samp.name == 'ZJets_AMC_2' or samp.name == 'ZJets_m_10_50'): continue
@@ -192,11 +198,13 @@ def main():
             print 'Looked in %s - maybe it is somewhere else?\n\n' % in_dir_name
             continue
 
-        print 'Chose version %d_%d' % (versions[0][0], versions[0][1])
-	if samp.name is 'SingleMu_2017F':
-		in_dir_name += '/180802_164117'
-	else:
-        	in_dir_name += '/%d_%d' % (versions[0][0], versions[0][1])
+        print 'Chose version %d_%06d' % (versions[0][0], versions[0][1])
+#	if samp.name is 'SingleMu_2017F':
+#		in_dir_name += '/180802_164117'
+#	if samp.name is 'ZJets_AMC':        # temporary for 2017 WH
+#		in_dir_name += '/180802_165055'
+#	else:
+        in_dir_name += '/%d_%06d' % (versions[0][0], versions[0][1])
  
         in_files = [] ## List of input files with their size in MB
         eos_ls = Popen([eos_cmd, 'ls', in_dir_name], stdout=PIPE)

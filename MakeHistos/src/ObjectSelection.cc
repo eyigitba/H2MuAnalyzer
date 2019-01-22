@@ -159,7 +159,7 @@ MuPairInfo SelectedCandPair ( const ObjectSelectionConfig & cfg, const NTupleBra
     }
   } // End if (cfg.muPair_Higgs == "sort_OS_sum_muon_pt")
   
-  else if (cfg.muPair_Higgs == "sort_OS_sum_muon_pt") {
+  else if (cfg.muPair_Higgs == "sort_OS_dimuon_pt") {
     float dimu_pt = -99;
     for (const auto & muPair : SelectedMuPairs(cfg, br)) {
       if ( MuPairPt(muPair, cfg.mu_pt_corr) <= dimu_pt ) continue;
@@ -196,7 +196,7 @@ MuPairInfo SelectedCandPair ( const ObjectSelectionConfig & cfg, const NTupleBra
 	if ( j != muPair.iMu1 && j != muPair.iMu2 &&
 	     MuonPass(cfg, br.muons->at(j)) ) jMuW = j;
       }
-      // Expect MT(W muon, MET) < 150 GeV
+      // Expect MT(W muon, MET) < 150 GeV for higher efficiency, large smeared tail
       if ( ( FourVec(br.muons->at(iMuW), cfg.mu_pt_corr, "T") + FourVec(*br.met) ).M() > 150 &&
 	   ( FourVec(br.muons->at(jMuW), cfg.mu_pt_corr, "T") + FourVec(*br.met) ).M() < 150 ) {
 	candPair = muPair;

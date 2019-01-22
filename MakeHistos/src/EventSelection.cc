@@ -68,8 +68,8 @@ bool PassSelection( const NTupleBranches & br, const EventSelectionConfig & evt,
       if ( !MuonPass(obj, Mu1) || !MuonPass(obj, Mu2) ) continue;
       // Require one muon to pass trigger cut
       if ( evt.mu_trig_HLT_match ) {
-	if ( !(MuonTrig(Mu1, obj.year) && MuonPt(Mu1, obj.mu_pt_corr)) ||
-	     !(MuonTrig(Mu2, obj.year) && MuonPt(Mu2, obj.mu_pt_corr)) ) continue;
+	if ( !(MuonTrig(Mu1, obj.year) && MuonPt(Mu1, obj.mu_pt_corr) > evt.mu_trig_pt_min) ||
+	     !(MuonTrig(Mu2, obj.year) && MuonPt(Mu2, obj.mu_pt_corr) > evt.mu_trig_pt_min) ) continue;
       }
       // Require a minimum dimuon invariant mass
       if (MuPairMass(Pair, obj.mu_pt_corr) < evt.muPair_mass_min) continue;
@@ -107,8 +107,8 @@ bool PassSelection( const NTupleBranches & br, const EventSelectionConfig & evt,
       if ( !MuonPass(obj, Mu1) || !MuonPass(obj, Mu2) ) continue;
       // Require one muon to pass trigger cut
       if ( evt.mu_trig_HLT_match ) {
-	if ( !(MuonTrig(Mu1, obj.year) && MuonPt(Mu1, obj.mu_pt_corr)) ||
-	     !(MuonTrig(Mu2, obj.year) && MuonPt(Mu2, obj.mu_pt_corr)) ) continue;
+	if ( !(MuonTrig(Mu1, obj.year) && MuonPt(Mu1, obj.mu_pt_corr) > evt.mu_trig_pt_min) ||
+	     !(MuonTrig(Mu2, obj.year) && MuonPt(Mu2, obj.mu_pt_corr) > evt.mu_trig_pt_min) ) continue;
       }
       // Require a minimum dimuon invariant mass
       if (MuPairMass(Pair, obj.mu_pt_corr) < evt.muPair_mass_min) continue;
