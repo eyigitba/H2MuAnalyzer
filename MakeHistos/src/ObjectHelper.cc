@@ -166,15 +166,18 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
 TLorentzVector FourVec( const MuonInfo & muon, const std::string pt_corr, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(MuonPt(muon, pt_corr),        0, muon.phi, 0 );
+    vec.SetPtEtaPhiM(MuonPt(muon, pt_corr),        0, muon.phi, 0.105658367 );
   else
     vec.SetPtEtaPhiM(MuonPt(muon, pt_corr), muon.eta, muon.phi, 0.105658367 );
   return vec;
 }
-TLorentzVector FourVec( const MuPairInfo & muPair, const std::string pt_corr, const std::string opt ) {
+TLorentzVector FourVec( const MuPairInfo & muPair, const MuonInfos & muons,  const std::string pt_corr, const std::string opt ) {
   TLorentzVector vec;
-  if (opt == "T")
-    vec.SetPtEtaPhiM(MuPairPt(muPair, pt_corr),        0, muPair.phi, 0 );
+  if (opt == "T") {
+    TLorentzVector mu1_vec = FourVec( muons.at(muPair.iMu1), pt_corr, "T");
+    TLorentzVector mu2_vec = FourVec( muons.at(muPair.iMu2), pt_corr, "T");
+    vec = mu1_vec + mu2_vec;
+  }
   else
     vec.SetPtEtaPhiM(MuPairPt(muPair, pt_corr), muPair.eta, muPair.phi, MuPairMass(muPair, pt_corr) );
   return vec;
@@ -182,7 +185,7 @@ TLorentzVector FourVec( const MuPairInfo & muPair, const std::string pt_corr, co
 TLorentzVector FourVec( const EleInfo & ele, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(ele.pt,       0, ele.phi, 0 );
+    vec.SetPtEtaPhiM(ele.pt,       0, ele.phi, 0.000511 );
   else
     vec.SetPtEtaPhiM(ele.pt, ele.eta, ele.phi, 0.000511 );
   return vec;
@@ -190,7 +193,7 @@ TLorentzVector FourVec( const EleInfo & ele, const std::string opt ) {
 TLorentzVector FourVec( const JetInfo & jet, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(jet.pt,       0, jet.phi, 0 );
+    vec.SetPtEtaPhiM(jet.pt,       0, jet.phi, jet.mass );
   else
     vec.SetPtEtaPhiM(jet.pt, jet.eta, jet.phi, jet.mass );
   return vec;
@@ -208,7 +211,7 @@ TLorentzVector FourVec( const MhtInfo & mht, const std::string opt ) {
 TLorentzVector FourVec( const GenParentInfo & genPar, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(genPar.pt,          0, genPar.phi, 0 );
+    vec.SetPtEtaPhiM(genPar.pt,          0, genPar.phi, genPar.mass );
   else
     vec.SetPtEtaPhiM(genPar.pt, genPar.eta, genPar.phi, genPar.mass );
   return vec;
@@ -216,7 +219,7 @@ TLorentzVector FourVec( const GenParentInfo & genPar, const std::string opt ) {
 TLorentzVector FourVec( const GenMuonInfo & genMu, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(genMu.pt,         0, genMu.phi, 0 );
+    vec.SetPtEtaPhiM(genMu.pt,         0, genMu.phi, 0.105658367 );
   else
     vec.SetPtEtaPhiM(genMu.pt, genMu.eta, genMu.phi, 0.105658367 );
   return vec;
@@ -224,12 +227,24 @@ TLorentzVector FourVec( const GenMuonInfo & genMu, const std::string opt ) {
 TLorentzVector FourVec( const GenJetInfo & genJet, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(genJet.pt,          0, genJet.phi, 0 );
+    vec.SetPtEtaPhiM(genJet.pt,          0, genJet.phi, genJet.mass );
   else
     vec.SetPtEtaPhiM(genJet.pt, genJet.eta, genJet.phi, genJet.mass );
   return vec;
 }
 
+
+float CosThetaStar( TLorentzVector vec1, TLorentzVector vec2 ) {
+  TLorentzVector parent_vec = vec1 + vec2;
+  TVector3 parent_p = parent_vec.BoostVector(), p1, p2;
+  float cos_theta_star; // default to return the cos_theta_star of vec1, cannot tell charge from TLorentzVector.  - XWZ 23.10.2018
+
+  vec1.Boost( -parent_p );
+  p1 = vec1.BoostVector();
+
+  cos_theta_star = parent_p * p1 / (parent_p.Mag() * p1.Mag());
+  return cos_theta_star;
+}
 
 
 

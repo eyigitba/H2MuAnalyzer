@@ -236,7 +236,7 @@ MuPairInfo SelectedCandPair ( const ObjectSelectionConfig & cfg, const NTupleBra
 	if ( j != muPair.iMu1 && j != muPair.iMu2 &&
 	     MuonPass(cfg, br.muons->at(j)) ) jMuW = j;
       }
-      // Expect MT(W muon, MET) < 150 GeV
+      // Expect MT(W muon, MET) < 150 GeV for higher efficiency, large smeared tail
       if ( ( FourVec(br.muons->at(iMuW), cfg.mu_pt_corr, "T") + FourVec(*br.met) ).M() > 150 &&
 	   ( FourVec(br.muons->at(jMuW), cfg.mu_pt_corr, "T") + FourVec(*br.met) ).M() < 150 ) {
 	candPair = muPair;

@@ -49,6 +49,17 @@ def GetSamples(location = 'CERN', year = '2017'):
         else:
             print 'Invalid location (%s) and/or year (%d)!!!  Exiting.' % (location, year)
             sys.exit
+    elif (location == 'CERN_lepMVA_test_v1'):
+	if (year == 2017):
+	    in_dir = '/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2018_12_13_LepMVA_2l_test_v1'
+	else:
+	    print 'Invalid location (%s) and/or year (%d) !!! Exiting.' % (location, year)
+	    sys.exit
+    elif (location == 'CERN_lepMVA_test_v2'):
+	if (year == 2017):
+	    in_dir = '/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2'
+	else:
+	    print 'Invalid location (%s) and/or year (%d) !!! Exiting.' % (location, year)
     else:
         print 'Invalid location (%s) and/or year (%d)!!!  Exiting.' % (location, year)
         sys.exit
@@ -241,6 +252,59 @@ def GetSamples(location = 'CERN', year = '2017'):
     #     samples.append( SampleInfo('tHW') )
     #     samples.append( SampleInfo('ttWW') )
     #     samples.append( SampleInfo('ttZ_lowM') )
+
+    ## add lepMVA samples for tests. first empty samples vector to keep the integraty of the original list -- XWZ 27.12.2018
+    if (location == 'CERN_lepMVA_test_v1' and year == 2017):
+	samples = []
+	samples.append( SampleInfo('SingleMu_2017B', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2017C', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2017D', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2017E', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2017F', 'SingleMuon', 1, year, in_dir, 'Data') )
+
+	samples.append( SampleInfo('H2Mu_gg', 'GluGluHToMuMu_M125_13TeV_amcatnloFXFX_pythia8', 0.009618, year, in_dir, 'Bkg' ) )
+        samples.append( SampleInfo('H2Mu_ZH_120', 'ZH_HToMuMu_ZToAll_M120_13TeV_powheg_pythia8', 0.0002136, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Mu_ZH_125', 'ZH_HToMuMu_ZToAll_M125_13TeV_powheg_pythia8', 0.0002136, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Mu_ZH_130', 'ZH_HToMuMu_ZToAll_M130_13TeV_powheg_pythia8', 0.0002136, year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('H2Mu_WH_pos_120', 'WplusH_HToMuMu_WToAll_M120_13TeV_powheg_pythia8', 0.0001858, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Mu_WH_pos_125', 'WplusH_HToMuMu_WToAll_M125_13TeV_powheg_pythia8', 0.0001858, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Mu_WH_pos_130', 'WplusH_HToMuMu_WToAll_M130_13TeV_powheg_pythia8', 0.0001858, year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('H2Mu_WH_neg_125', 'WminusH_HToMuMu_WToAll_M125_13TeV_powheg_pythia8',  0.0001164, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Mu_WH_neg_130', 'WminusH_HToMuMu_WToAll_M130_13TeV_powheg_pythia8',  0.0001164, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Mu_ttH_125', 'ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8', 0.0001103, year, in_dir, 'Bkg' ) )
+
+	samples.append( SampleInfo('ZJets_AMC', 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8', 5765.4, year, in_dir, 'Bkg') )
+
+ 	samples.append( SampleInfo('tt_ll_MG',  'TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8',    85.656, year ,in_dir, 'Bkg') )
+	samples.append( SampleInfo('tt_ll_POW', 'TTTo2L2Nu_TuneCP5_PSweights_13TeV-powheg-pythia8',   85.656, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('tt_ljj_POW_1', 'TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8', 358.46, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('tt_ljj_POW_2', 'TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8', 358.46, year, in_dir, 'Bkg') )
+
+	samples.append( SampleInfo('tW_neg', 'ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8', 35.85, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('tW_pos', 'ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8',     35.85, year, in_dir, 'Bkg') )
+
+	samples.append( SampleInfo('WZ_3l',  'WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8', 4.430, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('ZZ_4l',  'ZZTo4L_13TeV_powheg_pythia8', 1.212, year, in_dir, 'Bkg') )
+	#samples.append( SampleInfo() )
+
+
+    if (location == 'CERN_lepMVA_test_v2' and year == 2017):
+	samples = []
+	samples.append( SampleInfo('SingleMu_2017B', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2017C', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2017D', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2017E', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2017F', 'SingleMuon', 1, year, in_dir, 'Data') )
+
+	samples.append( SampleInfo('ZJets_AMC', 'DY', 							5765.4, year, in_dir, 'Bkg') )
+
+        samples.append( SampleInfo('tt_ll_MG', 	'TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8', 	85.656, year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('tt_ll_POW', 'TTTo2L2Nu_TuneCP5_PSweights_13TeV-powheg-pythia8', 	85.656, year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('tt_ljj_POW_1', 'TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8', 358.46, year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('tt_ljj_POW_2', 'TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8', 358.46, year, in_dir, 'Bkg') )
+
+	samples.append( SampleInfo('tW_neg', 'ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8', 35.85, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('tW_pos', 'ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8',     35.85, year, in_dir, 'Bkg') )
 
     return samples
 

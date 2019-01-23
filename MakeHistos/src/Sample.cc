@@ -85,3 +85,7 @@ float Sample::getLumiScaleFactor(const float luminosity, const bool verbose) {
   if(sampleType.EqualTo("data")) return 1.0;
   else return luminosity*xsec/nOriginalWeighted;
 }
+
+
+
+

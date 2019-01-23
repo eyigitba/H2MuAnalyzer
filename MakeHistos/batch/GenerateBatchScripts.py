@@ -24,7 +24,7 @@ from operator import itemgetter
 ## Info about data and MC NTuples from H2MuAnalyzer/MakeHistos/python/SampleDatabase.py
 sys.path.insert(0, '%s/python' % os.getcwd())
 from SampleDatabase import GetSamples
-from GetNormForSamples import GetNormForSample
+from SampleHelper import GetNormForSample, GetSampleID
 
 ## Configure the script user
 if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
@@ -34,10 +34,15 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 ## Root macro to run from each job
 # MACRO = 'macros/ReadNTupleChain.C'
 # MACRO = 'macros/MC_data_comparison.C'
-MACRO = 'macros/WH_lep.C'
+
+#MACRO = 'macros/WH_lep.C'
 # MACRO = 'macros/ttH_3l.C'
+#MACRO = 'macros/MiniNTupliser.C'
+#MACRO = 'macros/lepMVA_efficiency.C'
+MACRO = 'macros/lepMVA_variables.C'
 
 LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
+#LOC   = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
 YEAR   = 2017    ## Dataset year (2016 or 2017)
 LUMI   = 41000   ## 36814 for 2016, 41000 for 2017
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
@@ -48,9 +53,11 @@ HADD_IN = True   ## Use pre-hadded root files (NTuple_*.root) instead of origina
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
-
-LABEL  = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'
+#LABEL  = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'
 # LABEL  = 'ttH_3l_AWB_2019_01_19_lepMVA_test_v1'
+LABEL = 'lepMVA_variables_v3_some_test'
+#LABEL = 'miniNtuple_WH_2017_v5'
+#LABEL   = 'WH_cat_2017_v4_v4' 
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 JOBSIZE =  100  ## Size of input NTuples in MB, per job (default 1000)
@@ -62,11 +69,13 @@ DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
 SAMP_LIST = []  ## Leave [] empty to process multiple samples
-# SAMP_LIST = ['ZJets_AMC', 'tt',              # missing single top  --XWZ 28.09.2018
-#             'tZq', 'ttW','ttZ','ttH'        # tx and ttX, so far only tZq for tx, missing 'tW', 'tZW' -XWZ 27.09.2018
-#             'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # diboson samples, missing 'WZ_2l' and 'ZZ_2l_2q'  --XWZ 27.09.2018
-#             'WWW', 'WWZ', 'WZZ', 'ZZZ',     # triboson, all the samples at hand included   - XWZ 27.09.2018
-#             'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## for keeping track of what is used
+
+#SAMP_LIST = ['ZJets_AMC', 'tt',              # missing single top  --XWZ 28.09.2018
+#            'tZq', 'ttW','ttZ','ttH'        # tx and ttX, so far only tZq for tx, missing 'tW', 'tZW' -XWZ 27.09.2018
+#            'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # diboson samples, missing 'WZ_2l' and 'ZZ_2l_2q'  --XWZ 27.09.2018
+#            'WWW', 'WWZ', 'WZZ', 'ZZZ',     # triboson, all the samples at hand included   - XWZ 27.09.2018
+#            'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## for keeping track of what is used
+
 # SAMP_LIST = ['ZJets_AMC_1j_A']  ## Name of individual samples to process ([] to process multiple samples)
 # SAMP_LIST = ['H2Mu_WH_pos_125']  ## Name of individual samples to process ([] to process multiple samples)
 
@@ -161,7 +170,7 @@ def main():
     ## Loop over available samples
     for samp in samples:
 
-        # if (YEAR == 2017):  ## Some samples not yet available for 2017 - AWB 17.08.2018
+        # if (YEAR == 2017 and LOC == 'CERN'):  ## Some samples not yet available for 2017 - AWB 17.08.2018
         #     if ('_120' in samp.name or '_130' in samp.name): continue
         #     if ('ZJets' in samp.name):
         #         if not (samp.name == 'ZJets_AMC' or samp.name == 'ZJets_AMC_2' or samp.name == 'ZJets_m_10_50'): continue
@@ -188,6 +197,7 @@ def main():
         else:                in_dir_name = samp.in_dir+'/'+samp.DAS_name+'/'+samp.name
         
         versions = []  ## In case of multiple crab submissions
+
         print 'Running command ls %s' % in_dir_name
         # for ver in subprocess.check_output(['ls', in_dir_name]).splitlines():  ## Only available in Python >= 2.7
         ls_files = Popen(['ls', in_dir_name], stdout=PIPE)
@@ -206,13 +216,14 @@ def main():
                 print '\n\nWARNING!!!  No crab output found for sample %s, from DAS %s' % (samp.name, samp.DAS_name)
                 print 'Looked in %s - maybe it is somewhere else?\n\n' % in_dir_name
                 continue
-
-            print 'Chose version %d_%d' % (versions[0][0], versions[0][1])
-            # if samp.name is 'SingleMu_2017F':
-	    #     in_dir_name += '/180802_164117'
-            # else:
-            #     in_dir_name += '/%d_%d' % (versions[0][0], versions[0][1])
-            in_dir_name += '/%d_%d' % (versions[0][0], versions[0][1])
+        
+            print 'Chose version %d_%06d' % (versions[0][0], versions[0][1])
+#	if samp.name is 'SingleMu_2017F':
+#		in_dir_name += '/180802_164117'
+#	if samp.name is 'ZJets_AMC':        # temporary for 2017 WH
+#		in_dir_name += '/180802_165055'
+#	else:
+            in_dir_name += '/%d_%06d' % (versions[0][0], versions[0][1])
  
         in_files = [] ## List of input files with their size in MB
         ls_files = Popen(['ls', in_dir_name], stdout=PIPE)
