@@ -7,6 +7,9 @@
 	* for signal: category + '_Net_signal'
 	* or you can change the script so that the script can find your histograms.
 		* look at "def setNetBackgroundHist(self):" and below in MakeWorkspaceDatacard.py and modify to match to your histogram names.
+		
+* BGSFrun.py performs fitting taking functions from PDFDatabase.py
+* PDFDatabase.py has various defintions of functions. You can add your functions.
 
 Let me know if anything not working.
 
