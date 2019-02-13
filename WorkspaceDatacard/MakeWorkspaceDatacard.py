@@ -188,7 +188,8 @@ class WorkspaceAndDatacardMaker:
 print('program is running ...')
 # Needs the file with the dimu_mass plots created by categorize.cxx
 # also needs to know the category you want to make the root file and datacard for
-wdm = WorkspaceAndDatacardMaker('/afs/cern.ch/user/m/mukim/MKWorkingArea/CMSSW_8_1_0/src/potatoes/Data/muPairs_mass.root', 'c_01_test') 
+wdm = WorkspaceAndDatacardMaker('/path/to/your/data/filename.root', 'your_category') 
+# For example try 'Examples/muPairs_mass.root' for rootfile and 'c_01_test' for category
 print wdm.infilename, wdm.category
 wdm.makeShapeWorkspace()
 wdm.makeShapeDatacard()
