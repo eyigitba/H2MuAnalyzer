@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 ##############################################
 # Workspace And Datacard Maker               #
 ##############################################
@@ -189,7 +191,7 @@ print('program is running ...')
 # Needs the file with the dimu_mass plots created by categorize.cxx
 # also needs to know the category you want to make the root file and datacard for
 wdm = WorkspaceAndDatacardMaker('/path/to/your/data/filename.root', 'your_category') 
-# For example try 'Examples/muPairs_mass.root' for rootfile and 'c_01_test' for category
+# For example try 'files/muPairs_mass.root' for rootfile and 'c_01_test' for category
 print wdm.infilename, wdm.category
 wdm.makeShapeWorkspace()
 wdm.makeShapeDatacard()

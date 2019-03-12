@@ -7,6 +7,14 @@
 ##############################################
 
 #============================================
+# user-defined settings
+#============================================
+
+# SUBDIR = 'net_histos/'  ## Directory containing signal histogram within root file
+SUBDIR = ''  ## Directory containing signal histogram within root file
+
+
+#============================================
 # import
 #============================================
 
@@ -21,6 +29,7 @@ from ROOT import *
 
 import sys
 sys.argv.append( '-b-' )
+
 
 #============================================
 # code
@@ -49,11 +58,11 @@ class BGSpectrumFitter:
     
     def setHists(self):
     # use the naming convention from categorize.cxx to automatically grab the different histograms that might be fit
-        #self.data_hist      = self.tfile.Get('net_histos/'+self.category+"_Net_Data")
-        #self.bg_dy_hist      = self.tfile.Get('net_histos/'+self.category+"_Drell_Yan_")
-        #self.bg_ttbar_hist   = self.tfile.Get('net_histos/'+self.category+"_TTbar_Plus_SingleTop")
-        #self.bg_diboson_hist = self.tfile.Get('net_histos/'+self.category+"_Diboson_plus")
-        self.bg_all_hist  = self.tfile.Get('net_histos/'+self.category+"_Net_Bkg")
+        #self.data_hist      = self.tfile.Get(SUBDIR+self.category+"_Net_Data")
+        #self.bg_dy_hist      = self.tfile.Get(SUBDIR+self.category+"_Drell_Yan_")
+        #self.bg_ttbar_hist   = self.tfile.Get(SUBDIR+self.category+"_TTbar_Plus_SingleTop")
+        #self.bg_diboson_hist = self.tfile.Get(SUBDIR+self.category+"_Diboson_plus")
+        self.bg_all_hist  = self.tfile.Get(SUBDIR+"h_H_mass_on_Net_Bkg")
 
         #self.bg_not_dy_hist  = self.bg_ttbar_hist.Clone()
         #self.bg_not_dy_hist.Add(self.bg_diboson_hist)
@@ -128,8 +137,8 @@ class BGSpectrumFitter:
 
         # save the fit to the data/MC via the TCanvas
         if(save):
-            c1.SaveAs(c1.GetName()+'.png')
-            c1.SaveAs(histo.GetName()+"_"+pdfMmumu.GetName()+'.root');
+            c1.SaveAs('out_files/png/'+c1.GetName()+'.png')
+            c1.SaveAs('out_files/root/'+histo.GetName()+"_"+pdfMmumu.GetName()+'.root');
 
         return pdfMmumu;
 
