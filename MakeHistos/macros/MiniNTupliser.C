@@ -517,7 +517,7 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 	///////////////////////////////////////////////////////////////
 
 	dimu = SelectedCandPair(obj_sel, br);     //  must have this object for the next line to work, somehow
-        dimu_vec = FourVec( SelectedCandPair(obj_sel, br), *br.muons, PTC);
+        dimu_vec = FourVec( SelectedCandPair(obj_sel, br), PTC);
         if ( dimu_vec.M() < 105 ||
              dimu_vec.M() > 160 ) continue;
 
@@ -636,7 +636,7 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
             }
           }
 	  
-	  TLorentzVector mlt_vec  = -FourVec(ele,"T") - FourVec(dimu,*br.muons,PTC,"T");
+	  TLorentzVector mlt_vec  = -FourVec(ele,"T") - FourVec(dimu, PTC, "T", *br.muons);
 	  TLorentzVector eMET_temp = FourVec(ele,"T") + met_vec;
 	  TLorentzVector eMHT_temp = FourVec(ele,"T") + mht_vec;
 	  TLorentzVector eMLT_temp = FourVec(ele,"T") + mlt_vec;

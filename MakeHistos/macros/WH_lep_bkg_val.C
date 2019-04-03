@@ -248,7 +248,7 @@ void WH_lep_bkg_val( TString sample = "", TString in_dir = "", TString out_dir =
 	  }
 	  assert(nonZ_mu.pt >= obj_sel.mu_pt_min); // We should always find a W candidate
 	  assert(SS_mu1.charge == SS_mu2.charge && OS_mu.charge == -1*sum_mu_charge); // We should always find two SS and one OS muon
-	  float nonZ_mu_MT = ( FourVec(nonZ_mu, PTC, "T") + FourVec(*br.met) ).M();
+	  float nonZ_mu_MT = ( FourVec(nonZ_mu, PTC, "T", *br.muons) + FourVec(*br.met) ).M();
 	  
 	  ///////////////////////////////////////////
 	  ///  Apply the category selection cuts  ///

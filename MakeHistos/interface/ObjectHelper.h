@@ -20,9 +20,8 @@ bool  EleID ( const EleInfo & ele, const std::string ele_ID ); // Return loose, 
 
 bool JetPUID ( const JetInfo & jet, const std::string pu_ID, const std::string year ); // Return loose, medium, or tight jet PU ID from 2016 or 2017
 
-
 TLorentzVector FourVec( const MuonInfo & muon, const std::string pt_corr, const std::string opt = "" );
-TLorentzVector FourVec( const MuPairInfo & muPair, const MuonInfos & muons, const std::string pt_corr, const std::string opt = "" );
+TLorentzVector FourVec( const MuPairInfo & muPair, const std::string pt_corr, const std::string opt = "", const MuonInfos & muons = {} );
 TLorentzVector FourVec( const EleInfo & ele, const std::string opt = "" );
 TLorentzVector FourVec( const JetInfo & jet, const std::string opt = "" );
 TLorentzVector FourVec( const MetInfo & met, const std::string opt = "" );

@@ -171,7 +171,7 @@ TLorentzVector FourVec( const MuonInfo & muon, const std::string pt_corr, const 
     vec.SetPtEtaPhiM(MuonPt(muon, pt_corr), muon.eta, muon.phi, 0.105658367 );
   return vec;
 }
-TLorentzVector FourVec( const MuPairInfo & muPair, const MuonInfos & muons,  const std::string pt_corr, const std::string opt ) {
+TLorentzVector FourVec( const MuPairInfo & muPair, const std::string pt_corr, const std::string opt, const MuonInfos & muons ) {
   TLorentzVector vec;
   if (opt == "T") {
     TLorentzVector mu1_vec = FourVec( muons.at(muPair.iMu1), pt_corr, "T");
