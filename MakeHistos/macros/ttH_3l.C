@@ -342,7 +342,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 		nonH_mu = mu;
 		nonH_mu_vec   = FourVec(mu, PTC);
 		nonH_lep_vec  = nonH_mu_vec;
-		nonH_lep_vecT = FourVec(mu, PTC, "T", *br.muons);
+		nonH_lep_vecT = FourVec(mu, PTC, "T");
 	      }
 	      if (mu.charge != sum_lep_charge) {
 		OS_mu     = mu;
