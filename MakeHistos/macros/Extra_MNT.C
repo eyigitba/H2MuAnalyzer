@@ -570,7 +570,7 @@ void Extra_MNT( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    std::cout << "no dimu" << std::endl;
 	    continue;
 	}
-	dimu_vec = FourVec( dimu, * br.muons, PTC);
+	dimu_vec = FourVec(dimu, PTC);
         if ( dimu_vec.M() < 105 ||
              dimu_vec.M() > 160 ) continue;
 	mu_1 = br.muons->at(dimu.iMu1);
@@ -676,26 +676,26 @@ void Extra_MNT( TString sample = "", TString in_dir = "", TString out_dir = "",
                 emuOS_dPhi  = proxy_ele_vec.DeltaPhi(mu1_vec);           
                 emuOS_dR    = proxy_ele_vec.DeltaR(mu1_vec);             
             }
-	  
-	  TLorentzVector mlt_vec  = -proxy_ele_T_vec - FourVec(dimu,*br.muons,PTC,"T");
-	  TLorentzVector eMET_temp = proxy_ele_T_vec + met_vec;
-	  TLorentzVector eMHT_temp = proxy_ele_T_vec + mht_vec;
-	  TLorentzVector eMLT_temp = proxy_ele_T_vec + mlt_vec;
 
-	  met_pt	= met_vec.Pt();	  
-          mt_emet	= eMET_temp.M();
-          dPhi_emet	= proxy_ele_vec.DeltaPhi(met_vec);
-          mht_pt	= mht_vec.Pt();
-          mht_mass	= mht_info.mass;
-          mt_emht	= eMHT_temp.M();
-          dPhi_emht	= proxy_ele_vec.DeltaPhi(mht_vec);
-          mlt_pt	= mlt_vec.Pt();
-          mt_emlt	= eMLT_temp.M();
-          dPhi_emlt	= proxy_ele_vec.DeltaPhi(mlt_vec);
+	    TLorentzVector mlt_vec  = -proxy_ele_T_vec - FourVec(dimu, PTC, "T", *br.muons);
+	    TLorentzVector eMET_temp = proxy_ele_T_vec + met_vec;
+	    TLorentzVector eMHT_temp = proxy_ele_T_vec + mht_vec;
+	    TLorentzVector eMLT_temp = proxy_ele_T_vec + mlt_vec;
 
-	  if ( ele_pt > 20 && nBJets_Med == 0 && mt_emet < 150 )  In_cat_WH = true;
-	  //else continue;
-	}	
+	    met_pt	= met_vec.Pt();
+	    mt_emet	= eMET_temp.M();
+	    dPhi_emet	= proxy_ele_vec.DeltaPhi(met_vec);
+	    mht_pt	= mht_vec.Pt();
+	    mht_mass	= mht_info.mass;
+	    mt_emht	= eMHT_temp.M();
+	    dPhi_emht	= proxy_ele_vec.DeltaPhi(mht_vec);
+	    mlt_pt	= mlt_vec.Pt();
+	    mt_emlt	= eMLT_temp.M();
+	    dPhi_emlt	= proxy_ele_vec.DeltaPhi(mlt_vec);
+
+	    if ( ele_pt > 20 && nBJets_Med == 0 && mt_emet < 150 )  In_cat_WH = true;
+	    //else continue;
+	}
 
 	//////////////////////////////////////////////////////////////////
 	/// Loop through category cuts defined in src/CategoryCuts.cc  ///

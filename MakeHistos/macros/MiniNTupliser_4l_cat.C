@@ -684,7 +684,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 	} // end if (OPT_CUT == "ZH_4l_mu")
 
 
-        dimu_vec = FourVec( dimu, *br.muons, PTC);
+        dimu_vec = FourVec( dimu, PTC);
         if ( dimu_vec.M() < 105 ||
              dimu_vec.M() > 160 ) continue;
 

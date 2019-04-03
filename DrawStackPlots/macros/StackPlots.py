@@ -32,15 +32,16 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 ## Settings for this stack-drawing job
 if USER == 'abrinke1':
     PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
-    CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
     YEAR     = '2017'     ## Dataset year (2016 or 2017)
+
+    # CONFIG   = 'WH_lep'   ## Pre-defined stack configuration from python/StackPlotConfig.py
     # LABEL    = 'WH_lep_AWB_2019_01_21_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = 'e2mu_looseLepMVA_mt150_noBtag_noZ_mass12'  ## Category for which to draw plots
+
+    CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
     LABEL    = 'ttH_3l_AWB_2019_01_21_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORY = 'e2mu_tightLepMVA_mass12'  ## Category for which to draw plots
     CATEGORY = 'e2mu_looseLepMVA_noZ_ge3j_btag_mass12'  ## Category for which to draw plots
-    # LABEL    = 'WH_lep_CERN_hiM_11_10_2018_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORY = 'e2mu_NONE'  ## Category for which to draw plots
-    # CATEGORY = '3mu_tight_0b_mt150_mass12_noZ'  ## Category for which to draw plots
+
     IN_FILE  = 'histos_Presel2017_%s.root' % CATEGORY  ## File with input histograms
     SCALE     = 'lin' ## 'log' or 'lin' scaling of y-axis
     RATIO_MIN = 0.0   ## Minimum value in ratio plot
@@ -97,6 +98,12 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
     if h_sig.Integral() > 0: h_sig.Scale( all_stack.GetStack().Last().Integral() / h_sig.Integral() )
     h_sig.Draw('HISTSAME')
 
+    ## Save the net signal, net background, and net data histograms
+    h_net_sig  = sig_stack.GetStack().Last().Clone('h_'+dist+'_Net_Sig')
+    h_net_bkg  = all_stack.GetStack().Last().Clone('h_'+dist+'_Net_Bkg')
+    h_net_bkg.Add(h_net_sig, -1)
+    if h_data: h_net_data = h_data.Clone('h_'+dist+'_Net_Data')
+
     ## Draw the legend
     legend.Draw()
 
@@ -123,15 +130,18 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
     canv.Update()
     canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.png')
 
-    ## Open output root file and save canvas
+    ## Open output root file and save canvas and net histograms
     out_file_loc = R.TFile.Open(out_file_name, 'UPDATE')
     out_file_loc.cd()
     canv.Write()
+    h_net_sig.Write()
+    h_net_bkg.Write()
+    if h_data: h_net_data.Write()
     out_file_loc.Close()
 
     ## Delete objects created in DrawOneStack()
-    del canv, upper_pad, lower_pad, h_sig, out_file_loc
-    if h_data: del ratio_hist
+    del canv, upper_pad, lower_pad, h_sig, h_net_sig, h_net_bkg, out_file_loc
+    if h_data: del ratio_hist, h_net_data
 
 ## End function: DrawOneStack()
 

@@ -178,13 +178,12 @@ def GetSamples(location = 'CERN', year = '2017'):
         samples.append( SampleInfo('ZJets_MG_HT_1200_2500', 'DYJetsToLL_M-50_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',   0.186222 * 0.96, year, in_dir, 'Bkg') )
         samples.append( SampleInfo('ZJets_MG_HT_2500_inf',  'DYJetsToLL_M-50_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',    0.004385 * 0.96, year, in_dir, 'Bkg') )
     if (year == 2017):
+        # samples.append( SampleInfo('ZJets_AMC',             'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8',                  5765.4,             year, in_dir, 'Bkg') )
         samples.append( SampleInfo('ZJets_MG_1',            'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8',                   5765.4,             year, in_dir, 'Bkg') )
         samples.append( SampleInfo('ZJets_MG_2',            'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8',                   5765.4,             year, in_dir, 'Bkg') )
-    
-    samples.append( SampleInfo('ZJets_hiM',          'DYJetsToLL_M-100to200_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 5765.4 * 1.235, year, in_dir, 'Bkg') )
-    # samples.append( SampleInfo('ZJets_hiM_SpringPU', 'DYJetsToLL_M-100to200_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 5765.4 * 1.235, year, in_dir, 'Bkg') )
-    if (year == 2017):
-        samples.append( SampleInfo('ZJets_m_10_50', 'DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8', 18610.0, year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('ZJets_hiM_AMC',         'DYJetsToLL_M-105To160_TuneCP5_PSweights_13TeV-amcatnloFXFX-pythia8',   46.948,            year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('ZJets_hiM_MG',          'DYJetsToLL_M-105To160_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8',    46.948,            year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('ZJets_m_10_50',         'DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8',              18610.0,             year, in_dir, 'Bkg') )
     
     ## TTJets
     samples.append( SampleInfo('tt_ll_AMC', 'TTJets_Dilept_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8',   85.656 * 0.9, year, in_dir, 'Bkg') ) ## Why the factor of 0.9?!? - AWB 28.09.2018
