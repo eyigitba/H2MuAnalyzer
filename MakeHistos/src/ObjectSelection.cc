@@ -208,6 +208,15 @@ MuPairInfo SelectedCandPair ( const ObjectSelectionConfig & cfg, const NTupleBra
     }
   } // End if (cfg.muPair_Higgs == "sort_OS_dimuon_pt")
 
+  else if (cfg.muPair_Higgs == "sort_OS_dimuon_mass") {
+    float dimu_mass = -99;
+    for (const auto & muPair : SelectedMuPairs(cfg, br)) {
+      if ( MuPairMass(muPair, cfg.mu_pt_corr) <= dimu_mass ) continue;
+      dimu_mass = MuPairMass(muPair, cfg.mu_pt_corr);
+      candPair = muPair;
+    }
+  } //End if (cfg.muPair_Higgs == "sort_OS_dimuon_mass")
+
   else if (cfg.muPair_Higgs == "sort_WH_3_mu_v1") {
     assert( SelectedMuPairs(cfg, br).size() == 2 ); // Only viable for events with 3 selected muons
     int iMuW = -99; // Index of muon from W

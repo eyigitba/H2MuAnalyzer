@@ -246,5 +246,64 @@ float CosThetaStar( TLorentzVector vec1, TLorentzVector vec2 ) {
   return cos_theta_star;
 }
 
+float Cos_CS_Theta( TLorentzVector vec1, TLorentzVector vec2 ) {
+  TLorentzVector parent_vec = vec1 + vec2, beam_pos, beam_neg;
+  TVector3 parent_p = parent_vec.BoostVector(), p1, p2, z_axis;
+  float cos_cs_theta;
+  
+  beam_pos.SetXYZM(0,0, 6500, 0.93827);
+  beam_neg.SetXYZM(0,0,-6500, 0.93827);
+
+  vec1.Boost( -parent_p );
+  beam_pos.Boost( -parent_p );
+  beam_neg.Boost( -parent_p );
+
+  z_axis = beam_pos.BoostVector().Unit() - beam_neg.BoostVector().Unit();
+  p1 = vec1.BoostVector();
+  cos_cs_theta = p1 * z_axis / (p1.Mag() * z_axis.Mag());
+  return cos_cs_theta;
+}
+
+float Cos_CS_Phi( TLorentzVector vec1, TLorentzVector vec2 ) {
+  TLorentzVector parent_vec = vec1 + vec2, beam_pos, beam_neg;
+  TVector3 parent_p = parent_vec.BoostVector(), p1, p2, z_axis, norm_had, norm_lep;
+  float cos_cs_phi;
+
+  beam_pos.SetXYZM(0,0, 6500, 0.93827);
+  beam_neg.SetXYZM(0,0,-6500, 0.93827);
+
+  vec1.Boost( -parent_p );
+  beam_pos.Boost( -parent_p );
+  beam_neg.Boost( -parent_p );
+
+  z_axis = beam_pos.BoostVector().Unit() - beam_neg.BoostVector().Unit();
+  p1 = vec1.BoostVector();
+
+  norm_had = z_axis.Cross( beam_pos.BoostVector() );
+  norm_lep = z_axis.Cross( p1 );
+  cos_cs_phi = norm_had * norm_lep / (norm_had.Mag() * norm_lep.Mag());
+  return cos_cs_phi;
+}
+
+float Sin_CS_Phi( TLorentzVector vec1, TLorentzVector vec2 ) {
+  TLorentzVector parent_vec = vec1 + vec2, beam_pos, beam_neg;
+  TVector3 parent_p = parent_vec.BoostVector(), p1, p2, z_axis, norm_had, norm_lep;
+  float sin_cs_phi;
+
+  beam_pos.SetXYZM(0,0, 6500, 0.93827);
+  beam_neg.SetXYZM(0,0,-6500, 0.93827);
+
+  vec1.Boost( -parent_p );
+  beam_pos.Boost( -parent_p );
+  beam_neg.Boost( -parent_p );
+
+  z_axis = beam_pos.BoostVector().Unit() - beam_neg.BoostVector().Unit();
+  p1 = vec1.BoostVector();
+
+  norm_had = z_axis.Cross( beam_pos.BoostVector() );
+  norm_lep = z_axis.Cross( p1 );
+  sin_cs_phi = norm_had.Cross(norm_lep).Mag() / (norm_had.Mag() * norm_lep.Mag());
+  return sin_cs_phi;
+}
 
 

@@ -51,14 +51,19 @@ def GetSamples(location = 'CERN', year = '2017'):
             sys.exit
     elif (location == 'CERN_lepMVA_test_v1'):
 	if (year == 2017):
-	    in_dir = '/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2018_12_13_LepMVA_2l_test_v1'
+	    in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2018_12_13_LepMVA_2l_test_v1'
 	else:
 	    print 'Invalid location (%s) and/or year (%d) !!! Exiting.' % (location, year)
 	    sys.exit
     elif (location == 'CERN_lepMVA_test_v2'):
 	if (year == 2017):
-	    in_dir = '/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2'
+	    in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2'
 	else:
+	    print 'Invalid location (%s) and/or year (%d) !!! Exiting.' % (location, year)
+    elif (location == 'CERN_lepMVA_3l_test_v1_with_extra_samples'): #Be cautious! For now only works if in_dir is overwritten in GenerateBatch.py. Will change later. 
+	if (year == 2017):
+	    in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17'
+	else: 
 	    print 'Invalid location (%s) and/or year (%d) !!! Exiting.' % (location, year)
     else:
         print 'Invalid location (%s) and/or year (%d)!!!  Exiting.' % (location, year)
@@ -124,9 +129,9 @@ def GetSamples(location = 'CERN', year = '2017'):
     samples.append( SampleInfo('H2Mu_VBF_130', VBF_str+'HToMuMu_M130_13TeV'+sig_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
     
     ## H2Mu_VH
-    samples.append( SampleInfo('H2Mu_ZH'+mH,  ZH_str+'M125_13TeV_powheg_pythia8', 0.0002136, year, in_dir, 'Sig') )
-    samples.append( SampleInfo('H2Mu_ZH_120', ZH_str+'M120_13TeV_powheg_pythia8', 0.0002136, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
-    samples.append( SampleInfo('H2Mu_ZH_130', ZH_str+'M130_13TeV_powheg_pythia8', 0.0002136, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_ZH'+mH,  ZH_str+'M125_13TeV_powheg_pythia8', 0.0001923, year, in_dir, 'Sig') )
+    samples.append( SampleInfo('H2Mu_ZH_120', ZH_str+'M120_13TeV_powheg_pythia8', 0.0001923, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_ZH_130', ZH_str+'M130_13TeV_powheg_pythia8', 0.0001923, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
     
     samples.append( SampleInfo('H2Mu_WH_pos'+mH,  WH_pos_str+'M125_13TeV_powheg_pythia8', 0.0001858, year, in_dir, 'Sig') )
     samples.append( SampleInfo('H2Mu_WH_pos_120', WH_pos_str+'M120_13TeV_powheg_pythia8', 0.0001858, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
@@ -305,6 +310,37 @@ def GetSamples(location = 'CERN', year = '2017'):
 
 	samples.append( SampleInfo('tW_neg', 'ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8', 35.85, year, in_dir, 'Bkg') )
 	samples.append( SampleInfo('tW_pos', 'ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8',     35.85, year, in_dir, 'Bkg') )
+
+
+    if (location == 'CERN_lepMVA_3l_test_v1_with_extra_samples' and year == 2017):
+	in_dir = '/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1' #sample from loc = 'CERN' not cleared, only extra samples are listed here
+	# for whose xsec is not found yet, use 1 as a placeholder
+	# diHiggs
+	samples.append( SampleInfo('HH_n12_incl_2', 'GluGluToHHTo2B2Tau_node_12_13TeV-madgraph', 0.00243, year, in_dir, 'Bkg') ) # HH To BBTauTau, not sure meaning of node
+	samples.append( SampleInfo('HH_n2_incl_2', 'GluGluToHHTo2B2Tau_node_2_13TeV-madgraph', 0.00243, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('HH_n7_incl_2', 'GluGluToHHTo2B2Tau_node_7_13TeV-madgraph', 0.00243, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('HH_SM_incl_2', 'GluGluToHHTo2B2Tau_node_SM_13TeV-madgraph', 0.00243, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('HH_n12_incl_1', 'GluGluToHHTo4B_node_12_13TeV-madgraph', 0.00243, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('HH_n2_incl_1', 'GluGluToHHTo4B_node_2_13TeV-madgraph', 0.00243, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('HH_n7_incl_1', 'GluGluToHHTo4B_node_7_13TeV-madgraph', 0.00243, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('HH_SM_incl_1', 'GluGluToHHTo4B_node_SM_13TeV-madgraph', 0.00243, year, in_dir, 'Bkg') )
+	# H2W
+	samples.append( SampleInfo('H2W_ZH_125', 'GluGluZH_HToWW_M125_13TeV_powheg_pythia8_TuneCP5', 0.1888, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2W_WH_neg_125', 'HWminusJ_HToWW_M125_13TeV_powheg_pythia8_TuneCP5', 0.1138, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2W_WH_pos_125', 'HWplusJ_HToWW_M125_13TeV_powheg_pythia8_TuneCP5', 0.1796, year, in_dir, 'Bkg') )
+	# THX
+	samples.append( SampleInfo('tHq', 'THQ_4f_Hincl_13TeV_madgraph_pythia8', 1, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('tHW', 'THW_5f_Hincl_13TeV_madgraph_pythia8', 1, year, in_dir, 'Bkg') )
+	# ttX
+	samples.append( SampleInfo('ttWW', 'TTWW_TuneCP5_13TeV-madgraph-pythia8', 1, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('ttZ_lowM', 'TTZToLL_M-1to10_TuneCP5_13TeV-amcatnlo-pythia8', 1, year, in_dir, 'Bkg') )
+	# HtoOthers
+	samples.append( SampleInfo('H2Tau_WH_neg_125', 'WminusHToTauTau_M125_13TeV_powheg_pythia8', 0.03339, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Tau_WH_pos_125', 'WplusHToTauTau_M125_13TeV_powheg_pythia8', 0.05268, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Z_WH_neg_125', 'WminusH_HToZZTo2L2X_M125_13TeV_powheg2-minlo-HWJ_JHUGenV7011_pythia8', 0.01395, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Z_WH_pos_125', 'WplusH_HToZZTo2L2X_M125_13TeV_powheg2-minlo-HWJ_JHUGenV7011_pythia8', 0.02200, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Tau_ZH_125', 'ZHToTauTau_M125_13TeV_powheg_pythia8', 0.05541, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('H2Z_ZH_125', 'ZH_HToZZ_2LFilter_M125_13TeV_powheg2-minlo-HZJ_JHUGenV7011_pythia8', 0.02314, year, in_dir, 'Bkg') )
 
     return samples
 
