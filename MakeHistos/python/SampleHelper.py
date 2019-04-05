@@ -58,13 +58,13 @@ def GetSampleID(name):
     elif "ttW" in samp_name: 		return -060624;
     elif samp_name == "ttZ": 		return -060623;
     elif samp_name == "ttH": 		return -060625;
-    elif "WW" in samp_name:  		return -2424;
-    elif "WZ" in samp_name: 		return -2423;
-    elif "ZZ" in samp_name:  		return -2323;
     elif "WWW" in samp_name:  		return -242424;
     elif "WWZ" in samp_name: 		return -242423;
     elif "WZZ" in samp_name:  		return -242323;
     elif "ZZZ" in samp_name: 		return -232323;
+    elif "WW" in samp_name:             return -2424;
+    elif "WZ" in samp_name:             return -2423;
+    elif "ZZ" in samp_name:             return -2323;
 
     return -999;  #just so that this function can be compiled. do not expect -999 to show in any case
 
