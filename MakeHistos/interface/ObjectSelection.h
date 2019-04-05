@@ -13,13 +13,16 @@ struct ObjectSelectionConfig {  // Default values taken from 2016
   std::string year = "NONE";
   
   // Muon selection
-  std::string mu_pt_corr = "NONE";  // Muon pT correction: "PF", "Roch", or "KaMu"
-  float       mu_pt_min  =  -99.0;  // Minimum muon pT
-  float       mu_eta_max =  -99.0;  // Maximum muon |eta|
-  std::string mu_ID_cut  = "NONE";  // Muon ID: "loose", "medium", or "tight"
-  float       mu_iso_max =  -99.0;  // Maximum muon relative isolation
-  float       mu_SIP_max =  -99.0;  // Maximum impact parameter significance
-  float       mu_seg_min =  -99.0;  // Minimum muon segment compatibility
+  std::string mu_pt_corr  = "NONE";  // Muon pT correction: "PF", "Roch", or "KaMu"
+  float       mu_pt_min   =  -99.0;  // Minimum muon pT
+  float       mu_eta_max  =  -99.0;  // Maximum muon |eta|
+  std::string mu_ID_cut   = "NONE";  // Muon ID: "loose", "medium", or "tight"
+  float       mu_iso_max  =  -99.0;  // Maximum muon relative isolation
+  float       mu_mIso_max =  -99.0;  // Maximum muon relative miniIsolation
+  float       mu_d0_max   =  -99.0;  // Maximum muon |dXY| from vertex
+  float       mu_dZ_max   =  -99.0;  // Maximum muon |dZ| from vertex
+  float       mu_SIP_max  =  -99.0;  // Maximum impact parameter significance
+  float       mu_seg_min  =  -99.0;  // Minimum muon segment compatibility
 
   // Electron selection
   float       ele_pt_min  =  -99.0;  // Minimum electron pT
