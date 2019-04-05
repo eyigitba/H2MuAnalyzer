@@ -31,5 +31,9 @@ TLorentzVector FourVec( const GenMuonInfo & genMu, const std::string opt = "" );
 TLorentzVector FourVec( const GenJetInfo & genJet, const std::string opt = "" );
 
 float CosThetaStar( TLorentzVector vec1, TLorentzVector vec2 );
+float Cos_CS_Theta( TLorentzVector vec1, TLorentzVector vec2 );
+float Cos_CS_Phi( TLorentzVector vec1, TLorentzVector vec2 );
+float Sin_CS_Phi( TLorentzVector vec1, TLorentzVector vec2 );
+
 
 #endif  // #ifndef OBJECT_HELPER

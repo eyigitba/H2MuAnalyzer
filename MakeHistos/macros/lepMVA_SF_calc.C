@@ -11,6 +11,7 @@
 #include "TChain.h"
 #include "TTree.h"
 #include "TBranch.h"
+#include "TH3.h"
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h" // List of branches in the NTuple tree
 #include "H2MuAnalyzer/MakeHistos/interface/HistoHelper.h"        // Use to book and fill output histograms
@@ -34,8 +35,8 @@ const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
-//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2018_12_13_LepMVA_2l_test_v1/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/181213_154326/0000";
-//const TString SAMPLE   = "ZJets_AMC";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2018_12_13_LepMVA_2l_test_v1/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/181213_154326/0000";
+const TString SAMPLE   = "ZJets_AMC";
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2018_12_13_LepMVA_2l_test_v1/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/tt_ll_MG/181213_211517/0000";
 //const TString SAMPLE   = "tt_ll_MG"; 
 
@@ -45,8 +46,8 @@ const bool verbose = false; // Print extra information
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/tt_ll_MG/190114_180858/0000";
 //const TString SAMPLE   = "tt_ll_MG";
 
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/tt_ljj_POW_1/190114_182014/0000";
-const TString SAMPLE = "tt_ljj_POW_1";
+//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/tt_ljj_POW_1/190114_182014/0000";
+//const TString SAMPLE = "tt_ljj_POW_1";
 
 
 const std::string YEAR = "2017";
@@ -59,7 +60,7 @@ const std::vector<std::string> CAT_CUTS = {"NONE"}; // Event selection categorie
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
-void lepMVA_efficiency( TString sample = "", TString in_dir = "", TString out_dir = "",
+void lepMVA_SF_calc( TString sample = "", TString in_dir = "", TString out_dir = "",
 	     std::vector<TString> in_files = {}, TString out_file_str = "",
 	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
   
@@ -129,9 +130,10 @@ void lepMVA_efficiency( TString sample = "", TString in_dir = "", TString out_di
   // Initialize set of pointers to all branches in tree
   NTupleBranches br;
 
-  // Initialize empty map of histogram names to histograms
-  std::map<TString, TH1*> h_map_1D;
-  std::map<TString, TH2*> h_map_2D;
+  // Initialize histograms
+  TH3D *mu_hist  = new TH3D( sample + "_muon", sample +"_muon", 50,0,500, 16,-2.4,2.4, 200,-1,1);
+  TH3D *ele_hist = new TH3D( sample + "_ele", sample + "_ele", 50,0,500, 16,-2.4,2.4, 200,-1,1); 
+
 
   // Add trees from the input files to the TChain
   TChain * in_chain = new TChain("dimuons/tree");
@@ -253,41 +255,13 @@ void lepMVA_efficiency( TString sample = "", TString in_dir = "", TString out_di
 	  if (muons.size() == 2) {
 	    MuPairInfo & dimuon = br.muPairs->at(0);
 	    if (dimuon.mass > 81 and dimuon.mass < 101 and dimuon.charge == 0) {    // prompt control region
-//	    if (dimuon.mass > 12 and dimuon.charge != 0) {    // non-prompt control region
 	      for(int imu=0 ; imu < muons.size(); imu++) {
 	        MuonInfo muon_tag   = muons.at(imu);
 	        MuonInfo muon_probe = muons.at( (imu+1)%2 );
 		if ( muon_probe.SIP_3D > 8 or muon_probe.segCompat < 0.3 or not MuonID(muon_probe, "medium")) continue;
 		if (muon_tag.pt > 20 and muon_tag.relIso < 0.12 and MuonID(muon_tag, "tight") ) { // prompt control region
-//		if (muon_tag.pt > 30 and muon_tag.relIso < 0.12 and MuonID(muon_tag, "tight") and MuonTrig(muon_tag, obj_sel.year)) { //non-prompt
-	            if( muon_probe.pt > 10 and muon_probe.pt < 20) {
-	                BookAndFill( h_map_1D, h_pre+"mu_pt_10_20_all", 				16,-2.4,2.4, muon_probe.eta, event_wgt);
-	              	if( muon_probe.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"mu_pt_10_20_tight",   16,-2.4,2.4, muon_probe.eta, event_wgt);	
-	            }
-	            else if( muon_probe.pt < 30) {
-	                BookAndFill( h_map_1D, h_pre+"mu_pt_20_30_all",					16,-2.4,2.4, muon_probe.eta, event_wgt);
-                        if( muon_probe.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"mu_pt_20_30_tight",	16,-2.4,2.4, muon_probe.eta, event_wgt);
-	            }
-	            else if( muon_probe.pt < 40) {
-                        BookAndFill( h_map_1D, h_pre+"mu_pt_30_40_all",                                 16,-2.4,2.4, muon_probe.eta, event_wgt);
-                        if( muon_probe.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"mu_pt_30_40_tight",   16,-2.4,2.4, muon_probe.eta, event_wgt);
-                    }
-	            else if( muon_probe.pt < 50) {
-                        BookAndFill( h_map_1D, h_pre+"mu_pt_40_50_all",                                 16,-2.4,2.4, muon_probe.eta, event_wgt);
-                        if( muon_probe.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"mu_pt_40_50_tight",   16,-2.4,2.4, muon_probe.eta, event_wgt);
-                    }
-	            else if( muon_probe.pt < 100) {
-                        BookAndFill( h_map_1D, h_pre+"mu_pt_50_100_all",                                16,-2.4,2.4, muon_probe.eta, event_wgt);
-                        if( muon_probe.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"mu_pt_50_100_tight",  16,-2.4,2.4, muon_probe.eta, event_wgt);
-                    }
-	            else if( muon_probe.pt < 200) {
-                        BookAndFill( h_map_1D, h_pre+"mu_pt_100_200_all",                               16,-2.4,2.4, muon_probe.eta, event_wgt);
-                        if( muon_probe.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"mu_pt_100_200_tight", 16,-2.4,2.4, muon_probe.eta, event_wgt);
-                    }
-	            else {
-                        BookAndFill( h_map_1D, h_pre+"mu_pt_200_more_all",                              16,-2.4,2.4, muon_probe.eta, event_wgt);
-                        if( muon_probe.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"mu_pt_200_more_tight",16,-2.4,2.4, muon_probe.eta, event_wgt);
-                    }
+		    mu_hist->Fill( (muon_probe.pt<499)?muon_probe.pt:499, muon_probe.eta, muon_probe.lepMVA, event_wgt);
+	            
 		}
 	      }
 	    }
@@ -301,35 +275,8 @@ void lepMVA_efficiency( TString sample = "", TString in_dir = "", TString out_di
 	      TLorentzVector mu_ele = mu_vec + ele_vec;
 	      if ( ele.SIP_3D > 8 or muon.segCompat < 0.3 ) continue;
 	      if ( muon.relIso < 0.12 and MuonID(muon, "tight") and muon.charge + ele.charge == 0 and br.nBMed == 2) { // prompt
-//	      if ( muon.relIso < 0.12 and MuonID(muon, "tight") and muon.charge + ele.charge != 0 and mu_ele.M() > 12 ) { // non-prompt
-                if( ele.pt > 10 and ele.pt < 20) {
-                    BookAndFill( h_map_1D, h_pre+"ele_pt_10_20_all",                                16,-2.4,2.4, ele.eta, event_wgt);
-                    if( ele.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"ele_pt_10_20_tight",         16,-2.4,2.4, ele.eta, event_wgt);
-                }
-                else if( ele.pt < 30) {
-                    BookAndFill( h_map_1D, h_pre+"ele_pt_20_30_all",                                16,-2.4,2.4, ele.eta, event_wgt);
-                    if( ele.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"ele_pt_20_30_tight",         16,-2.4,2.4, ele.eta, event_wgt);
-                }
-                else if( ele.pt < 40) {
-                    BookAndFill( h_map_1D, h_pre+"ele_pt_30_40_all",                                16,-2.4,2.4, ele.eta, event_wgt);
-                    if( ele.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"ele_pt_30_40_tight",         16,-2.4,2.4, ele.eta, event_wgt);
-                }
-                else if( ele.pt < 50) {
-                    BookAndFill( h_map_1D, h_pre+"ele_pt_40_50_all",                                16,-2.4,2.4, ele.eta, event_wgt);
-                    if( ele.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"ele_pt_40_50_tight",         16,-2.4,2.4, ele.eta, event_wgt);
-                }
-                else if( ele.pt < 100) {
-                    BookAndFill( h_map_1D, h_pre+"ele_pt_50_100_all",                               16,-2.4,2.4, ele.eta, event_wgt);
-                    if( ele.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"ele_pt_50_100_tight",        16,-2.4,2.4, ele.eta, event_wgt);
-                }
-                else if( ele.pt < 200) {
-                    BookAndFill( h_map_1D, h_pre+"ele_pt_100_200_all",                              16,-2.4,2.4, ele.eta, event_wgt);
-                    if( ele.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"ele_pt_100_200_tight",       16,-2.4,2.4, ele.eta, event_wgt);
-                }
-                else {
-                    BookAndFill( h_map_1D, h_pre+"ele_pt_200_more_all",                             16,-2.4,2.4, ele.eta, event_wgt);
-                    if( ele.lepMVA > 0.4) BookAndFill(h_map_1D, h_pre+"ele_pt_200_more_tight",      16,-2.4,2.4, ele.eta, event_wgt);
-                }
+		  ele_hist->Fill( (ele.pt<499)?ele.pt:499, ele.eta, ele.lepMVA, event_wgt);
+                
 	      }
 	  }
 
@@ -342,18 +289,7 @@ void lepMVA_efficiency( TString sample = "", TString in_dir = "", TString out_di
   std::cout << "\n******* Leaving the event loop *******" << std::endl;
 
   std::cout << "\n******* normalizing histos, weight =  " << samp_weight << " *******" << std::endl;
-  if (h_map_1D.empty()) std::cout << "h_map_1D is empty" << std::endl;
-  else {
-    for (std::map<TString, TH1*>::iterator it_term = h_map_1D.begin() ; it_term != h_map_1D.end() ; it_term++) {
-        it_term->second->Scale(samp_weight);
-    }
-  }
-  if (h_map_2D.empty()) std::cout << "h_map_2D is empty" << std::endl;
-  else {
-    for (std::map<TString, TH2*>::iterator it_term = h_map_2D.begin() ; it_term != h_map_2D.end() ; it_term++) {
-        it_term->second->Scale(samp_weight);
-    }
-  }
+  
 
   // Concatenate basic selection cuts into string for output file name
   std::string selStr = "";
@@ -376,37 +312,15 @@ void lepMVA_efficiency( TString sample = "", TString in_dir = "", TString out_di
       if (verbose) std::cout << "\nWriting output file " << out_file_name.Data() << std::endl;
       out_file->cd();
 
-      // Write out 1D histograms
-      for (std::map<TString, TH1*>::iterator it = h_map_1D.begin(); it != h_map_1D.end(); ++it) {
-	std::string h_name = it->second->GetName();
-	if (h_name.find(optCatStr+"_") != std::string::npos) {
-	  // Remove optional selection and category cuts from histogram names
-	  h_name.erase( h_name.find(optCatStr+"_"), optCatStr.length() + 1 );
-	  it->second->SetName(h_name.c_str());
-	  it->second->SetTitle(h_name.c_str());
-	  std::cout << "  * Writing 1D histogram " << it->second->GetName() << std::endl;
-	  it->second->Write();
-	}
-      }
-      // Write out 2D histograms
-      for (std::map<TString, TH2*>::iterator it = h_map_2D.begin(); it != h_map_2D.end(); ++it) {
-	std::string h_name = it->second->GetName();
-	if (h_name.find(optCatStr+"_") != std::string::npos) {
-	  // Remove optional selection and category cuts from histogram names
-	  h_name.erase( h_name.find(optCatStr+"_"), optCatStr.length() + 1 );
-	  it->second->SetName(h_name.c_str());
-	  it->second->SetTitle(h_name.c_str());
-	  std::cout << "  * Writing 2D histogram " << it->second->GetName() << std::endl;
-	  it->second->Write();
-	}
-      }
-  
+      mu_hist->Write();
+      ele_hist->Write();
+ 
       out_file->Write();
       std::cout << "Wrote output file " << out_file_name.Data() << std::endl;
       
     } // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
   } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
   
-  std::cout << "\nExiting lepMVA_efficiency()\n";
+  std::cout << "\nExiting lepMVA_SF_calc()\n";
   
 } // End void WH_lep()

@@ -6,6 +6,7 @@
 import os
 
 from ROOT import *
+from MNT_Helper import LinearStack, RatioPlot, FillHistTerm
 #R.gROOT.SetBatch(True)
 
 ## Configure the script user
@@ -17,116 +18,64 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
 if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
-LABEL = 'miniNtuple_WH_2016_v5'  ## Sub-folder within PLOT_DIR containing histograms
-
-
-
-def LinearStack( term, all_stack, scaled_signal, legend):
-    canv = TCanvas("Stack_" + term, "Stack_" + term, 600,600)
-    canv.Clear()
-
-    canv.cd()
-    all_stack.Draw("HIST")
-    scaled_signal.Draw("HISTSAME")
-    legend.Draw()
-    canv.Update()
-    canv.Write()
-    canv.SaveAs(PLOT_DIR+"/"+LABEL+"/files" + "/plots" + "/stack_" + term + ".png")
-
-
-def ratioplot( term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do not use TRatioPlot! It is a devil!    -XWZ 19.09.2018
-    canv = TCanvas("ratio_"+term, "ratio_"+term, 600,600)
-    canv.Clear()
-
-    upper_pad = TPad("upperpad_"+term, "upperpad_"+term, 0,0.2, 1,1)
-    upper_pad.SetBottomMargin(0.05);
-    upper_pad.Draw()
-    upper_pad.cd()
-    upper_pad.SetLogy()
-#    all_stack.SetMinimum(1e-5)
-#    all_stack.SetMaximum(1e6)
-    all_stack.SetMinimum(1e-3)
-    all_stack.SetMaximum(1e8)
-    all_stack.Draw("HIST")
-    h_data.SetMarkerStyle(20)
-    h_data.Draw("SAME")
-    for histo in sig_stack:
-        histo.Draw("SAMEHIST")
-    legend.Draw()
-
-    canv.cd()
-    lower_pad = TPad("lowerpad_"+term, "lowerpad_"+term, 0,0.05, 1,0.2)
-    lower_pad.SetTopMargin(0.05)
-    lower_pad.SetGridy()
-    lower_pad.Draw()
-    lower_pad.cd()
-    ratio_graph.SetMinimum(0.5)
-    ratio_graph.SetMaximum(1.5)
-#    ratio_graph.SetMinimum(0.5)
-#    ratio_graph.SetMaximum(2.5)
-
-    ratio_graph.GetXaxis().SetRangeUser( h_data.GetXaxis().GetXmin(), h_data.GetXaxis().GetXmax() )
-    ratio_graph.SetMarkerStyle(20)
-#    ratio_graph.GetYaxis().SetNdivisions(510)
-    ratio_graph.GetYaxis().SetNdivisions(505)
-    ratio_graph.GetXaxis().SetLabelSize(0.15)
-    ratio_graph.GetYaxis().SetLabelSize(0.13)
-    ratio_graph.GetYaxis().SetTitle("data/MC")
-    ratio_graph.GetYaxis().SetTitleSize(0.20)
-    ratio_graph.GetYaxis().SetTitleOffset(0.2)
-    ratio_graph.Draw()
-
-    canv.Update()
-    canv.Write()
-    canv.SaveAs(PLOT_DIR+"/"+LABEL+"/files/sum" + "/plots_none" + "/ratio_" + term + ".png")
-
+#LABEL = 'miniNtuple_WH_2016_v5'  ## Sub-folder within PLOT_DIR containing histograms
+LABEL = 'lepMVA_ttH_3l_mu_final_v1'
 
 
 def InitHists(histos, terms, signals, bkgs):
-    for sample in signals + bkgs:
+    for sample in signals + bkgs + ["data"]:
 	histos["mu1_pt"][sample] 	= TH1F("mu1_pt" + "_" + sample, "mu1_pt" + "_" + sample,			50,0,800 )
 	histos["mu2_pt"][sample] 	= TH1F("mu2_pt" + "_" + sample, "mu2_pt" + "_" + sample, 			50,0,400 )
 	histos["mu1_abs_eta"][sample] 	= TH1F("mu1_abs_eta" + "_" + sample, "mu1_abs_eta" + "_" + sample, 		50,0,2.5)
         histos["mu2_abs_eta"][sample] 	= TH1F("mu2_abs_eta" + "_" + sample, "mu2_abs_eta" + "_" + sample, 		50,0,2.5)
+	histos["mu1_lepMVA"][sample]	= TH1F("mu1_lepMVA" + "_" + sample, "mu1_lepMVA" + "_" + sample, 		50,-1,1)
+	histos["mu2_lepMVA"][sample]    = TH1F("mu2_lepMVA" + "_" + sample, "mu2_lepMVA" + "_" + sample, 		50,-1,1)
+
 	histos["dimu_mass"][sample] 	= TH1F("dimu_mass" + "_" + sample, "dimu_mass" + "_" + sample, 			12,100,160)
         histos["dimu_pt"][sample] 	= TH1F("dimu_pt" + "_" + sample, "dimu_pt" + "_" + sample, 			50,0,1000)	
+	histos["dimu_mass_err"][sample] = TH1F("dimu_mass_err" + "_" + sample, "dimu_mass_err" + "_" + sample, 		50,-10,10)
 	histos["dimu_abs_eta"][sample] 	= TH1F("dimu_abs_eta" + "_" + sample, "dimu_abs_eta" + "_" + sample, 		50,0,6)
         histos["dimu_abs_dEta"][sample] = TH1F("dimu_abs_dEta" + "_" + sample, "dimu_abs_dEta" + "_" + sample, 		50,0,4)
         histos["dimu_abs_dPhi"][sample] = TH1F("dimu_abs_dPhi" + "_" + sample, "dimu_abs_dPhi" + "_" + sample, 		50,0,4)
         histos["dimu_dR"][sample] 	= TH1F("dimu_dR" + "_" + sample, "dimu_dR" + "_" + sample, 			50,0,5)
         histos["cts_mu1"][sample] 	= TH1F("cts_mu1" + "_" + sample, "cts_mu1" + "_" + sample, 			50,-1,1)
         histos["cts_mu_pos"][sample] 	= TH1F("cts_mu_pos" + "_" + sample, "cts_mu_pos" + "_" + sample, 		50,-1,1)
-	histos["ele_pt"][sample] 	= TH1F("ele_pt" + "_" + sample, "ele_pt" + "_" + sample, 			50,0,500)
-        histos["ele_abs_eta"][sample] 	= TH1F("ele_abs_eta" + "_" + sample, "ele_abs_eta" + "_" + sample, 		50,0,2.5)
-        histos["cts_edimu"][sample] 	= TH1F("cts_edimu" + "_" + sample, "cts_edimu" + "_" + sample, 			50,-1,1)
-        histos["edimu_mass"][sample] 	= TH1F("edimu_mass" + "_" + sample, "edimu_mass" + "_" + sample, 		50,0,1000)
-        histos["edimu_pt"][sample] 	= TH1F("edimu_pt" + "_" + sample, "edimu_pt" + "_" + sample, 			50,0,500)
-        histos["edimu_abs_eta"][sample] = TH1F("edimu_abs_eta" + "_" + sample, "edimu_abs_eta" + "_" + sample,  	50,0,8)
-        histos["edimu_abs_dEta"][sample] = TH1F("edimu_abs_dEta" + "_" + sample, "edimu_abs_dEta" + "_" + sample, 	50,0,6)
-        histos["edimu_abs_dPhi"][sample] = TH1F("edimu_abs_dPhi" + "_" + sample, "edimu_abs_dPhi" + "_" + sample, 	50,0,4)
-        histos["edimu_dR"][sample] 	= TH1F("edimu_dR" + "_" + sample, "edimu_dR" + "_" + sample, 			50,0,8)
-        histos["cts_emuSS"][sample] 	= TH1F("cts_emuSS" + "_" + sample, "cts_emuSS" + "_" + sample, 			50,-1,1)
-        histos["cts_emuOS"][sample] 	= TH1F("cts_emuOS" + "_" + sample, "cts_emuOS" + "_" + sample, 			50,-1,1)
-        histos["emuSS_pt"][sample] 	= TH1F("emuSS_pt" + "_" + sample, "emuSS_pt" + "_" + sample, 			50,0,500)
-	histos["emuSS_abs_eta"][sample] = TH1F("emuSS_abs_eta" + "_" + sample, "emuSS_abs_eta" + "_" + sample, 		50,0,6)
-        histos["emuSS_abs_dEta"][sample] = TH1F("emuSS_abs_dEta" + "_" + sample, "emuSS_abs_dEta" + "_" + sample, 	50,0,5)
-        histos["emuSS_abs_dPhi"][sample] = TH1F("emuSS_abs_dPhi" + "_" + sample, "emuSS_abs_dPhi" + "_" + sample, 	50,0,4)
-        histos["emuSS_dR"][sample] 	= TH1F("emuSS_dR" + "_" + sample, "emuSS_dR" + "_" + sample, 			50,0,6)
-        histos["emuOS_pt"][sample] 	= TH1F("emuOS_pt" + "_" + sample, "emuOS_pt" + "_" + sample, 			50,0,500)
-        histos["emuOS_abs_eta"][sample] = TH1F("emuOS_abs_eta" + "_" + sample, "emuOS_abs_eta" + "_" + sample, 		50,0,6)
-        histos["emuOS_abs_dEta"][sample] = TH1F("emuOS_abs_dEta" + "_" + sample, "emuOS_abs_dEta" + "_" + sample, 	50,0,5)
-        histos["emuOS_abs_dPhi"][sample] = TH1F("emuOS_abs_dPhi" + "_" + sample, "emuOS_abs_dPhi" + "_" + sample, 	50,0,4)
-        histos["emuOS_dR"][sample] 	= TH1F("emuOS_dR" + "_" + sample, "emuOS_dR" + "_" + sample, 			50,0,6)
+
+	histos["lep_pt"][sample] 	= TH1F("lep_pt" + "_" + sample, "lep_pt" + "_" + sample, 			50,0,500)
+        histos["lep_abs_eta"][sample] 	= TH1F("lep_abs_eta" + "_" + sample, "lep_abs_eta" + "_" + sample, 		50,0,2.5)
+	histos["lep_lepMVA"][sample]    = TH1F("lep_lepMVA" + "_" + sample, "lep_lepMVA" + "_" + sample,	 	50,-1,1)
+        histos["cts_ldimu"][sample] 	= TH1F("cts_ldimu" + "_" + sample, "cts_ldimu" + "_" + sample, 			50,-1,1)
+        histos["ldimu_mass"][sample] 	= TH1F("ldimu_mass" + "_" + sample, "ldimu_mass" + "_" + sample, 		50,0,1000)
+        histos["ldimu_pt"][sample] 	= TH1F("ldimu_pt" + "_" + sample, "ldimu_pt" + "_" + sample, 			50,0,500)
+        histos["ldimu_abs_eta"][sample] = TH1F("ldimu_abs_eta" + "_" + sample, "ldimu_abs_eta" + "_" + sample,  	50,0,8)
+        histos["ldimu_abs_dEta"][sample] = TH1F("ldimu_abs_dEta" + "_" + sample, "ldimu_abs_dEta" + "_" + sample, 	50,0,6)
+        histos["ldimu_abs_dPhi"][sample] = TH1F("ldimu_abs_dPhi" + "_" + sample, "ldimu_abs_dPhi" + "_" + sample, 	50,0,4)
+        histos["ldimu_dR"][sample] 	= TH1F("ldimu_dR" + "_" + sample, "ldimu_dR" + "_" + sample, 			50,0,8)
+        histos["cts_lmuSS"][sample] 	= TH1F("cts_lmuSS" + "_" + sample, "cts_lmuSS" + "_" + sample, 			50,-1,1)
+        histos["cts_lmuOS"][sample] 	= TH1F("cts_lmuOS" + "_" + sample, "cts_lmuOS" + "_" + sample, 			50,-1,1)
+
+        histos["lmuSS_pt"][sample] 	= TH1F("lmuSS_pt" + "_" + sample, "lmuSS_pt" + "_" + sample, 			50,0,500)
+	histos["lmuSS_abs_eta"][sample] = TH1F("lmuSS_abs_eta" + "_" + sample, "lmuSS_abs_eta" + "_" + sample, 		50,0,6)
+        histos["lmuSS_abs_dEta"][sample] = TH1F("lmuSS_abs_dEta" + "_" + sample, "lmuSS_abs_dEta" + "_" + sample, 	50,0,5)
+        histos["lmuSS_abs_dPhi"][sample] = TH1F("lmuSS_abs_dPhi" + "_" + sample, "lmuSS_abs_dPhi" + "_" + sample, 	50,0,4)
+        histos["lmuSS_dR"][sample] 	= TH1F("lmuSS_dR" + "_" + sample, "lmuSS_dR" + "_" + sample, 			50,0,6)
+        histos["lmuOS_pt"][sample] 	= TH1F("lmuOS_pt" + "_" + sample, "lmuOS_pt" + "_" + sample, 			50,0,500)
+        histos["lmuOS_abs_eta"][sample] = TH1F("lmuOS_abs_eta" + "_" + sample, "lmuOS_abs_eta" + "_" + sample, 		50,0,6)
+        histos["lmuOS_abs_dEta"][sample] = TH1F("lmuOS_abs_dEta" + "_" + sample, "lmuOS_abs_dEta" + "_" + sample, 	50,0,5)
+        histos["lmuOS_abs_dPhi"][sample] = TH1F("lmuOS_abs_dPhi" + "_" + sample, "lmuOS_abs_dPhi" + "_" + sample, 	50,0,4)
+        histos["lmuOS_dR"][sample] 	= TH1F("lmuOS_dR" + "_" + sample, "lmuOS_dR" + "_" + sample, 			50,0,6)
+
         histos["met_pt"][sample] 	= TH1F("met_pt" + "_" + sample, "met_pt" + "_" + sample, 			50,0,500)
-        histos["mt_emet"][sample] 	= TH1F("mt_emet" + "_" + sample, "mt_emet" + "_" + sample, 			50,0,200)
-        histos["abs_dPhi_emet"][sample] = TH1F("abs_dPhi_emet" + "_" + sample, "abs_dPhi_emet" + "_" + sample, 		50,0,4)
+        histos["mt_lmet"][sample] 	= TH1F("mt_lmet" + "_" + sample, "mt_lmet" + "_" + sample, 			50,0,200)
+        histos["abs_dPhi_lmet"][sample] = TH1F("abs_dPhi_lmet" + "_" + sample, "abs_dPhi_lmet" + "_" + sample, 		50,0,4)
         histos["mht_pt"][sample] 	= TH1F("mht_pt" + "_" + sample, "mht_pt" + "_" + sample, 			50,0,500)
         histos["mht_mass"][sample] 	= TH1F("mht_mass" + "_" + sample, "mht_mass" + "_" + sample, 			50,0,5000)
-        histos["mt_emht"][sample] 	= TH1F("mt_emht" + "_" + sample, "mt_emht" + "_" + sample, 			50,0,500)
-        histos["abs_dPhi_emht"][sample] = TH1F("abs_dPhi_emht" + "_" + sample, "abs_dPhi_emht" + "_" + sample, 		50,0,4)
+        histos["mt_lmht"][sample] 	= TH1F("mt_lmht" + "_" + sample, "mt_lmht" + "_" + sample, 			50,0,500)
+        histos["abs_dPhi_lmht"][sample] = TH1F("abs_dPhi_lmht" + "_" + sample, "abs_dPhi_lmht" + "_" + sample, 		50,0,4)
         histos["mlt_pt"][sample] 	= TH1F("mlt_pt" + "_" + sample, "mlt_pt" + "_" + sample, 			50,0,500)
-        histos["mt_emlt"][sample] 	= TH1F("mt_emlt" + "_" + sample, "mt_emlt" + "_" + sample, 			50,-0.0001,0.0001)
-        histos["abs_dPhi_emlt"][sample] = TH1F("abs_dPhi_emlt" + "_" + sample, "abs_dPhi_emlt" + "_" + sample, 		50,0,4)
+        histos["mt_lmlt"][sample] 	= TH1F("mt_lmlt" + "_" + sample, "mt_lmlt" + "_" + sample, 			50,-0.0001,0.0001)
+        histos["abs_dPhi_lmlt"][sample] = TH1F("abs_dPhi_lmlt" + "_" + sample, "abs_dPhi_lmlt" + "_" + sample, 		50,0,4)
+
         histos["dijet_mass"][sample] 	= TH1F("dijet_mass" + "_" + sample, "dijet_mass" + "_" + sample, 		50,0,2000)
         histos["dijet_pt"][sample] 	= TH1F("dijet_pt" + "_" + sample, "dijet_pt" + "_" + sample, 			50,0,1000)
         histos["dijet_abs_eta"][sample] = TH1F("dijet_abs_eta" + "_" + sample, "dijet_abs_eta" + "_" + sample, 		50,0,20)
@@ -139,6 +88,7 @@ def InitHists(histos, terms, signals, bkgs):
         histos["jet2_abs_eta"][sample] 	= TH1F("jet2_abs_eta" + "_" + sample, "jet2_abs_eta" + "_" + sample, 		50,0,5)
         histos["jet0_pt"][sample] 	= TH1F("jet0_pt" + "_" + sample, "jet0_pt" + "_" + sample, 			50,0,1000)
         histos["jet0_abs_eta"][sample] 	= TH1F("jet0_abs_eta" + "_" + sample, "jet0_abs_eta" + "_" + sample, 		50,0,5)
+
         histos["nJets"][sample] 	= TH1F("nJets" + "_" + sample, "nJets" + "_" + sample, 				10,0,10)
         histos["nCentJets"][sample] 	= TH1F("nCentJets" + "_" + sample, "nCentJets" + "_" + sample, 			10,0,10)
         histos["nFwdJets"][sample] 	= TH1F("nFwdJets" + "_" + sample, "nFwdJets" + "_" + sample, 			10,0,10)
@@ -149,56 +99,27 @@ def InitHists(histos, terms, signals, bkgs):
         histos["nEles"][sample] 	= TH1F("nEles" + "_" + sample, "nEles" + "_" + sample, 				5,0,5)
 
 
-def FillHistTerm(histos, term, signals, bkgs, value, Sample_ID, event_wgt):
-    #signal
-    if Sample_ID == 25:
-	histos[term]["ggH"].Fill(value, event_wgt /2)
-    elif Sample_ID == 010225:
-	histos[term]["VBF"].Fill(value, event_wgt /2)
-    elif Sample_ID == 2425:
-	histos[term]["WH"].Fill(value, event_wgt /2)
-    elif Sample_ID == 2325:
-	histos[term]["ZH"].Fill(value, event_wgt /2)
-    elif Sample_ID == 060625:
-	histos[term]["ttH"].Fill(value, event_wgt /2)
-
-    #background
-    elif Sample_ID == -23:
-	histos[term]["DY"].Fill(value, event_wgt / 4)  # used two DY samples
-    elif Sample_ID == -0606:
-	histos[term]["ttbar"].Fill(value, event_wgt / 3)  # used two ttbar samples
-    elif Sample_ID == -2423:
-	histos[term]["WZ"].Fill(value, event_wgt)
-    elif Sample_ID == -2323:  #ZZ_4l and ZZ_2l
-	histos[term]["ZZ"].Fill(value, event_wgt)
-    elif Sample_ID == -2424 or Sample_ID/10000 < -23:   # WW and triboson
-	histos[term]["triboson"].Fill(value, event_wgt)
-    elif Sample_ID == -062300:
-	histos[term]["tZq"].Fill(value, event_wgt)
-    else:
-	histos[term]["tX"].Fill(value, event_wgt)
-
-
 def main():
-    out_name = "test.root"
+    out_name = "stack_plots.root"
 
-    file_dir = PLOT_DIR+"/"+LABEL+"/files/"
+    file_dir = PLOT_DIR+"/"+LABEL+"/"
     out_file = TFile( file_dir + "plots/" + out_name , "RECREATE")
     file_chain = TChain("tree","chain");
-    file_chain.Add( file_dir + "signal.root")
-    file_chain.Add( file_dir + "bkg.root")
+    file_chain.Add(file_dir + "all_samples.root")
+#    file_chain.Add( file_dir + "signal.root")
+#    file_chain.Add( file_dir + "bkg.root")
 
-    terms = ["mu1_pt", "mu2_pt", "mu1_abs_eta", "mu2_abs_eta",   	#mu_vars
-	    "dimu_mass", "dimu_pt", "dimu_abs_eta", "dimu_abs_dEta", 	#mu_vars
+    terms = ["mu1_pt", "mu2_pt", "mu1_lepMVA", "mu1_abs_eta", "mu2_abs_eta", "mu2_lepMVA",  	#mu_vars
+	    "dimu_mass", "dimu_pt", "dimu_mass_err", "dimu_abs_eta", "dimu_abs_dEta", 	#mu_vars
 	    "dimu_abs_dPhi", "dimu_dR", "cts_mu1", "cts_mu_pos",  	#mu_vars
-	    "ele_pt", "ele_abs_eta", "cts_edimu", "edimu_mass", "edimu_pt",  #ele_vars
-	    "edimu_abs_eta", "edimu_abs_dEta", "edimu_abs_dPhi", "edimu_dR", #ele_vars
-	    "cts_emuSS", "cts_emuOS", "emuSS_pt", "emuSS_abs_eta", 		#emu vars
-	    "emuSS_abs_dEta", "emuSS_abs_dPhi", "emuSS_dR", "emuOS_pt", 	#emu vars
-	    "emuOS_abs_eta", "emuOS_abs_dEta", "emuOS_abs_dPhi", "emuOS_dR", 	#emu vars
-	    "met_pt", "mt_emet", "abs_dPhi_emet", 		#met vars
-	    "mht_pt", "mht_mass", "mt_emht", "abs_dPhi_emht",  	#met vars
-	    "mlt_pt", "mt_emlt", "abs_dPhi_emlt",		#met vars
+	    "lep_pt", "lep_abs_eta", "lep_lepMVA", "cts_ldimu", "ldimu_mass", "ldimu_pt",  #lep_vars
+	    "ldimu_abs_eta", "ldimu_abs_dEta", "ldimu_abs_dPhi", "ldimu_dR", #lep_vars
+	    "cts_lmuSS", "cts_lmuOS", "lmuSS_pt", "lmuSS_abs_eta", 		#lmu vars
+	    "lmuSS_abs_dEta", "lmuSS_abs_dPhi", "lmuSS_dR", "lmuOS_pt", 	#lmu vars
+	    "lmuOS_abs_eta", "lmuOS_abs_dEta", "lmuOS_abs_dPhi", "lmuOS_dR", 	#lmu vars
+	    "met_pt", "mt_lmet", "abs_dPhi_lmet", 		#met vars
+	    "mht_pt", "mht_mass", "mt_lmht", "abs_dPhi_lmht",  	#met vars
+	    "mlt_pt", "mt_lmlt", "abs_dPhi_lmlt",		#met vars
 	    "dijet_mass", "dijet_pt", "dijet_abs_eta", "dijet_abs_dEta", "dijet_abs_dPhi", "dijet_dR", 	#jet vars
 	    "jet1_pt", "jet1_abs_eta", "jet2_pt", "jet2_abs_eta", "jet0_pt", "jet0_abs_eta",		#jet vars
 	    "nJets", "nCentJets", "nFwdJets", "nBJets_Med", "nBJets_Loose", "nBJets_Tight", "nMuons", "nEles", 	#evt vars
@@ -206,8 +127,11 @@ def main():
 
     signals = ["ttH", "ZH", "WH", "VBF", "ggH"]
     bkgs = ["triboson", "tZq", "tX", "ttbar", "ZZ", "WZ", "DY"]
+    data = ["data"]
 
     color = {}
+    color["data"] = kBlack
+
     color["ggH"] = kRed
     color["VBF"] =  kBlue + 1
     color["ZH"] =  kOrange + 7
@@ -247,45 +171,49 @@ def main():
 	FillHistTerm(histos, "mu2_pt"		, signals, bkgs, file_chain.mu2_pt		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
 	FillHistTerm(histos, "mu1_abs_eta"   	, signals, bkgs, abs(file_chain.mu1_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
 	FillHistTerm(histos, "mu2_abs_eta"   	, signals, bkgs, abs(file_chain.mu2_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "mu1_lepMVA"	, signals, bkgs, file_chain.mu1_lepMVA		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "mu2_lepMVA"	, signals, bkgs, file_chain.mu2_lepMVA		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
 	FillHistTerm(histos, "dimu_mass"   	, signals, bkgs, file_chain.dimu_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
 	FillHistTerm(histos, "dimu_pt"   	, signals, bkgs, file_chain.dimu_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "dimu_mass_err"	, signals, bkgs, file_chain.dimu_mass_err 	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "dimu_abs_eta"   	, signals, bkgs, abs(file_chain.dimu_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "dimu_abs_dEta"   	, signals, bkgs, abs(file_chain.dimu_dEta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "dimu_abs_dPhi"   	, signals, bkgs, abs(file_chain.dimu_dPhi)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "dimu_dR"   	, signals, bkgs, file_chain.dimu_dR   		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
 	FillHistTerm(histos, "cts_mu1"   	, signals, bkgs, file_chain.cts_mu1   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "cts_mu_pos"   	, signals, bkgs, file_chain.cts_mu_pos   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "ele_pt"   	, signals, bkgs, file_chain.ele_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "ele_abs_eta"   	, signals, bkgs, abs(file_chain.ele_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "cts_edimu"   	, signals, bkgs, file_chain.cts_edimu   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "edimu_mass"   	, signals, bkgs, file_chain.edimu_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "edimu_pt"   	, signals, bkgs, file_chain.edimu_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "edimu_abs_eta"   	, signals, bkgs, abs(file_chain.edimu_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "edimu_abs_dEta"   , signals, bkgs, abs(file_chain.edimu_dEta)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "edimu_abs_dPhi"   , signals, bkgs, abs(file_chain.edimu_dPhi)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "edimu_dR"   	, signals, bkgs, file_chain.edimu_dR  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "cts_emuSS"   	, signals, bkgs, file_chain.cts_emuSS   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "cts_emuOS"   	, signals, bkgs, file_chain.cts_emuOS   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "emuSS_pt"   	, signals, bkgs, file_chain.emuSS_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "emuSS_abs_eta"   	, signals, bkgs, abs(file_chain.emuSS_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "emuSS_abs_dEta"   , signals, bkgs, abs(file_chain.emuSS_dEta)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "emuSS_abs_dPhi"   , signals, bkgs, abs(file_chain.emuSS_dPhi)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "emuSS_dR"   	, signals, bkgs, file_chain.emuSS_dR   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "emuOS_pt"   	, signals, bkgs, file_chain.emuOS_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "emuOS_abs_eta"   	, signals, bkgs, abs(file_chain.emuOS_eta)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "emuOS_abs_dEta"   , signals, bkgs, abs(file_chain.emuOS_dEta)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "emuOS_abs_dPhi"   , signals, bkgs, abs(file_chain.emuOS_dPhi)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "emuOS_dR"   	, signals, bkgs, file_chain.emuOS_dR   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lep_pt"   	, signals, bkgs, file_chain.lep_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lep_abs_eta"   	, signals, bkgs, abs(file_chain.lep_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "lep_lepMVA"	, signals, bkgs, file_chain.lep_lepMVA 		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "cts_ldimu"   	, signals, bkgs, file_chain.cts_ldimu   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "ldimu_mass"   	, signals, bkgs, file_chain.ldimu_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "ldimu_pt"   	, signals, bkgs, file_chain.ldimu_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "ldimu_abs_eta"   	, signals, bkgs, abs(file_chain.ldimu_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "ldimu_abs_dEta"   , signals, bkgs, abs(file_chain.ldimu_dEta)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "ldimu_abs_dPhi"   , signals, bkgs, abs(file_chain.ldimu_dPhi)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "ldimu_dR"   	, signals, bkgs, file_chain.ldimu_dR  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "cts_lmuSS"   	, signals, bkgs, file_chain.cts_lmuSS   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "cts_lmuOS"   	, signals, bkgs, file_chain.cts_lmuOS   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lmuSS_pt"   	, signals, bkgs, file_chain.lmuSS_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lmuSS_abs_eta"   	, signals, bkgs, abs(file_chain.lmuSS_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "lmuSS_abs_dEta"   , signals, bkgs, abs(file_chain.lmuSS_dEta)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lmuSS_abs_dPhi"   , signals, bkgs, abs(file_chain.lmuSS_dPhi)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lmuSS_dR"   	, signals, bkgs, file_chain.lmuSS_dR   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lmuOS_pt"   	, signals, bkgs, file_chain.lmuOS_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lmuOS_abs_eta"   	, signals, bkgs, abs(file_chain.lmuOS_eta)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "lmuOS_abs_dEta"   , signals, bkgs, abs(file_chain.lmuOS_dEta)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lmuOS_abs_dPhi"   , signals, bkgs, abs(file_chain.lmuOS_dPhi)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "lmuOS_dR"   	, signals, bkgs, file_chain.lmuOS_dR   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "met_pt"   	, signals, bkgs, file_chain.met_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "mt_emet"   	, signals, bkgs, file_chain.mt_emet   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "abs_dPhi_emet"   	, signals, bkgs, abs(file_chain.dPhi_emet)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "mt_lmet"   	, signals, bkgs, file_chain.mt_lmet   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+	FillHistTerm(histos, "abs_dPhi_lmet"   	, signals, bkgs, abs(file_chain.dPhi_lmet)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "mht_pt"   	, signals, bkgs, file_chain.mht_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "mht_mass"   	, signals, bkgs, file_chain.mht_mass   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "mt_emht"   	, signals, bkgs, file_chain.mt_emht   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "abs_dPhi_emht"  	, signals, bkgs, abs(file_chain.dPhi_emht)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "mt_lmht"   	, signals, bkgs, file_chain.mt_lmht   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "abs_dPhi_lmht"  	, signals, bkgs, abs(file_chain.dPhi_lmht)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
 	FillHistTerm(histos, "mlt_pt"   	, signals, bkgs, file_chain.mlt_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "mt_emlt"  	, signals, bkgs, file_chain.mt_emlt  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "abs_dPhi_emlt"   	, signals, bkgs, abs(file_chain.dPhi_emlt)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "mt_lmlt"  	, signals, bkgs, file_chain.mt_lmlt  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
+        FillHistTerm(histos, "abs_dPhi_lmlt"   	, signals, bkgs, abs(file_chain.dPhi_lmlt)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "dijet_mass"   	, signals, bkgs, file_chain.dijet_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "dijet_pt"   	, signals, bkgs, file_chain.dijet_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
         FillHistTerm(histos, "dijet_abs_eta"  	, signals, bkgs, abs(file_chain.dijet_eta)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
@@ -311,6 +239,7 @@ def main():
     out_file.cd()
     scaled_signal = {}
     for term in terms:
+	histos[term]["data"].SetMarkerStyle(20)
         for sample in signals:
             histos[term][sample].SetLineColor(color[sample])
             histos[term][sample].SetLineWidth(2)
@@ -325,18 +254,19 @@ def main():
             stack_all[term].Add(histos[term][sample])
 
 	scaled_signal[term] =  histos[term]["signal"].Clone()
-  	scaled_signal[term].Scale(200)
+  	scaled_signal[term].Scale(100)
 	scaled_signal[term].SetLineColor(kRed)
 	scaled_signal[term].SetLineWidth(2)
 	scaled_signal[term].SetFillStyle(0)
 
 
 	legend[term] = TLegend(0.7,0.7,1,1)
+	legend[term].AddEntry(histos[term]["data"], "data")
 	legend[term].AddEntry(histos[term]["signal"], "signal sum")
 	for sample in bkgs:
             legend[term].AddEntry(histos[term][sample], sample )
-	legend[term].AddEntry(scaled_signal[term], "signal X200")
-	LinearStack( term, stack_all[term], scaled_signal[term], legend[term])
+	legend[term].AddEntry(scaled_signal[term], "signal X100")
+	LinearStack( term, stack_all[term], scaled_signal[term], histos[term]["data"], legend[term], PLOT_DIR+"/"+LABEL+"/plots")
 
 
     out_file.Close()

@@ -16,7 +16,7 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
 if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
-LABEL = 'MC_data_comparison_2017_v4_v7'  ## Sub-folder within PLOT_DIR containing histograms
+LABEL = 'VH_toy_2017_v4_v9'  ## Sub-folder within PLOT_DIR containing histograms
 
 
 def ratioplot( term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do not use TRatioPlot! It is a devil!    -XWZ 19.09.2018
@@ -31,7 +31,7 @@ def ratioplot( term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do
 #    all_stack.SetMinimum(1e-5)
 #    all_stack.SetMaximum(1e6)
     all_stack.SetMinimum(1e-3)
-    all_stack.SetMaximum(1e10)
+    all_stack.SetMaximum(1e8)
     all_stack.Draw("HIST")
     h_data.SetMarkerStyle(20)
     h_data.Draw("SAME")
@@ -45,8 +45,8 @@ def ratioplot( term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do
     lower_pad.SetGridy()
     lower_pad.Draw()
     lower_pad.cd()
-    ratio_graph.SetMinimum(0.6)
-    ratio_graph.SetMaximum(1.7)
+    ratio_graph.SetMinimum(0.5)
+    ratio_graph.SetMaximum(1.5)
 #    ratio_graph.SetMinimum(0.5)
 #    ratio_graph.SetMaximum(2.5)
     
@@ -77,7 +77,7 @@ def count_event(histos, term, samples):
 def main():
 
     file_dir=PLOT_DIR+"/"+LABEL+"/files/sum"
-    out_file = TFile( file_dir + "/none_stack" + ".root", "RECREATE")
+    out_file = TFile( file_dir + "/none_stack_new" + ".root", "RECREATE")
     in_file = TFile.Open( file_dir + "/all_none.root", "READ")
 
     terms = ["dimuon_mass", "dimuon_pt","dimuon_eta", "dimuon_delta_eta", "dimuon_delta_phi", "dimuon_dR",
@@ -197,6 +197,10 @@ def main():
 	for sample in data:
 	    stack_data[term].Add(histos[term][sample])
 	histos[term]["data"]= stack_data[term].GetStack().Last()
+	if term == "dimuon_mass":
+	    for ibin in range(1, histos[term]["data"].GetNbinsX()+1 ):
+		if histos[term]["data"].GetXaxis().GetBinCenter(ibin) > 120 and histos[term]["data"].GetXaxis().GetBinCenter(ibin) < 130:
+		    histos[term]["data"].SetBinContent(ibin, 0)
 
 	ratios[term] = TGraphAsymmErrors()
         ratios[term].Divide(histos[term]["data"], histos[term]["MC"], "pois")
