@@ -326,10 +326,12 @@ def main():
                             if 'ZJets_MG'  in samp: hist.Scale(0.4)
                             # if 'tt_ll_MG'  in samp: hist.Scale(0.4)  ## Experimental SF from 3LooseMu_ttbar_3l_val_mu category
                         if YEAR == '2017':
-                            if 'ZJets_AMC' in samp: hist.Scale(0.5)
-                            if 'ZJets_MG'  in samp: hist.Scale(0.25)  ## Using both MG_1 and MG_2
-                            if 'tt_ll_POW' in samp: hist.Scale(0.7)
-                            if 'tt_ll_MG'  in samp: hist.Scale(0.3)
+                            if 'ZJets_AMC'     in samp: hist.Scale(0.5)
+                            if 'ZJets_MG'      in samp: hist.Scale(0.25)  ## Using both MG_1 and MG_2
+                            if 'ZJets_hiM_AMC' in samp: hist.Scale(0.5)
+                            if 'ZJets_hiM_MG'  in samp: hist.Scale(0.5)
+                            if 'tt_ll_POW'     in samp: hist.Scale(0.7)
+                            if 'tt_ll_MG'      in samp: hist.Scale(0.3)
 
                         if not group in group_hist.keys():
                             group_hist[group] = hist.Clone('hist_'+dist+'_'+group)
