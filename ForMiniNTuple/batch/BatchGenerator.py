@@ -19,8 +19,7 @@ from shutil import rmtree
 from subprocess import PIPE,Popen
 from operator import itemgetter
 
-
-sys.path.insert(0, '%s/python' % os.getcwd())
+#sys.path.insert(0, '%s/python' % os.getcwd())
 
 ## Configure the script user
 if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
@@ -30,16 +29,19 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
-LABEL = 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1'
+#LABEL = 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1'
+LABEL = 'WH_mu_med_ID_loose_iso_v1'
 
 PLOT_DIR = 'plots/lepMVA_scan'
 
 LIB_NAME = 'working_point_3l'
 MACRO = 'MakeMassStack'
 
-mu1_MVAcuts = [ round(1.0*MVA/5 - 1.0 , 2) for MVA in range(10) ]
-mu2_MVAcuts = [ round(1.0*MVA/5 - 1.0 , 2) for MVA in range(10) ]
-lep_MVAcuts = [ -0.4, 0.4, 0.8]
+#mu1_MVAcuts = [ round(1.0*MVA/5 - 1.0 , 2) for MVA in range(10) ]
+#mu2_MVAcuts = [ round(1.0*MVA/5 - 1.0 , 2) for MVA in range(10) ]
+mu1_MVAcuts = [-1.0, -0.4, 0.4, 0.8]
+mu2_MVAcuts = [-1.0, -0.4, 0.4, 0.8]
+lep_MVAcuts = [-1.0, -0.4, 0.4, 0.8]
 POINTS_PER_JOB = 1
 
 
@@ -58,7 +60,7 @@ def WriteSingleScript( script_number, mu1_cuts, mu2_cuts, lep_cuts):
     script.write('\n\n')
     script.write('import sys\n')
     script.write('import os\n')
-    script.write('sys.path.insert(0, "%s/python" % os.getcwd())\n')
+    script.write('sys.path.insert(0, "%s/lib")\n' % os.getcwd())
     script.write('\n')
     script.write('from ROOT import *\n')
     script.write('from %s import %s\n'%(LIB_NAME, MACRO))    
@@ -91,10 +93,9 @@ def WriteSingleSubmission( sub_all, run_all, sub_number):
     submission.write('run_dir = /afs/cern.ch/work/x/xzuo/h2mm_944/src/H2MuAnalyzer/ForMiniNTuple\n')
     submission.write('out_dir = %s\n' %out_dir)
     submission.write('executable      = $(run_dir)/batch/scripts/script_%d.py\n'%sub_number)
-    submission.write('arguments       = $(ClusterID) $(ProcId)\n')
-    submission.write('output          = $(out_dir)/out/sub_%d.$(ClusterId).$(ProcId).out\n'%sub_number)
-    submission.write('error           = $(out_dir)/err/sub_%d.$(ClusterId).$(ProcId).err\n'%sub_number)
-    submission.write('log             = $(out_dir)/log/sub_%d.$(ClusterId).log\n'%sub_number)
+    submission.write('output          = $(out_dir)/out/sub_%d.out\n'%sub_number)
+    submission.write('error           = $(out_dir)/err/sub_%d.err\n'%sub_number)
+    submission.write('log             = $(out_dir)/log/sub_%d.log\n'%sub_number)
     submission.write('queue\n')
 
     submission.close()

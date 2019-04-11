@@ -7,6 +7,7 @@
 ## Basic python includes for manipulating files
 import os
 
+sys.path.insert(0, '%s/lib' % os.getcwd())
 from ROOT import *
 from MNT_Helper import LinearStack, RatioPlot, GetSF
 gROOT.SetBatch(True)

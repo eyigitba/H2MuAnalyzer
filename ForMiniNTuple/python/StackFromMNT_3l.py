@@ -4,7 +4,9 @@
 
 ## Basic python includes for manipulating files
 import os
+import sys
 
+sys.path.insert(0, '%s/lib' % os.getcwd() )
 from ROOT import *
 from MNT_Helper import LinearStack, RatioPlot, FillHistTerm
 #R.gROOT.SetBatch(True)
@@ -19,7 +21,7 @@ if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018
 if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
 #LABEL = 'miniNtuple_WH_2016_v5'  ## Sub-folder within PLOT_DIR containing histograms
-LABEL = 'lepMVA_ttH_3l_mu_final_v1'
+LABEL = 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1'
 
 
 def InitHists(histos, terms, signals, bkgs):
@@ -126,7 +128,7 @@ def main():
 	    ] #end
 
     signals = ["ttH", "ZH", "WH", "VBF", "ggH"]
-    bkgs = ["triboson", "tZq", "tX", "ttbar", "ZZ", "WZ", "DY"]
+    bkgs = ["others", "triboson", "tZq", "tW", "ttZ", "ttbar", "WW", "ZZ", "WZ", "DY"]
     data = ["data"]
 
     color = {}
@@ -142,10 +144,13 @@ def main():
     color["DY"] =  kAzure + 7
     color["WZ"] =       kGreen - 9
     color["ZZ"] =  kCyan - 7
-    color["tX"] = kPink + 6 #
+    color["WW"] = kBlack
     color["ttbar"] = kYellow - 9
+    color["ttZ"] = kBlack
+    color["tW"]  = kBlack
     color["tZq"] = kViolet -9
     color["triboson"] = kOrange + 6 #
+    color["others"] = kPink + 6 #
 
     histos = {}
     stack_all = {}
