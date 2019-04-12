@@ -15,6 +15,7 @@
 ## Basic python includes for manipulating files
 import sys
 import os
+import re
 
 ## Specific functions used below
 from shutil import rmtree
@@ -36,10 +37,10 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 # MACRO = 'macros/MC_data_comparison.C'
 
 #MACRO = 'macros/WH_lep.C'
-# MACRO = 'macros/ttH_3l.C'
+MACRO = 'macros/ttH_3l.C'
 #MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/lepMVA_efficiency.C'
-MACRO = 'macros/lepMVA_variables.C'
+#MACRO = 'macros/lepMVA_variables.C'
 
 LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
 #LOC   = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
@@ -54,8 +55,8 @@ if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
 #LABEL  = 'WH_lep_AWB_2019_01_19_lepMVA_test_v1'
-# LABEL  = 'ttH_3l_AWB_2019_01_19_lepMVA_test_v1'
-LABEL = 'lepMVA_variables_v3_some_test'
+LABEL  = 'ttH_3l_AWB_2019_04_12_v1'
+#LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'miniNtuple_WH_2017_v5'
 #LABEL   = 'WH_cat_2017_v4_v4' 
 
@@ -64,6 +65,8 @@ JOBSIZE =  100  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
 PRT_EVT = 10000  ## Print every Nth event in each job
+
+HIST_TREE = '"HistTree"'  ## Ouptut histograms, trees, or both
 
 DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
@@ -75,26 +78,27 @@ SAMP_LIST = []  ## Leave [] empty to process multiple samples
 #            'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # diboson samples, missing 'WZ_2l' and 'ZZ_2l_2q'  --XWZ 27.09.2018
 #            'WWW', 'WWZ', 'WZZ', 'ZZZ',     # triboson, all the samples at hand included   - XWZ 27.09.2018
 #            'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## for keeping track of what is used
-
-# SAMP_LIST = ['ZJets_AMC_1j_A']  ## Name of individual samples to process ([] to process multiple samples)
-# SAMP_LIST = ['H2Mu_WH_pos_125']  ## Name of individual samples to process ([] to process multiple samples)
+SAMP_LIST = ['WWW', 'ZZZ']  ## Name of individual samples to process ([] to process multiple samples)
 
 VERBOSE = False ## Verbose printout
 
 
 ## Function to write the launcher script for a single job, and add that job to the main submit_all.sh script
-def WriteSingleJob(subs_file, runs_file, sub_files, samp_name, in_dir_name, file_list, samp_wgt):
+def WriteSingleJob(subs_file, runs_file, hadd_files, sub_files, con_files, samp_name, in_dir_name, file_list, samp_wgt):
 
     out_dir = OUT_DIR+'/'+LABEL
 
-    job_name      = 'sub_%d_%s' % (len(sub_files), samp_name)
+    job_num       = len(sub_files)
+    job_name      = 'sub_%d_%s' % (job_num, samp_name)
     launcher_name = 'batch/launchers/%s.sh' % job_name
 
     ## In submit_all.sh (subs_file), write a line that will submit a job (bsub) to the queue of lxplus machines
     ## that run jobs for up to 1 hour (-q 1nh), specifying the log and error output file location (-o, -e) and
     ## the script that will be run by this job (${run_dir}/batch/launchers/%s.sh)
-    subs_file.write( '\nbsub -q 8nh -o ${out_dir}/log/%s.log -e ${out_dir}/err/%s.err ${run_dir}/batch/launchers/%s.sh' % (job_name, job_name, job_name) )
+    subs_file.write( '\ncondor_submit ${run_dir}/batch/launchers/con_%d_%s.sub\n' % (job_num, samp_name) )
     runs_file.write( '\n${run_dir}/batch/launchers/%s.sh' % job_name )
+    for cat in hadd_files.keys():
+        hadd_files[cat].write( ' histos_%s_%s_%d.root' % (samp_name, cat, job_num) )
 
     sub_files.append( open(launcher_name, 'w') )
 
@@ -104,9 +108,10 @@ def WriteSingleJob(subs_file, runs_file, sub_files, samp_name, in_dir_name, file
     for in_file in file_list:  ## in_files
         run_macro += (in_file+'", "')
     run_macro  = run_macro[:-4]  ## Remove last ", "
-    run_macro += '"}, "%d", ' % (len(sub_files)-1)  ## out_file_str
-    run_macro += "%d, %d, %f)'" % (MAX_EVT, PRT_EVT, samp_wgt)  ## max_evt, prt_evt, sample_wgt
+    run_macro += '"}, "%d", %d, %d ' % (job_num, MAX_EVT, PRT_EVT)  ## out_file_str, max_evt, prt_evt
+    run_macro += "%f, %s)'" % (samp_wgt, HIST_TREE)  ## sample_wgt, hist_tree
 
+    sub_files[-1].write('#!/bin/sh\n')
     sub_files[-1].write('\nrun_dir="%s"' % os.getcwd())
     sub_files[-1].write('\ncd ${run_dir}')
     sub_files[-1].write('\neval `scramv1 runtime -sh`')
@@ -115,8 +120,67 @@ def WriteSingleJob(subs_file, runs_file, sub_files, samp_name, in_dir_name, file
     print 'Wrote file %s' % sub_files[-1].name
     os.chmod(sub_files[-1].name, 0o777)
 
+    ## Write a condor file to submit this particular job
+    con_files.append( open('batch/launchers/con_%d_%s.sub' % (job_num, samp_name) 'w') )
+
+    con_files[-1].write( 'run_dir    = %s\n' % os.getcwd() )
+    con_files[-1].write( 'out_dir    = %s\n' % out_dir )
+    con_files[-1].write( 'executable = %s\n' % sub_files[-1].name )
+    con_files[-1].write( 'output     = $(out_dir)/out/sub_%d_%s.out\n' % (job_num, samp_name) )
+    con_files[-1].write( 'error      = $(out_dir)/err/sub_%d_%s.err\n' % (job_num, samp_name) )
+    con_files[-1].write( 'log        = $(out_dir)/log/sub_%d_%s.log\n' % (job_num, samp_name) )
+    con_files[-1].write( 'queue\n' )
+    con_files[-1].close()
+    print 'Wrote file %s' % con_files[-1].name
+    os.chmod(con_files[-1].name, 0o777)
+
+
 ## End function: WriteSingleJob
+
+
+## Function to open the macro file and get the list of categories which will be produced
+def GetCategoriesFromMacro(macro):
+
+    cuts = ['SEL', 'OPT', 'CAT']  ## Categories composed of "SEL", "OPT" and "CAT" cuts
+    cut_strs = {}  ## String containing the exact expression of the array of cuts in the macro
+    cut_cats = {}  ## String broken up into corresponding category elements
+    for cut in cuts:
+        cut_strs[cut] = ''
+        cut_cats[cut] = []
+
+        macro_file = open(macro, 'r') ## Histogram-making macro
+
+        for line in macro_file:
+            if line.startswith('//'):
+                continue
+            ## Select the first line with the set of cuts
+            if 'std::vector<std::string> '+cut+'_CUTS' in line:
+                cut_strs[cut] += line
+                continue
+            if len(cut_strs[cut]) > 0:
+                ## If we've reached the end of the set of cuts, quit
+                if '}' in cut_strs[cut]:
+                    break
+                ## Add all lines containing the set of cuts
+                cut_strs[cut] += line
+
+        ## Find all category names between "" in the string
+        cut_cats[cut] = re.findall(re.escape('"')+"(.*?)"+re.escape('"'), cut_strs[cut])
+
+        macro_file.close()
+
+    ## Create list of all unique categories, SEL_OPT_CAT
+    cats = []
+    for sel in cut_cats['SEL']:
+        for opt in cut_cats['OPT']:
+            for cat in cut_cats['CAT']:
+                cats.append('%s_%s_%s' % (sel, opt, cat))
+
+    return cats
+
                       
+## End function: GetCategoriesFromMacro
+
 
 ## Main function executed by ./batch/GenerateBatchScript.py
 def main():
@@ -125,10 +189,11 @@ def main():
 
     ## Create output directories for plots and submission scripts
     print 'Preparing output directories'
-    if os.path.exists('batch/launchers'):
-        delete_dir = raw_input('\n*** batch/launchers/ directory already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n')
+    if os.path.exists('batch/launchers') or os.path.exists('batch/hadders'):
+        delete_dir = raw_input('\n*** batch/launchers/ and/or batch/hadders/ directories already exist!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n')
         if delete_dir == 'Y':
-            rmtree('batch/launchers')
+            if os.path.exists('batch/launchers'): rmtree('batch/launchers')
+            if os.path.exists('batch/hadders'):   rmtree('batch/hadders')
         else:
             print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
     out_dir = OUT_DIR+'/'+LABEL
@@ -139,27 +204,44 @@ def main():
             print '\nDeleted %s\n' % out_dir
         else:
             print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
-    os.makedirs(out_dir)
-    os.makedirs(out_dir+'/files')
-    os.makedirs(out_dir+'/log')
+    os.makedirs(out_dir+'/files/HADD')
+    os.makedirs(out_dir+'/out')
     os.makedirs(out_dir+'/err')
+    os.makedirs(out_dir+'/log')
     os.makedirs('batch/launchers')
+    os.makedirs('batch/hadders')
 
     subs_file = open('submit_all.sh', 'w') ## Master submission script
-    runs_file = open('run_all.sh', 'w')    ## Master script to run all jobs locally
-    # hadd_file = open('hadd_all.sh', 'w') ## Script to hadd output files
+    runs_file = open('run_all.sh',    'w') ## Master script to run all jobs locally
+    hadd_file = open('hadd_all.sh',   'w') ## Script to hadd output files
 
     ## Set directories to run the jobs from, and to output files to
     subs_file.write('\npwd_cmd="/bin/pwd"')
     runs_file.write('\npwd_cmd="/bin/pwd"')
+    hadd_file.write('\npwd_cmd="/bin/pwd"')
     subs_file.write('\nrun_dir=`${pwd_cmd}`')
     runs_file.write('\nrun_dir=`${pwd_cmd}`')
+    hadd_file.write('\nrun_dir=`${pwd_cmd}`')
     subs_file.write('\nout_dir="%s"\n' % out_dir)
     runs_file.write('\nout_dir="%s"\n' % out_dir)
 
-    # hadd_file.write('\nout_dir="%s"\n' % out_dir)
+    cats = GetCategoriesFromMacro(MACRO)
+    print cats
+
+    hadd_files = {}
+    for cat in cats:
+        hadd_file.write('\n${run_dir}/batch/hadders/hadd_%s.sh' % cat )
+        hadd_files[cat] = open(      'batch/hadders/hadd_%s.sh' % cat, 'w')
+        hadd_files[cat].write('\npwd_cmd="/bin/pwd"')
+        hadd_files[cat].write('\nrun_dir=`${pwd_cmd}`')
+        hadd_files[cat].write('\nout_dir="%s/files"\n' % out_dir)
+        hadd_files[cat].write('\necho "\nNavigating to ${out_dir}"')
+        hadd_files[cat].write('\ncd ${out_dir}\n\n')
+        hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
+        hadd_files[cat].write( ' HADD/histos_%s.root' % cat)
     
     sub_files = [] ## Separate submission script for each job
+    con_files = [] ## Separate condor script for each job
 
     ## Get list of samples from SampleDatabase.py
     samples = GetSamples(LOC, YEAR)
@@ -264,14 +346,14 @@ def main():
             if (len(sub_files) >= NJOBS - 1 and NJOBS > 0):
                 break
             if (job_size > JOBSIZE and JOBSIZE > 0):
-                WriteSingleJob(subs_file, runs_file, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
+                WriteSingleJob(subs_file, runs_file, sub_files, con_files, samp.name, in_dir_name, job_files, samp_wgt)
                 if VERBOSE: print 'Writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
                 job_size  = 0.
                 job_files = []
             job_files.append( in_files[iFile][0] )
             job_size += in_files[iFile][1]
         ## End loop: for iFile in range(len(in_files))
-        WriteSingleJob(subs_file, runs_file, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
+        WriteSingleJob(subs_file, runs_file, hadd_files, sub_files, con_files, samp.name, in_dir_name, job_files, samp_wgt)
         if VERBOSE: print 'Writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
 
         print 'We have now written a total of %d launcher files' % len(sub_files)
@@ -297,11 +379,26 @@ def main():
     ## Write the output files
     subs_file.close()
     runs_file.close()
-    print '\n\nWrote %s and %s :\n' % (subs_file.name, runs_file.name)
+    hadd_file.close()
+    for cat in hadd_files.keys():
+        hadd_files[cat].write('\n\necho "Navigating back to ${run_dir}"')
+        hadd_files[cat].write('\ncd ${run_dir}')
+        hadd_files[cat].close()
+    print '\n\nWrote %s, %s, and %s :\n' % (subs_file.name, runs_file.name, hadd_file.name)
+
     os.chmod(subs_file.name, 0o777) ## Render submit_all.sh executable
     os.chmod(runs_file.name, 0o777) ## Render runs_all.sh executable
+    os.chmod(hadd_file.name, 0o777) ## Render hadd_all.sh executable
+
     for sub_file in sub_files:
         print sub_file.name
+    print ''
+    for con_file in con_files:
+        print con_file.name
+    print ''
+    for cat in hadd_files.keys():
+        os.chmod(hadd_files[cat].name, 0o777)
+        print hadd_files[cat].name
 
         
 ## End function: main()
