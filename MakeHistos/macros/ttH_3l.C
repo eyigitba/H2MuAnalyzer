@@ -42,30 +42,34 @@ const TString SAMPLE   = "H2Mu_ttH_125";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 // const TString SAMPLE   = "SingleMu";
 
-const std::string YEAR = "2017";
-const std::string SLIM = "Slim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
-const TString OUT_DIR  = "plots";
+const std::string YEAR  = "2017";
+const std::string SLIM  = "Slim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
+const TString OUT_DIR   = "plots";
+const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu"}; // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> CAT_CUTS = { "NONE", "ge2j_btag_mass12", "noZ_ge3j_btag_mass12", "tightLepMVA_ge2j_btag_mass12",
-					    "looseLepMVA_noZ_ge3j_btag_mass12",
-					    "tightLepMVA_noZ_ge3j_btag_mass12",
-					    "tightLepCut_noZ_ge3j_btag_mass12" }; // Event selection categories, also applied in parallel
+// const std::vector<std::string> CAT_CUTS = { "NONE", "ge2j_btag_mass12", "noZ_ge3j_btag_mass12", "tightLepMVA_ge2j_btag_mass12",
+// 					    "looseLepMVA_noZ_ge3j_btag_mass12",
+// 					    "tightLepMVA_noZ_ge3j_btag_mass12",
+// 					    "tightLepCut_noZ_ge3j_btag_mass12" }; // Event selection categories, also applied in parallel
+const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ_ge3j_btag_mass12" }; // Event selection categories, also applied in parallel
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
 void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	     std::vector<TString> in_files = {}, TString out_file_str = "",
-	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0 ) {
+	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0,
+	     TString hist_tree = "" ) {
   
   // Set variables to hard-coded values if they are not initialized
-  if (sample.Length()  == 0) sample  	 = SAMPLE;
-  if (in_dir.Length()  == 0) in_dir  	 = IN_DIR;
-  if (out_dir.Length() == 0) out_dir 	 = OUT_DIR;
-  if (max_evt          == 0) max_evt 	 = MAX_EVT;
-  if (prt_evt          == 0) prt_evt 	 = PRT_EVT;
-  if (samp_weight      == 0) samp_weight = SAMP_WGT;
+  if (sample.Length()    == 0) sample  	   = SAMPLE;
+  if (in_dir.Length()    == 0) in_dir  	   = IN_DIR;
+  if (out_dir.Length()   == 0) out_dir 	   = OUT_DIR;
+  if (max_evt            == 0) max_evt 	   = MAX_EVT;
+  if (prt_evt            == 0) prt_evt 	   = PRT_EVT;
+  if (samp_weight        == 0) samp_weight = SAMP_WGT;
+  if (hist_tree.Length() == 0) hist_tree   = HIST_TREE;
 
 
   // Initialize empty file to access each file in the list
@@ -551,8 +555,10 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  ///////////////////////////////////////////////////
 
 	  // Tuple containing maps and common options for "BookAndFill"
-	  std::tuple< const TString, std::map<TString, float> &, TTree *, std::map<TString, TH1*> &, const TString > tupF{"HistTree", b_map_flt, out_tree, h_map_1D, h_pre};
-	  std::tuple< const TString, std::map<TString, int> &,   TTree *, std::map<TString, TH1*> &, const TString > tupI{"HistTree", b_map_int, out_tree, h_map_1D, h_pre};
+	  std::tuple< const TString, std::map<TString, float> &, TTree *, std::map<TString, TH1*> &, const TString >
+	    tupF{ hist_tree, b_map_flt, out_tree, h_map_1D, h_pre };
+	  std::tuple< const TString, std::map<TString, int> &,   TTree *, std::map<TString, TH1*> &, const TString >
+	    tupI{ hist_tree, b_map_int, out_tree, h_map_1D, h_pre };
 
 	  // Store sample and event information
 	  BookAndFill(b_map_str, out_tree, h_pre, "sample", sample );
@@ -713,12 +719,19 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
     } // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
   } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
 
-  
-  std::cout << "\n******* Writing output tuple file " << out_tuple_name.Data() << " *******" << std::endl;
-  out_tuple->cd();
-  out_tree->Write();
-  out_tuple->Write();
-  out_tuple->Close();
+
+  // Only write output tree file if there are some events
+  if (out_tree->GetEntries() > 0) {
+    std::cout << "\n******* Writing output tuple file " << out_tuple_name.Data()
+	      << " with " << out_tree->GetEntries() << " events *******" << std::endl;
+    out_tuple->cd();
+    out_tree->Write();
+    out_tuple->Write();
+    out_tuple->Close();
+  } else {
+    std::cout << "\n******* NOT writing output tuple file " << out_tuple_name.Data()
+	      << " - " << out_tree->GetEntries() << " events! *******" << std::endl;
+  }
 
 
   std::cout << "\nExiting ttH_3l()\n";
