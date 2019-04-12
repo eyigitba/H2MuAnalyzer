@@ -197,17 +197,17 @@ def main():
         else:
             print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
     out_dir = OUT_DIR+'/'+LABEL
-    # if os.path.exists(out_dir):
-    #     delete_dir = raw_input('\n*** Directory %s already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n' % out_dir)
-    #     if delete_dir == 'Y':
-    #         rmtree(out_dir)
-    #         print '\nDeleted %s\n' % out_dir
-    #     else:
-    #         print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
-    # os.makedirs(out_dir+'/files/HADD')
-    # os.makedirs(out_dir+'/out')
-    # os.makedirs(out_dir+'/err')
-    # os.makedirs(out_dir+'/log')
+    if os.path.exists(out_dir):
+        delete_dir = raw_input('\n*** Directory %s already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n' % out_dir)
+        if delete_dir == 'Y':
+            rmtree(out_dir)
+            print '\nDeleted %s\n' % out_dir
+        else:
+            print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
+    os.makedirs(out_dir+'/files/HADD')
+    os.makedirs(out_dir+'/out')
+    os.makedirs(out_dir+'/err')
+    os.makedirs(out_dir+'/log')
     os.makedirs('batch/launchers')
     os.makedirs('batch/hadders')
 
