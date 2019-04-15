@@ -49,11 +49,11 @@ const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu"}; // Multiple selection cuts, applied independently in parallel
-// const std::vector<std::string> CAT_CUTS = { "NONE", "ge2j_btag_mass12", "noZ_ge3j_btag_mass12", "tightLepMVA_ge2j_btag_mass12",
-// 					    "looseLepMVA_noZ_ge3j_btag_mass12",
-// 					    "tightLepMVA_noZ_ge3j_btag_mass12",
-// 					    "tightLepCut_noZ_ge3j_btag_mass12" }; // Event selection categories, also applied in parallel
-const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ_ge3j_btag_mass12" }; // Event selection categories, also applied in parallel
+const std::vector<std::string> CAT_CUTS = { "NONE", "ge2j_btag_mass12", "noZ_ge3j_btag_mass12", "tightLepMVA_ge2j_btag_mass12",
+					    "looseLepMVA_noZ_ge3j_btag_mass12",
+					    "tightLepMVA_noZ_ge3j_btag_mass12",
+					    "tightLepCut_noZ_ge3j_btag_mass12" }; // Event selection categories, also applied in parallel
+// const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ_ge3j_btag_mass12" }; // Event selection categories, also applied in parallel
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -226,7 +226,8 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
     if (not pass_sel_cuts) continue;
 
     // Get event weight for MC, defined in src/EventWeight.cc
-    float event_wgt = ( sample.Contains("SingleMu") ? 1.0 : EventWeight(br, evt_wgt, verbose) );
+    bool isData = sample.Contains("SingleMu");
+    float event_wgt = ( isData ? 1.0 : EventWeight(br, evt_wgt, verbose) );
 
     // Initialize the selected Higgs candidate dimuon pair
     MuPairInfo        H_pair;     // When filling histograms, have only one candidate pair at a time
@@ -351,7 +352,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  // Loop over selected dimuon pairs
 	  for (const auto & muPair : SelectedMuPairs(obj_sel, br)) {
 	    // Check if the pair matches a GEN muon pair from H
-	    if (not sample.Contains("SingleMu")) {
+	    if (not isData) {
 	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, "H") ) {
 		H_true     = muPair;
 		H_true_vec = FourVec(muPair, PTC);
@@ -565,12 +566,10 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(b_map_int, out_tree, h_pre, "event",  br.event->event );
 
 	  // Store event weights
-	  // if (not sample.Contains("SingleMu")) {
-	  BookAndFill(tupF, "PU_wgt",    40, -2, 2, br.PU_wgt  );
-	  BookAndFill(tupF, "muon_wgt",  40, -2, 2, event_wgt / (br.PU_wgt * br.GEN_wgt) );
-	  BookAndFill(tupF, "GEN_wgt",   40, -2, 2, br.GEN_wgt );
-	  BookAndFill(tupF, "event_wgt", 40, -2, 2, event_wgt  );
-	  // }
+	  BookAndFill(tupF, "PU_wgt",    40, -2, 2, isData ? 1.0 : br.PU_wgt  );
+	  BookAndFill(tupF, "muon_wgt",  40, -2, 2, isData ? 1.0 : MuonWeight(br, evt_wgt, verbose) );
+	  BookAndFill(tupF, "GEN_wgt",   40, -2, 2, isData ? 1.0 : br.GEN_wgt );
+	  BookAndFill(tupF, "event_wgt", 40, -2, 2, isData ? 1.0 : event_wgt  );
 
 
 	  // Plot kinematic histograms
@@ -629,10 +628,9 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "SS_lep1_segCompat", 50, 0, 1, SS_lep1_seg,  event_wgt );
 	  BookAndFill(tupF, "SS_lep2_segCompat", 50, 0, 1, SS_lep2_seg,  event_wgt );
 
-	  // if (not sample.Contains("SingleMu")) {
-	  BookAndFill(tupF, "H_mass_true", 55, 105, 160, MuPairMass(H_true, PTC), event_wgt, false );  // Don't include overflow
-	  BookAndFill(tupF, "Z_mass_true", 40,   1, 201, MuPairMass(Z_true, PTC), event_wgt, false );  // Don't include overflow
-	  // }
+	  BookAndFill(tupF, "H_mass_true", 55, 105, 160, isData ? -99 : MuPairMass(H_true, PTC), event_wgt, false );  // Don't include overflow
+	  BookAndFill(tupF, "Z_mass_true", 40,   1, 201, isData ? -99 : MuPairMass(Z_true, PTC), event_wgt, false );  // Don't include overflow
+
 	  BookAndFill(tupF, "H_mass_zoom",        55, 105, 160, H_pair_vec.M(),       event_wgt );
 	  BookAndFill(tupF, "H_mass_on",          11, 105, 160, H_pair_vec.M(),       event_wgt );
 	  BookAndFill(tupF, "H_mass_off",         40,   0, 400, H_pair_vec.M(),       event_wgt );
