@@ -33,6 +33,7 @@ struct EventWeightConfig {  // Default values taken from 2016
 void ConfigureEventWeight( EventWeightConfig & cfg, const std::string _year );
 
 // TODO: implement systematic up/down weights for PU, muon_ID, muon_Iso, and trig_IsoMu - AWB 27.09.2018
+float MuonWeight (const NTupleBranches & br, const EventWeightConfig & cfg, const bool verbose = false);
 float EventWeight(const NTupleBranches & br, const EventWeightConfig & cfg, const bool verbose = false);
 
 
