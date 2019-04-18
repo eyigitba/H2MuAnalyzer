@@ -135,9 +135,27 @@ class WorkspaceAndDatacardMakerNew:
 
         ## After fitting, we nail the parameters down so that 
         ##   Higgs Combine knows what the SM signal shape is
+        for i in range(len(sig_fit.coef_list)):
+            sig_fit.coef_list[i].setConstant(R.kTRUE)
         for j in range(len(sig_fit.params[0])):
             for i in range(len(sig_fit.params)):
                 sig_fit.params[i][j].setConstant(R.kTRUE)
+        ## Also nail down background shape params
+        # for i in range(len(bkg_fit.coef_list)):
+        #     bkg_fit.coef_list[i].setConstant(R.kTRUE)
+        for j in range(len(bkg_fit.params[0])):
+            for i in range(len(bkg_fit.params)):
+                # bkg_fit.params[i][j].setConstant(R.kTRUE)
+                ## Only set a1 and a3 of BWZRedux constant
+                if ( bkg_fit.params[i][j].GetName() == 'a1' or
+                     bkg_fit.params[i][j].GetName() == 'a3' ):
+                    bkg_fit.params[i][j].setConstant(R.kTRUE)
+        # for i in range(len(data_fit.coef_list)):
+        #     data_fit.coef_list[i].setConstant(R.kTRUE)
+        # for j in range(len(data_fit.params[0])):
+        #     for i in range(len(data_fit.params)):
+        #         data_fit.params[i][j].setConstant(R.kTRUE)
+
 
         ## Create a new workspace for this category
         WS_data = R.RooWorkspace(self.cat+'_data')  ## Using data for background
