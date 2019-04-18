@@ -35,5 +35,6 @@ float Cos_CS_Theta( TLorentzVector vec1, TLorentzVector vec2 );
 float Cos_CS_Phi( TLorentzVector vec1, TLorentzVector vec2 );
 float Sin_CS_Phi( TLorentzVector vec1, TLorentzVector vec2 );
 
+JetPairInfo MakeJetPair( TLorentzVector jet1_vec, TLorentzVector jet2_vec );
 
 #endif  // #ifndef OBJECT_HELPER

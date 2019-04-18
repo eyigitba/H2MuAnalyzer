@@ -306,4 +306,26 @@ float Sin_CS_Phi( TLorentzVector vec1, TLorentzVector vec2 ) {
   return sin_cs_phi;
 }
 
+// Return a new JetPair object, modeled on Ntupliser/DiMuons/src/JetPairHelper.cc
+JetPairInfo MakeJetPair( TLorentzVector jet1_vec, TLorentzVector jet2_vec ) {
 
+  JetPairInfo    jetPair;
+  TLorentzVector pair_vec;
+
+  jetPair.iJet1 = -99; // Unknown, doesn't matter
+  jetPair.iJet2 = -99; // Unknown, doesn't matter
+
+  pair_vec = jet1_vec + jet2_vec;
+
+  jetPair.mass    = pair_vec.M();
+  jetPair.pt      = pair_vec.Pt();
+  jetPair.eta     = pair_vec.PseudoRapidity();
+  jetPair.phi     = pair_vec.Phi();
+
+  jetPair.dR   = jet1_vec.DeltaR(jet2_vec);
+  jetPair.dEta = jet1_vec.PseudoRapidity() - jet2_vec.PseudoRapidity();
+  jetPair.dPhi = jet1_vec.DeltaPhi(jet2_vec);
+
+  return jetPair;
+
+}
