@@ -18,6 +18,7 @@
 #include "H2MuAnalyzer/MakeHistos/interface/EventSelection.h"     // Common event selections
 #include "H2MuAnalyzer/MakeHistos/interface/EventWeight.h"        // Common event weights
 #include "H2MuAnalyzer/MakeHistos/interface/CategoryCuts.h"       // Common category definitions
+#include "H2MuAnalyzer/MakeHistos/interface/MiniNTupleHelper.h"   // "PlantTree" and "BookBranch" functions
 
 // #include "H2MuAnalyzer/MakeHistos/interface/SampleDatabase2016.h" // Input data and MC samples
 
@@ -41,9 +42,10 @@ const TString SAMPLE   = "H2Mu_WH_pos_125";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 // const TString SAMPLE   = "SingleMu";
 
-const std::string YEAR = "2017";
-const std::string SLIM = "Slim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
-const TString OUT_DIR  = "plots";
+const std::string YEAR  = "2017";
+const std::string SLIM  = "Slim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
+const TString OUT_DIR   = "plots";
+const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu"}; // Multiple selection cuts, applied independently in parallel
@@ -56,15 +58,17 @@ const std::vector<std::string> CAT_CUTS = { "NONE", "noZ_mass12", "mt150_noBtag_
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
 void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	     std::vector<TString> in_files = {}, TString out_file_str = "",
-	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
+	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0,
+	     TString hist_tree = "" ) {
   
   // Set variables to hard-coded values if they are not initialized
-  if (sample.Length()  == 0) sample  	 = SAMPLE;
-  if (in_dir.Length()  == 0) in_dir  	 = IN_DIR;
-  if (out_dir.Length() == 0) out_dir 	 = OUT_DIR;
-  if (max_evt          == 0) max_evt 	 = MAX_EVT;
-  if (prt_evt          == 0) prt_evt 	 = PRT_EVT;
-  if (samp_weight      == 0) samp_weight = SAMP_WGT;
+  if (sample.Length()    == 0) sample  	   = SAMPLE;
+  if (in_dir.Length()    == 0) in_dir  	   = IN_DIR;
+  if (out_dir.Length()   == 0) out_dir 	   = OUT_DIR;
+  if (max_evt            == 0) max_evt 	   = MAX_EVT;
+  if (prt_evt            == 0) prt_evt 	   = PRT_EVT;
+  if (samp_weight        == 0) samp_weight = SAMP_WGT;
+  if (hist_tree.Length() == 0) hist_tree   = HIST_TREE;
 
 
   // Initialize empty file to access each file in the list
@@ -123,12 +127,9 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   //   }
   // }
 
-  // Initialize set of pointers to all branches in tree
-  NTupleBranches br;
 
-  // Initialize empty map of histogram names to histograms
-  std::map<TString, TH1*> h_map_1D;
-  std::map<TString, TH2*> h_map_2D;
+  // Initialize set of pointers to all branches in input tree
+  NTupleBranches br;
 
   // Add trees from the input files to the TChain
   TChain * in_chain = new TChain("dimuons/tree");
@@ -144,6 +145,30 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   }
   // float lumi_SF = samp->getLumiScaleFactor(LUMI);
   // std::cout << "For LUMI = " << LUMI << ", lumi_SF = " << lumi_SF << std::endl;
+
+
+  // Concatenate basic selection cuts into string for output file name
+  std::string selStr = "";
+  for (int i = 0; i < SEL_CUTS.size(); i++) selStr = selStr+SEL_CUTS.at(i)+"_";
+  selStr.pop_back();
+
+  // Create output file for ntuple
+  TString out_tuple_name;
+  if (out_file_str.Length() > 0)   out_tuple_name.Form( "%s/tuple_%s_%s_%s.root",    out_dir.Data(), sample.Data(), selStr.c_str(), out_file_str.Data() );
+  else                             out_tuple_name.Form( "%s/tuple_%s_%s_%d_%d.root", out_dir.Data(), sample.Data(), selStr.c_str(), MIN_FILE, MAX_FILE );
+  TFile * out_tuple = TFile::Open( out_tuple_name, "RECREATE" );
+  TTree * out_tree  = PlantTree("tree", "tree");
+
+  // Initialize empty map of histogram names to output histograms
+  std::map<TString, TH1*> h_map_1D;
+  std::map<TString, TH2*> h_map_2D;
+
+  // Initialize empty map of branch names to ouput branches
+  std::map<TString, float>       b_map_flt;
+  std::map<TString, int>         b_map_int;
+  std::map<TString, std::string> b_map_str;
+
+  gROOT->cd(); // Navigate to "local" memory, so all histograms are not saved in out_tuple
 
 
   // Configuration for object selection, event selection, and object weighting
@@ -197,39 +222,56 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
     for (int i = 0; i < SEL_CUTS.size(); i++) {
       if (not PassSelection(br, evt_sel, obj_sel, SEL_CUTS.at(i), verbose)) pass_sel_cuts = false;
     }
+    if (not pass_sel_cuts) continue;
 
-    if (pass_sel_cuts) {
-      
-      // Get event weight for MC, defined in src/EventWeight.cc
-      float event_wgt = ( sample.Contains("SingleMu") ? 1.0 : EventWeight(br, evt_wgt, verbose) );
+    // Get event weight for MC, defined in src/EventWeight.cc
+    bool isData = sample.Contains("SingleMu");
+    float event_wgt = ( isData ? 1.0 : EventWeight(br, evt_wgt, verbose) );
 
-      // Initialize the selected Higgs candidate dimuon pair
-      std::vector<int> iCandPairs;  // Indices of Higgs candidate pairs (can have up to 2)
-      MuPairInfo        H_pair;     // When filling histograms, have only one candidate pair at a time
-      TLorentzVector    H_pair_vec;
+    // Initialize the selected Higgs candidate dimuon pair
+    MuPairInfo        H_pair;     // When filling histograms, have only one candidate pair at a time
+    TLorentzVector    H_pair_vec;
       
-      bool MU = false;  // Says whether event has 3 muons or 1 electron + 2 muons
+    bool MU = false;  // Says whether event has 3 muons or 1 electron + 2 muons
+
+    ///////////////////////////////////////////////////////////////
+    ///  Loop through possible Higgs candidate pairs (up to 2)  ///
+    ///////////////////////////////////////////////////////////////
+
+    for (int iPair = 0; iPair < 2; iPair++) {
+
+      // Each candidate pair defines a unique "event" - i.e. one collision "event" can sometimes enter the tree / histograms twice
+      // For each "event", we set all the branch values to their default value (-99)
+      for (std::map<TString, float>::iterator       it = b_map_flt.begin(); it != b_map_flt.end(); ++it) b_map_flt[it->first] = -99.0;
+      for (std::map<TString, int>::iterator         it = b_map_int.begin(); it != b_map_int.end(); ++it) b_map_int[it->first] = -99;
+      for (std::map<TString, std::string>::iterator it = b_map_str.begin(); it != b_map_str.end(); ++it) b_map_str[it->first] = "-99";
+
 
       /////////////////////////////////////////////////////////////////////////////////////////
       ///  Loop through alternate, optional selection cuts defined in src/SelectionCuts.cc  ///
       /////////////////////////////////////////////////////////////////////////////////////////
 
+      bool pass_opt_cuts = false; // Check if event passes at least one optional cut
+      bool pass_cat_cuts = false; // Check if event passes at least one category cut
+
       for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++) {
 	std::string OPT_CUT = OPT_CUTS.at(iOpt);
+	assert(OPT_CUT == "3mu" || OPT_CUT == "e2mu");
+
+	// Assume event fails the optional cut
+	BookAndFill(b_map_int, out_tree, sample, "OPT_"+OPT_CUT, 0 );
+
 	if (OPT_CUT == "3mu") {
 	  // Require exactly 0 selected electrons
 	  if ( SelectedEles(obj_sel, br).size() != 0 ) continue;
 	  // Require exactly 3 selected muons whose charge sums to +/-1
 	  if ( SelectedMuPairs(obj_sel, br).size() != 2 ) continue;
-	  // Require at least one Higgs candidate dimuon pair to fall inside mass window
-	  for (int iPair = 0; iPair < 2; iPair++) {
-	    H_pair     = SelectedMuPairs(obj_sel, br).at(iPair);
-	    H_pair_vec = FourVec(H_pair, PTC);
-	    if ( H_pair_vec.M() < 105 ||
-		 H_pair_vec.M() > 160 ) continue;
-	    iCandPairs.push_back(iPair);
-	    MU = true;
-	  }
+	  // Require the Higgs candidate dimuon pair to fall inside the mass window
+	  H_pair     = SelectedMuPairs(obj_sel, br).at(iPair);
+	  H_pair_vec = FourVec(H_pair, PTC);
+	  if ( H_pair_vec.M() < 105 ||
+	       H_pair_vec.M() > 160 ) continue;
+	  MU = true;
 	}
 	else if (OPT_CUT == "e2mu") {
 	  // Require exactly 1 selected electron
@@ -241,28 +283,22 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  H_pair_vec = FourVec(H_pair, PTC);
 	  if ( H_pair_vec.M() < 105 ||
 	       H_pair_vec.M() > 160 ) continue;
-	  iCandPairs.push_back(0);
 	  MU = false;
 	}
-	else assert(OPT_CUT == "3mu" || OPT_CUT == "e2mu");
-	// else if (not PassSelection(br, evt_sel, obj_sel, OPT_CUT, verbose)) continue;
+	pass_opt_cuts = true;
+
+	// Now we know the event passes the optional cut
+	b_map_int["OPT_"+OPT_CUT] = 1;
 
 	
 	//////////////////////////////////////////////////////////////////
 	/// Loop through category cuts defined in src/CategoryCuts.cc  ///
 	//////////////////////////////////////////////////////////////////
 	
-	for (int iCat = 0; iCat < CAT_CUTS.size()*iCandPairs.size(); iCat++) {
+	for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++) {
 
-	  // In case of two valid Higgs candidate pairs, choose based on even/odd iCat
-	  if (iCandPairs.size() == 2 ) {
-	    int iCandPair = iCat % 2;
-	    H_pair     = SelectedMuPairs(obj_sel, br).at(iCandPair);
-	    H_pair_vec = FourVec(H_pair, PTC);
-	  } else {  // Otherwise pick the single pair that fell in the mass [105, 160] range
-	    H_pair     = SelectedMuPairs(obj_sel, br).at(iCandPairs.at(0));
-	    H_pair_vec = FourVec(H_pair, PTC);
-	  }
+	  // Assume event fails the category cut
+	  BookAndFill(b_map_int, out_tree, sample+"_"+OPT_CUT, "CAT_"+CAT_CUTS.at(iCat), 0 );
 
 	  //////////////////////////////////////////////////////
 	  ///  Compute variables relevent for category cuts  ///
@@ -315,7 +351,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  // Loop over selected dimuon pairs
 	  for (const auto & muPair : SelectedMuPairs(obj_sel, br)) {
 	    // Check if the pair matches a GEN muon pair from H
-	    if (not sample.Contains("SingleMu")) {
+	    if (not isData) {
 	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, "H") ) {
 		H_true     = muPair;
 		H_true_vec = FourVec(muPair, PTC);
@@ -387,7 +423,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  ///  Apply the category selection cuts  ///
 	  ///////////////////////////////////////////
 
-	  std::string CAT_CUT   = CAT_CUTS.at(iCat / iCandPairs.size());
+	  std::string CAT_CUT   = CAT_CUTS.at(iCat);
 	  std::string CAT_UNCUT = CAT_CUT; // Track what sub-strings don't match any known cuts
 	  bool pass_cat_cut = true;
 	  if ( CAT_CUT.find("mass12") != std::string::npos ) {
@@ -442,7 +478,11 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 
 	  if (not pass_cat_cut) continue;
 	  if (verbose) std::cout << "\nPassed cut " << OPT_CUT << ", in category " << CAT_CUT << std::endl;
-	  std::string h_pre = (std::string)sample + "_"+OPT_CUT+"_"+CAT_CUT+"_";
+	  std::string h_pre = (std::string) sample + "_"+OPT_CUT+"_"+CAT_CUT+"_";
+
+	  // Now we know the event passes the category cut
+	  b_map_int["CAT_"+CAT_CUT] = 1;
+	  pass_cat_cuts = true;
 
 
 	  //////////////////////////////////////
@@ -506,95 +546,109 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  }
 
 
-	  /////////////////////////////////
-	  ///  Generate and fill plots  ///
-	  /////////////////////////////////
+	  ///////////////////////////////////////////////////
+	  ///  Generate and fill branches and histograms  ///
+	  ///////////////////////////////////////////////////
+
+	  // Tuple containing maps and common options for "BookAndFill"
+	  std::tuple< const TString, std::map<TString, float> &, TTree *, std::map<TString, TH1*> &, const TString >
+	    tupF{ hist_tree, b_map_flt, out_tree, h_map_1D, h_pre };
+	  std::tuple< const TString, std::map<TString, int> &,   TTree *, std::map<TString, TH1*> &, const TString >
+	    tupI{ hist_tree, b_map_int, out_tree, h_map_1D, h_pre };
+
+	  // Store sample and event information
+	  BookAndFill(b_map_str, out_tree, h_pre, "sample", sample );
+	  BookAndFill(b_map_int, out_tree, h_pre, "event",  br.event->event );
 
 	  // Store event weights
-	  if (not sample.Contains("SingleMu")) {
-	    BookAndFill(h_map_1D, h_pre+"PU_wgt",    40, -2, 2, br.PU_wgt  );
-	    BookAndFill(h_map_1D, h_pre+"muon_wgt",  40, -2, 2, event_wgt / (br.PU_wgt * br.GEN_wgt) );
-	    BookAndFill(h_map_1D, h_pre+"GEN_wgt",   40, -2, 2, br.GEN_wgt );
-	    BookAndFill(h_map_1D, h_pre+"event_wgt", 40, -2, 2, event_wgt  );
-	  }
+	  BookAndFill(tupF, "PU_wgt",    40, -2, 2, isData ? 1.0 : br.PU_wgt  );
+	  BookAndFill(tupF, "muon_wgt",  40, -2, 2, isData ? 1.0 : MuonWeight(br, evt_wgt, verbose) );
+	  BookAndFill(tupF, "GEN_wgt",   40, -2, 2, isData ? 1.0 : br.GEN_wgt );
+	  BookAndFill(tupF, "event_wgt", 40, -2, 2, isData ? 1.0 : event_wgt  );
 
 
 	  // Plot kinematic histograms
-	  BookAndFill(h_map_1D, h_pre+"nJets",       8, -0.5, 7.5, SelectedJets(obj_sel, br).size(),               event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nBJetsLoose", 6, -0.5, 5.5, SelectedJets(obj_sel, br, "BTagLoose").size(),  event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nBJetsMed",   4, -0.5, 3.5, SelectedJets(obj_sel, br, "BTagMedium").size(), event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nBJetsTight", 4, -0.5, 3.5, SelectedJets(obj_sel, br, "BTagTight").size(),  event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nJetsCent",   5, -0.5, 4.5, SelectedJets(obj_sel, br, "Central").size(),    event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nJetsFwd",    5, -0.5, 4.5, SelectedJets(obj_sel, br, "Forward").size(),    event_wgt );
+	  BookAndFill(tupI, "nJets",       8, -0.5, 7.5, SelectedJets(obj_sel, br).size(),               event_wgt );
+	  BookAndFill(tupI, "nBJetsLoose", 6, -0.5, 5.5, SelectedJets(obj_sel, br, "BTagLoose").size(),  event_wgt );
+	  BookAndFill(tupI, "nBJetsMed",   4, -0.5, 3.5, SelectedJets(obj_sel, br, "BTagMedium").size(), event_wgt );
+	  BookAndFill(tupI, "nBJetsTight", 4, -0.5, 3.5, SelectedJets(obj_sel, br, "BTagTight").size(),  event_wgt );
+	  BookAndFill(tupI, "nJetsCent",   5, -0.5, 4.5, SelectedJets(obj_sel, br, "Central").size(),    event_wgt );
+	  BookAndFill(tupI, "nJetsFwd",    5, -0.5, 4.5, SelectedJets(obj_sel, br, "Forward").size(),    event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"MET", 20, 0, 200, br.met->pt, event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"MHT", 20, 0, 200, br.mht->pt, event_wgt );
+	  BookAndFill(tupF, "MET", 20, 0, 200, br.met->pt, event_wgt );
+	  BookAndFill(tupF, "MHT", 20, 0, 200, br.mht->pt, event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"lep1_pt", 30, 0, 300, lep1_vec.Pt(), event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"lep2_pt", 20, 0, 200, lep2_vec.Pt(), event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"lep3_pt", 20, 0, 100, lep3_vec.Pt(), event_wgt );
+	  BookAndFill(tupF, "lep1_pt", 30, 0, 300, lep1_vec.Pt(), event_wgt );
+	  BookAndFill(tupF, "lep2_pt", 20, 0, 200, lep2_vec.Pt(), event_wgt );
+	  BookAndFill(tupF, "lep3_pt", 20, 0, 100, lep3_vec.Pt(), event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"H_mu1_pt",    30, 0, 300, H_mu1_vec.Pt(),    event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"H_mu2_pt",    20, 0, 200, H_mu2_vec.Pt(),    event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nonH_lep_pt", 20, 0, 200, nonH_lep_vec.Pt(), event_wgt );
+	  BookAndFill(tupF, "H_mu1_pt",    30, 0, 300, H_mu1_vec.Pt(),    event_wgt );
+	  BookAndFill(tupF, "H_mu2_pt",    20, 0, 200, H_mu2_vec.Pt(),    event_wgt );
+	  BookAndFill(tupF, "nonH_lep_pt", 20, 0, 200, nonH_lep_vec.Pt(), event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"OS_mu_pt",   20, 0, 200, OS_mu_vec.Pt(),   event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep1_pt", 20, 0, 200, SS_lep1_vec.Pt(), event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep2_pt", 20, 0, 100, SS_lep2_vec.Pt(), event_wgt );
+	  BookAndFill(tupF, "OS_mu_pt",   20, 0, 200, OS_mu_vec.Pt(),   event_wgt );
+	  BookAndFill(tupF, "SS_lep1_pt", 20, 0, 200, SS_lep1_vec.Pt(), event_wgt );
+	  BookAndFill(tupF, "SS_lep2_pt", 20, 0, 100, SS_lep2_vec.Pt(), event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"lep1_eta", 24, -2.4, 2.4, lep1_vec.Eta(), event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"lep2_eta", 24, -2.4, 2.4, lep2_vec.Eta(), event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"lep3_eta", 24, -2.4, 2.4, lep3_vec.Eta(), event_wgt );
+	  BookAndFill(tupF, "lep1_eta", 24, -2.4, 2.4, lep1_vec.Eta(), event_wgt );
+	  BookAndFill(tupF, "lep2_eta", 24, -2.4, 2.4, lep2_vec.Eta(), event_wgt );
+	  BookAndFill(tupF, "lep3_eta", 24, -2.4, 2.4, lep3_vec.Eta(), event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"H_mu1_eta",    24, -2.4, 2.4, H_mu1_vec.Eta(),    event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"H_mu2_eta",    24, -2.4, 2.4, H_mu2_vec.Eta(),    event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nonH_lep_eta", 24, -2.4, 2.4, nonH_lep_vec.Eta(), event_wgt );
+	  BookAndFill(tupF, "H_mu1_eta",    24, -2.4, 2.4, H_mu1_vec.Eta(),    event_wgt );
+	  BookAndFill(tupF, "H_mu2_eta",    24, -2.4, 2.4, H_mu2_vec.Eta(),    event_wgt );
+	  BookAndFill(tupF, "nonH_lep_eta", 24, -2.4, 2.4, nonH_lep_vec.Eta(), event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"OS_mu_iso",   15, 0, 0.3, OS_mu.relIso, event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep1_iso", 15, 0, 0.3, SS_lep1_iso,  event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep2_iso", 15, 0, 0.3, SS_lep2_iso,  event_wgt );
+	  BookAndFill(tupF, "OS_mu_iso",   15, 0, 0.3, OS_mu.relIso, event_wgt );
+	  BookAndFill(tupF, "SS_lep1_iso", 15, 0, 0.3, SS_lep1_iso,  event_wgt );
+	  BookAndFill(tupF, "SS_lep2_iso", 15, 0, 0.3, SS_lep2_iso,  event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"OS_mu_tightID",   2, -0.5, 1.5, OS_mu.isTightID, event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep1_tightID", 2, -0.5, 1.5, SS_lep1_tID,     event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep2_tightID", 2, -0.5, 1.5, SS_lep2_tID,     event_wgt );
+	  BookAndFill(tupI, "OS_mu_tightID",   2, -0.5, 1.5, OS_mu.isTightID, event_wgt );
+	  BookAndFill(tupI, "SS_lep1_tightID", 2, -0.5, 1.5, SS_lep1_tID,     event_wgt );
+	  BookAndFill(tupI, "SS_lep2_tightID", 2, -0.5, 1.5, SS_lep2_tID,     event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"OS_mu_lepMVA",   40, -1, 1, OS_mu.lepMVA, event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep1_lepMVA", 40, -1, 1, SS_lep1_MVA,  event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep2_lepMVA", 40, -1, 1, SS_lep2_MVA,  event_wgt );
+	  BookAndFill(tupF, "OS_mu_lepMVA",   40, -1, 1, OS_mu.lepMVA, event_wgt );
+	  BookAndFill(tupF, "SS_lep1_lepMVA", 40, -1, 1, SS_lep1_MVA,  event_wgt );
+	  BookAndFill(tupF, "SS_lep2_lepMVA", 40, -1, 1, SS_lep2_MVA,  event_wgt );
 	  BookAndFill(h_map_2D, h_pre+"SS_lep2_vs_lep2_lepMVA", 40, -1, 1, 40, -1, 1, SS_lep1_MVA, SS_lep2_MVA,  event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"SS_mu_lepMVA",  40, -1, 1, SS_mu_MVA,  event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_ele_lepMVA", 40, -1, 1, SS_ele_MVA, event_wgt );
+	  BookAndFill(tupF, "SS_mu_lepMVA",  40, -1, 1, SS_mu_MVA,  event_wgt );
+	  BookAndFill(tupF, "SS_ele_lepMVA", 40, -1, 1, SS_ele_MVA, event_wgt );
 	  BookAndFill(h_map_2D, h_pre+"SS_ele_vs_mu_lepMVA", 40, -1, 1, 40, -1, 1, SS_mu_MVA, SS_ele_MVA, event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"OS_mu_SIP",   50, 0, 10, OS_mu.SIP_3D, event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep1_SIP", 50, 0, 10, SS_lep1_SIP,  event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep2_SIP", 50, 0, 10, SS_lep2_SIP,  event_wgt );
+	  BookAndFill(tupF, "OS_mu_SIP",   50, 0, 10, OS_mu.SIP_3D, event_wgt );
+	  BookAndFill(tupF, "SS_lep1_SIP", 50, 0, 10, SS_lep1_SIP,  event_wgt );
+	  BookAndFill(tupF, "SS_lep2_SIP", 50, 0, 10, SS_lep2_SIP,  event_wgt );
 
-	  BookAndFill(h_map_1D, h_pre+"OS_mu_segCompat",   50, 0, 1, OS_mu.segCompat, event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep1_segCompat", 50, 0, 1, SS_lep1_seg,  event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_lep2_segCompat", 50, 0, 1, SS_lep2_seg,  event_wgt );
+	  BookAndFill(tupF, "OS_mu_segCompat",   50, 0, 1, OS_mu.segCompat, event_wgt );
+	  BookAndFill(tupF, "SS_lep1_segCompat", 50, 0, 1, SS_lep1_seg,  event_wgt );
+	  BookAndFill(tupF, "SS_lep2_segCompat", 50, 0, 1, SS_lep2_seg,  event_wgt );
 
-	  if (not sample.Contains("SingleMu")) {
-	    BookAndFill(h_map_1D, h_pre+"H_mass_true", 55, 105, 160, MuPairMass(H_true, PTC), event_wgt, false );  // Don't include overflow
-	    BookAndFill(h_map_1D, h_pre+"Z_mass_true", 40,   1, 201, MuPairMass(Z_true, PTC), event_wgt, false );  // Don't include overflow
-	  }
-	  BookAndFill(h_map_1D, h_pre+"H_mass_zoom",        55, 105, 160, H_pair_vec.M(),       event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"H_mass_on",          11, 105, 160, H_pair_vec.M(),       event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"H_mass_off",         40,   0, 400, H_pair_vec.M(),       event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"H_pt",               30,   0, 300, H_pair_vec.Pt(),      event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nonH_OS_dilep_mass", 40,   0, 400, nonH_pair_vec.M(),    event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"nonH_lep_MET_MT",    40,   0, 200, nonH_lep_MET_vec.M(), event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"SS_dilep_mass",      40,   0, 400, SS_pair_vec.M(),      event_wgt );
-	  BookAndFill(h_map_1D, h_pre+"trilep_mass",        30,   0, 600, trilep_vec.M(),       event_wgt );
+	  BookAndFill(tupF, "H_mass_true", 55, 105, 160, isData ? -99 : MuPairMass(H_true, PTC), event_wgt, false );  // Don't include overflow
+	  BookAndFill(tupF, "Z_mass_true", 40,   1, 201, isData ? -99 : MuPairMass(Z_true, PTC), event_wgt, false );  // Don't include overflow
 
-	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size()*iCandCuts.size(); iCat++)
+	  BookAndFill(tupF, "H_mass_zoom",        55, 105, 160, H_pair_vec.M(),       event_wgt );
+	  BookAndFill(tupF, "H_mass_on",          11, 105, 160, H_pair_vec.M(),       event_wgt );
+	  BookAndFill(tupF, "H_mass_off",         40,   0, 400, H_pair_vec.M(),       event_wgt );
+	  BookAndFill(tupF, "H_pt",               30,   0, 300, H_pair_vec.Pt(),      event_wgt );
+	  BookAndFill(tupF, "nonH_OS_dilep_mass", 40,   0, 400, nonH_pair_vec.M(),    event_wgt );
+	  BookAndFill(tupF, "nonH_lep_MET_MT",    40,   0, 200, nonH_lep_MET_vec.M(), event_wgt );
+	  BookAndFill(tupF, "SS_dilep_mass",      40,   0, 400, SS_pair_vec.M(),      event_wgt );
+	  BookAndFill(tupF, "trilep_mass",        30,   0, 600, trilep_vec.M(),       event_wgt );
+
+
+	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
       } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
-    } // End conditional: if (pass_sel_cuts)
 
+      // Fill branches in output tuple tree, if event passed at least one category
+      if (pass_opt_cuts && pass_cat_cuts) {
+	out_tree->Fill();
+      }
+
+    } // End loop: for (int iPair = 0; iPair < 2; iPair++)
 
   } // End loop: for (int iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++)
   std::cout << "\n******* Leaving the event loop *******" << std::endl;
+
 
   std::cout << "\n******* normalizing histos, weight =  " << samp_weight << " *******" << std::endl;
   if (h_map_1D.empty()) std::cout << "h_map_1D is empty" << std::endl;
@@ -609,11 +663,6 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
         it_term->second->Scale(samp_weight);
     }
   }
-
-  // Concatenate basic selection cuts into string for output file name
-  std::string selStr = "";
-  for (int i = 0; i < SEL_CUTS.size(); i++) selStr = selStr+SEL_CUTS.at(i)+"_";
-  selStr.pop_back();
 
   // Place histograms made with separate selection and cateogry cuts into separate files
   for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++) {
@@ -639,7 +688,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  h_name.erase( h_name.find(optCatStr+"_"), optCatStr.length() + 1 );
 	  it->second->SetName(h_name.c_str());
 	  it->second->SetTitle(h_name.c_str());
-	  std::cout << "  * Writing 1D histogram " << it->second->GetName() << std::endl;
+	  // std::cout << "  * Writing 1D histogram " << it->second->GetName() << std::endl;
 	  it->second->Write();
 	}
       }
@@ -651,17 +700,33 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  h_name.erase( h_name.find(optCatStr+"_"), optCatStr.length() + 1 );
 	  it->second->SetName(h_name.c_str());
 	  it->second->SetTitle(h_name.c_str());
-	  std::cout << "  * Writing 2D histogram " << it->second->GetName() << std::endl;
+	  // std::cout << "  * Writing 2D histogram " << it->second->GetName() << std::endl;
 	  it->second->Write();
 	}
       }
   
       out_file->Write();
+      out_file->Close();
       std::cout << "Wrote output file " << out_file_name.Data() << std::endl;
       
     } // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
   } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
-  
+
+
+  // Only write output tree file if there are some events
+  if (out_tree->GetEntries() > 0) {
+    std::cout << "\n******* Writing output tuple file " << out_tuple_name.Data()
+	      << " with " << out_tree->GetEntries() << " events *******" << std::endl;
+    out_tuple->cd();
+    out_tree->Write();
+    out_tuple->Write();
+    out_tuple->Close();
+  } else {
+    std::cout << "\n******* NOT writing output tuple file " << out_tuple_name.Data()
+	      << " - " << out_tree->GetEntries() << " events! *******" << std::endl;
+  }
+
+
   std::cout << "\nExiting WH_lep()\n";
   
 } // End void WH_lep()

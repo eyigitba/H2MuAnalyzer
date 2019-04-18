@@ -106,12 +106,15 @@ def ConfigStackPlot(known_config, year):
             cfg.groups['Bkg']['Other']      = []  ## Any background sample not of a specified type goes into 'Other'
 
             if known_config == 'WH_lep':
-                ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
-                ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
-                cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
+                # ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
+                # ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
+                # cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
+                ## Assume 50-50 split for AMC and MG
+                cfg.groups['Bkg']['ZJets']      = ['ZJets_hiM_AMC', 'ZJets_hiM_MG']
                 cfg.groups['Bkg']['single top'] = ['tW_pos', 'tW_neg']
                 cfg.groups['Bkg']['ttX']        = ['ttW', 'ttZ', 'ttH', 'tZq']
             else:
+                cfg.groups['Bkg']['ZJets']      = ['ZJets_hiM_AMC', 'ZJets_hiM_MG']
                 cfg.groups['Bkg']['top+X']      = ['tZq'] ## Missing tZW
                 cfg.groups['Bkg']['ttW']        = ['ttW']
                 cfg.groups['Bkg']['ttZ']        = ['ttZ']
@@ -123,7 +126,9 @@ def ConfigStackPlot(known_config, year):
             cfg.groups['Bkg']  = OrderedDict(cfg.groups['Bkg'])
 
             ## Samples to exclude from consideration
-            cfg.excl_samps = []
+            cfg.excl_samps = ['ZJets_MG_1',  ## Using 'hiM' samples, don't need inclusive
+                              'ZJets_MG_2',
+                              'ZJets_AMC']
 
         else: print 'Year %s not valid for config %s. Exiting.' % year, sys.exit()
 
@@ -141,10 +146,11 @@ def ConfigStackPlot(known_config, year):
             cfg.colors['single top'] = R.kOrange
             cfg.colors['ttX']        = R.kSpring
         else:
+            cfg.colors['ZJets']      = R.kAzure
             cfg.colors['top+X']      = R.kOrange
             cfg.colors['ttW']        = R.kSpring
             cfg.colors['ttZ']        = R.kGreen+3
-            cfg.colors['ttH']        = R.kAzure
+            cfg.colors['ttH']        = R.kYellow-7
 
 
     ## End conditional: if (known_config == 'ttH_3l')
