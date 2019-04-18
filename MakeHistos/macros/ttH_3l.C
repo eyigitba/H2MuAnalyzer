@@ -180,7 +180,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
   ConfigureEventSelection (evt_sel, YEAR);
   ConfigureEventWeight    (evt_wgt, YEAR);
 
-  evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair
+  evt_sel.muPair_mass_min = 110; // Require at least one Higgs candidate pair
   // obj_sel.muPair_Higgs = "sort_WH_3_mu_v1"; // Choose Higgs candidate based on MT(W muon, MET)
 
   if (verbose) obj_sel.Print();
@@ -270,19 +270,19 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  // Require the Higgs candidate dimuon pair to fall inside the mass window
 	  H_pair     = SelectedMuPairs(obj_sel, br).at(iPair);
 	  H_pair_vec = FourVec(H_pair, PTC);
-	  if ( H_pair_vec.M() < 105 ||
+	  if ( H_pair_vec.M() < 110 ||
 	       H_pair_vec.M() > 160 ) continue;
 	  MU = true;
 	}
 	else if (OPT_CUT == "e2mu") {
 	  // Require exactly 1 selected electron
 	  if ( SelectedEles(obj_sel, br).size() != 1 ) continue;
-	  // Require exactly 2 selected muons whose charge sums to +/-1
+	  // Require exactly 2 selected muons whose charge sums to 0
 	  if ( SelectedMuPairs(obj_sel, br).size() != 1 ) continue;
 	  // Require selected Higgs candidate dimuon pair to fall inside mass window
 	  H_pair     = SelectedMuPairs(obj_sel, br).at(0);
 	  H_pair_vec = FourVec(H_pair, PTC);
-	  if ( H_pair_vec.M() < 105 ||
+	  if ( H_pair_vec.M() < 110 ||
 	       H_pair_vec.M() > 160 ) continue;
 	  MU = false;
 	}
@@ -628,11 +628,11 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "SS_lep1_segCompat", 50, 0, 1, SS_lep1_seg,  event_wgt );
 	  BookAndFill(tupF, "SS_lep2_segCompat", 50, 0, 1, SS_lep2_seg,  event_wgt );
 
-	  BookAndFill(tupF, "H_mass_true", 55, 105, 160, isData ? -99 : MuPairMass(H_true, PTC), event_wgt, false );  // Don't include overflow
+	  BookAndFill(tupF, "H_mass_true", 50, 110, 160, isData ? -99 : MuPairMass(H_true, PTC), event_wgt, false );  // Don't include overflow
 	  BookAndFill(tupF, "Z_mass_true", 40,   1, 201, isData ? -99 : MuPairMass(Z_true, PTC), event_wgt, false );  // Don't include overflow
 
-	  BookAndFill(tupF, "H_mass_zoom",        55, 105, 160, H_pair_vec.M(),       event_wgt );
-	  BookAndFill(tupF, "H_mass_on",          11, 105, 160, H_pair_vec.M(),       event_wgt );
+	  BookAndFill(tupF, "H_mass_zoom",        50, 110, 160, H_pair_vec.M(),       event_wgt );
+	  BookAndFill(tupF, "H_mass_on",          10, 110, 160, H_pair_vec.M(),       event_wgt );
 	  BookAndFill(tupF, "H_mass_off",         40,   0, 400, H_pair_vec.M(),       event_wgt );
 	  BookAndFill(tupF, "H_pt",               30,   0, 300, H_pair_vec.Pt(),      event_wgt );
 	  BookAndFill(tupF, "nonH_OS_dilep_mass", 40,   0, 400, nonH_pair_vec.M(),    event_wgt );
