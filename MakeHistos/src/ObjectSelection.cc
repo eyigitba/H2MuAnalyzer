@@ -39,16 +39,20 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     cfg.mu_pt_min   = 20.0;     // Minimum muon pT
     cfg.mu_eta_max  =  2.4;     // Maximum muon |eta|
     cfg.mu_ID_cut   = "medium"; // Muon ID: "loose", "medium", or "tight"
-    cfg.mu_mIso_max = 0.4;      // Maximum muon relative miniIsolation
-    cfg.mu_d0_max   = 0.05;     // Maximum muon |dXY| from vertex
-    cfg.mu_dZ_max   = 0.1;      // Maximum muon |dZ| from vertex
-    cfg.mu_SIP_max  = 8.0;      // Maximum muon impact parameter significance
+    cfg.mu_mIso_max =  0.4;     // Maximum muon relative miniIsolation
+    cfg.mu_d0_max   =  0.05;    // Maximum muon |dXY| from vertex
+    cfg.mu_dZ_max   =  0.1;     // Maximum muon |dZ| from vertex
+    cfg.mu_SIP_max  =  8.0;     // Maximum muon impact parameter significance
+    cfg.mu_seg_min  =  -99;     // Minimum muon segment compatibility
 
     // Electron selection
     cfg.ele_pt_min  = 10.0;     // Minimum electron pT
     cfg.ele_eta_max =  2.5;     // Maximum electron |eta|
-    cfg.ele_ID_cut  = "medium"; // Electron ID: "loose", "medium", or "tight"
-    cfg.ele_iso_max = 0.25;     // Maximum electron relative isolation
+    cfg.ele_ID_cut  = "loose";  // Electron ID: "loose", "medium", or "tight"
+    cfg.ele_mIso_max =  0.4;    // Maximum electron relative miniIsolation
+    cfg.ele_d0_max  =   0.05;   // Maximum electron |dXY| from vertex
+    cfg.ele_dZ_max  =   0.1;    // Maximum electron |dZ| from vertex
+    cfg.ele_SIP_max =   8.0;    // Maximum electron impact parameter significance
 
     // Jet selection
     cfg.jet_pt_min     = 30.0;   // Minimum jet pT
@@ -63,13 +67,7 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
 
     if (_opt == "lepMVA") {    // LepMVA pre-selection from TOP-18-008, for 3-lepton and 4-lepton channels
       cfg.mu_pt_min   = 10.0;  // Lower minimum muon pT for higher acceptance
-      cfg.mu_iso_max  = 0.40;  // Loose relative isolation cut
-      cfg.mu_SIP_max  = 8.0;   // Maximum muon impact parameter significance
       cfg.mu_seg_min  = 0.30;  // Minimum muon segment compatibility
-
-      cfg.ele_ID_cut  = "loose";  // Looser ID cut
-      cfg.ele_iso_max = 0.40;     // Looser relative isolation cut
-      cfg.ele_SIP_max = 8.0;      // Maximum muon impact parameter significance
 
       cfg.jet_pt_min  = 20.0;  // Lower minimum jet pT for higher acceptance
     }
@@ -114,15 +112,21 @@ bool MuonPass ( const ObjectSelectionConfig & cfg, const MuonInfo & muon, const 
 bool ElePass ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const bool verbose ) {
 
   if ( cfg.ele_pt_min  != -99 )
-    if ( ele.pt                      < cfg.ele_pt_min  ) return false;
+    if ( ele.pt                      < cfg.ele_pt_min   ) return false;
   if ( cfg.ele_eta_max != -99 )
-    if ( fabs(ele.eta)               > cfg.ele_eta_max ) return false;
+    if ( fabs(ele.eta)               > cfg.ele_eta_max  ) return false;
   if ( cfg.ele_ID_cut  != "NONE" )
-    if ( EleID(ele, cfg.ele_ID_cut) != true            ) return false;
+    if ( EleID(ele, cfg.ele_ID_cut) != true             ) return false;
   if ( cfg.ele_iso_max != -99 )
-    if ( ele.relIso                  > cfg.ele_iso_max ) return false;
+    if ( ele.relIso                  > cfg.ele_iso_max  ) return false;
+  if ( cfg.ele_mIso_max != -99 )
+    if ( ele.miniIso                 > cfg.ele_mIso_max ) return false;
+  if ( cfg.ele_d0_max   != -99 )
+    if ( fabs(ele.d0_PV)             > cfg.ele_d0_max   ) return false;
+  if ( cfg.ele_dZ_max   != -99 )
+    if ( fabs(ele.dz_PV)             > cfg.ele_dZ_max   ) return false;
   if ( cfg.ele_SIP_max != -99 )
-    if ( ele.SIP_3D                  > cfg.ele_SIP_max ) return false;
+    if ( ele.SIP_3D                  > cfg.ele_SIP_max  ) return false;
 
   return true;
 } // End function: bool ElectronPass()
@@ -313,7 +317,7 @@ JetInfos SelectedJets ( const ObjectSelectionConfig & cfg, const NTupleBranches 
   JetInfos selJets;
   for (const auto & jet : (*br.jets)) {
     if ( JetPass(cfg, jet, (*br.muons), (*br.eles), sel) ) {
-	selJets.push_back(jet);
+      selJets.push_back(jet);
     }
   }
   return selJets;
@@ -329,7 +333,7 @@ JetPairInfos SelectedJetPairs ( const ObjectSelectionConfig & cfg, const NTupleB
     JetInfo jet2 = br.jets->at(jetPair.iJet2);
     if ( JetPass(cfg, jet1, (*br.muons), (*br.eles), sel) &&
 	 JetPass(cfg, jet2, (*br.muons), (*br.eles), sel) ) {
-	selJetPairs.push_back(jetPair);
+      selJetPairs.push_back(jetPair);
     }
   }
   return selJetPairs;
