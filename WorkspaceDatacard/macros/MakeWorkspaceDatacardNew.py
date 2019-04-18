@@ -133,55 +133,6 @@ class WorkspaceAndDatacardMakerNew:
         self.h_bkg_fit  = bkg_fit.fit_hist
         self.h_data_fit = data_fit.fit_hist
 
-        ## After fitting, we nail the parameters down so that 
-        ##   Higgs Combine knows what the SM signal shape is
-        for i in range(len(sig_fit.coef_list)):
-            sig_fit.coef_list[i].setConstant(R.kTRUE)
-        for j in range(len(sig_fit.params[0])):
-            for i in range(len(sig_fit.params)):
-                sig_fit.params[i][j].setConstant(R.kTRUE)
-        ## Also nail down background shape params
-        # for i in range(len(bkg_fit.coef_list)):
-        #     bkg_fit.coef_list[i].setConstant(R.kTRUE)
-        for j in range(len(bkg_fit.params[0])):
-            for i in range(len(bkg_fit.params)):
-                # bkg_fit.params[i][j].setConstant(R.kTRUE)
-                ## Only set a1 and a3 of BWZRedux constant
-                if ( bkg_fit.params[i][j].GetName() == 'a1' or
-                     bkg_fit.params[i][j].GetName() == 'a3' ):
-                    bkg_fit.params[i][j].setConstant(R.kTRUE)
-        # for i in range(len(data_fit.coef_list)):
-        #     data_fit.coef_list[i].setConstant(R.kTRUE)
-        # for j in range(len(data_fit.params[0])):
-        #     for i in range(len(data_fit.params)):
-        #         data_fit.params[i][j].setConstant(R.kTRUE)
-
-
-        ## Create a new workspace for this category
-        WS_data = R.RooWorkspace(self.cat+'_data')  ## Using data for background
-        WS_MC   = R.RooWorkspace(self.cat+'_MC')    ## Using MC for background
-        ## "Data" input to workspace must have name "data_obs"
-        ## Rename signal and background models for simplicity
-        data_fit.dat.SetName('data_obs')
-        bkg_fit .dat.SetName('data_obs')
-        data_fit.model.SetName('data_fit_'+self.cat)
-        bkg_fit .model.SetName('bkg_fit_'+self.cat)
-        sig_fit .model.SetName('sig_fit_'+self.cat)
-        ## "import" is a keyword so workspace.import() doesn't work in python
-        ##   Have to do this instead:
-        getattr(WS_data, 'import')(data_fit.dat,   R.RooCmdArg())
-        getattr(WS_data, 'import')(data_fit.model, R.RooCmdArg())
-        getattr(WS_MC,   'import')(bkg_fit.dat,    R.RooCmdArg())
-        getattr(WS_MC,   'import')(bkg_fit.model,  R.RooCmdArg())
-        getattr(WS_data, 'import')(sig_fit.model,  R.RooCmdArg())
-        getattr(WS_MC,   'import')(sig_fit.model,  R.RooCmdArg())
-
-	# Save workspaces to root file
-        WS_data.SaveAs('out_files/workspace/'+self.cat+'_data.root')
-        WS_data.Print()
-        WS_MC.SaveAs('out_files/workspace/'+self.cat+'_MC.root')
-        WS_MC.Print()
-
 
 	#-------------------------------------------------------------------
         ## Plot data and fits into a frame
@@ -234,6 +185,61 @@ class WorkspaceAndDatacardMakerNew:
         data_chi.Draw()
         # self.h_data_fit.Draw('same')
         c_data.SaveAs('out_files/png/data_fit_%s.png' % self.cat)
+
+        ## Finish plotting data and fits into a frame
+	#-------------------------------------------------------------------
+
+
+        ## After fitting, we nail the parameters down so that
+        ##   Higgs Combine knows what the SM signal shape is
+        for i in range(len(sig_fit.coef_list)):
+            sig_fit.coef_list[i].setConstant(R.kTRUE)
+        for j in range(len(sig_fit.params[0])):
+            for i in range(len(sig_fit.params)):
+                sig_fit.params[i][j].setConstant(R.kTRUE)
+        ## Also nail down background shape params
+        # for i in range(len(bkg_fit.coef_list)):
+        #     bkg_fit.coef_list[i].setConstant(R.kTRUE)
+        for j in range(len(bkg_fit.params[0])):
+            for i in range(len(bkg_fit.params)):
+                # bkg_fit.params[i][j].setConstant(R.kTRUE)
+                ## Only set a1 and a3 of BWZRedux constant
+                if ( bkg_fit.params[i][j].GetName() == 'a1' or
+                     bkg_fit.params[i][j].GetName() == 'a3' ):
+                    bkg_fit.params[i][j].setConstant(R.kTRUE)
+        # for i in range(len(data_fit.coef_list)):
+        #     data_fit.coef_list[i].setConstant(R.kTRUE)
+        # for j in range(len(data_fit.params[0])):
+        #     for i in range(len(data_fit.params)):
+        #         data_fit.params[i][j].setConstant(R.kTRUE)
+
+
+        ## Create a new workspace for this category
+        WS_data = R.RooWorkspace(self.cat+'_data')  ## Using data for background
+        WS_MC   = R.RooWorkspace(self.cat+'_MC')    ## Using MC for background
+        ## "Data" input to workspace must have name "data_obs"
+        ## Rename signal and background models for simplicity
+        data_fit.dat.SetName('data_obs')
+        bkg_fit .dat.SetName('data_obs')
+        data_fit.model.SetName('data_fit_'+self.cat)
+        bkg_fit .model.SetName('bkg_fit_'+self.cat)
+        sig_fit .model.SetName('sig_fit_'+self.cat)
+        ## "import" is a keyword so workspace.import() doesn't work in python
+        ##   Have to do this instead:
+        getattr(WS_data, 'import')(data_fit.dat,   R.RooCmdArg())
+        getattr(WS_data, 'import')(data_fit.model, R.RooCmdArg())
+        getattr(WS_MC,   'import')(bkg_fit.dat,    R.RooCmdArg())
+        getattr(WS_MC,   'import')(bkg_fit.model,  R.RooCmdArg())
+        getattr(WS_data, 'import')(sig_fit.model,  R.RooCmdArg())
+        getattr(WS_MC,   'import')(sig_fit.model,  R.RooCmdArg())
+
+	# Save workspaces to root file
+        WS_data.SaveAs('out_files/workspace/'+self.cat+'_data.root')
+        WS_data.Print()
+        WS_MC.SaveAs('out_files/workspace/'+self.cat+'_MC.root')
+        WS_MC.Print()
+
+    ## End function: makeShapeWorkspace(self):
 
 
     #-------------------------------------------------------------------------
