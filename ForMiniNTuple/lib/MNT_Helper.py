@@ -11,21 +11,21 @@ def LoadColors(color, color_set):
     	color["data"] = kBlack
 
     	color["ggH"] = kRed
-    	color["VBF"] =  kBlue + 1
-    	color["ZH"] =  kOrange + 7
-    	color["WH"] = kGreen + 2
+    	color["VBF"] = kOrange + 7
+    	color["ZH"] =  kBlue + 1
+    	color["WH"] =  kGreen + 2
 #   	 color["WH_neg"] = kViolet + 1
     	color["ttH"]  = kPink + 6
 
-    	color["DY"] =  kAzure + 7
-    	color["WZ"] =       kGreen - 9
+    	color["DY"] =  kAzure + 7         # trying to use blue for Z, green for W, yellow for top, red for g/q
     	color["ZZ"] =  kCyan - 7
-    	color["WW"] = kBlack
+	color["WZ"] =  kGreen - 9
+    	color["WW"] =  kSpring -1
     	color["ttbar"] = kYellow - 9
-    	color["ttZ"] = kBlack
-    	color["tW"]  = kBlack
-    	color["tZq"] = kViolet -9
-    	color["triboson"] = kOrange + 6 #
+    	color["ttZ"] = kOrange - 9
+    	color["tW"]  = kOrange + 6
+    	color["tZq"] = kRed - 7
+    	color["triboson"] = kViolet - 9 #
     	color["others"] = kPink + 6 #
     else:
 	return
@@ -146,7 +146,7 @@ def FillHistTerm(histos, term, signals, bkgs, value, Sample_ID, event_wgt):
 
     #background
     elif Sample_ID == -23:
-        histos[term]["DY"].Fill(value, event_wgt / 3)  # used two DY samples
+        histos[term]["DY"].Fill(value, event_wgt / 2)  # used two high mass DY samples
     elif Sample_ID == -0606:
         histos[term]["ttbar"].Fill(value, event_wgt / 2)  # used two ttbar samples
     elif Sample_ID == -2423:

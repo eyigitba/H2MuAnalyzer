@@ -12,7 +12,7 @@ from ROOT import *
 from MNT_Helper import LoadColors, LoadSampleNames, FillHistTerm, LinearStack, RatioPlot, GetSF
 gROOT.SetBatch(True)
 
-def MakeMassStack(in_file_name, out_file_dir, out_file_name, color_set, sample_set, mu1_MVAcut, mu2_MVAcut, lep_MVAcut):
+def MakeMassStack(in_file_name, out_file_dir, out_file_name, color_set, sample_set, lep_name, mu1_MVAcut, mu2_MVAcut, lep_MVAcut):
     file_chain = TChain("tree","chain")
     file_chain.Add(in_file_name)
     out_file = TFile( out_file_dir + out_file_name, "RECREATE")
@@ -37,7 +37,7 @@ def MakeMassStack(in_file_name, out_file_dir, out_file_name, color_set, sample_s
 	file_chain.GetEvent(iEvt)
 	if file_chain.mu1_lepMVA < mu1_MVAcut or file_chain.mu2_lepMVA < mu2_MVAcut or file_chain.lep_lepMVA < lep_MVAcut:
 	    continue
-	lepMVA_SF = GetSF("muon", file_chain.mu1_pt, file_chain.mu1_eta, mu1_MVAcut) * GetSF("muon", file_chain.mu2_pt, file_chain.mu2_eta, mu2_MVAcut) * GetSF("muon", file_chain.lep_pt, file_chain.lep_eta, lep_MVAcut)# "muon" or "ele"
+	lepMVA_SF = GetSF("muon", file_chain.mu1_pt, file_chain.mu1_eta, mu1_MVAcut) * GetSF("muon", file_chain.mu2_pt, file_chain.mu2_eta, mu2_MVAcut) * GetSF(lep_name, file_chain.lep_pt, file_chain.lep_eta, lep_MVAcut)# "muon" or "ele"
         if file_chain.Sample_ID==0:
             lepMVA_SF = 1.0
 

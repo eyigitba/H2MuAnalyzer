@@ -29,19 +29,22 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
-#LABEL = 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1'
-LABEL = 'WH_mu_med_ID_loose_iso_v1'
+LABEL = 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1'
+#LABEL = 'WH_mu_med_ID_loose_iso_v1'
+LEP = 'ele'
 
-PLOT_DIR = 'plots/lepMVA_scan'
+PLOT_DIR = 'plots/lepMVA_scan_round_3'
 
 LIB_NAME = 'working_point_3l'
 MACRO = 'MakeMassStack'
 
-#mu1_MVAcuts = [ round(1.0*MVA/5 - 1.0 , 2) for MVA in range(10) ]
-#mu2_MVAcuts = [ round(1.0*MVA/5 - 1.0 , 2) for MVA in range(10) ]
-mu1_MVAcuts = [-1.0, -0.4, 0.4, 0.8]
-mu2_MVAcuts = [-1.0, -0.4, 0.4, 0.8]
-lep_MVAcuts = [-1.0, -0.4, 0.4, 0.8]
+#mu1_MVAcuts = [-1.0] + [ -0.4, 0.4, 0.8 ]
+#mu2_MVAcuts = [-1.0] + [ -0.4, 0.4, 0.8 ]
+#lep_MVAcuts = [-1.0] + [ -0.4, 0.4, 0.8 ]
+
+mu1_MVAcuts = [-1.0] + [ round(1.0*MVA/5 - 0.6,2) for MVA in range(9)]
+mu2_MVAcuts = [-1.0] + [ round(1.0*MVA/5 - 0.6,2) for MVA in range(9)]
+lep_MVAcuts = [-1.0] + [ 0.4 ]
 POINTS_PER_JOB = 1
 
 
@@ -77,7 +80,7 @@ def WriteSingleScript( script_number, mu1_cuts, mu2_cuts, lep_cuts):
     script.write('    for mu1_cut in mu1_cuts:\n')
     script.write('        for mu2_cut in mu2_cuts:\n')
     script.write('            for lep_cut in lep_cuts:\n')
-    script.write('                MakeMassStack(in_file_name, out_file_dir, out_file_name, "WH", "lep_3l", mu1_cut, mu2_cut, lep_cut)\n')
+    script.write('                MakeMassStack(in_file_name, out_file_dir, out_file_name, "WH", "lep_3l", "%s", mu1_cut, mu2_cut, lep_cut)\n'%LEP)
     script.write('\n')
     script.write('\n')
     script.write('main()\n')
