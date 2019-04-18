@@ -60,8 +60,8 @@ LABEL  = 'ttH_3l_AWB_2019_04_12_v1'
 #LABEL = 'miniNtuple_WH_2017_v5'
 #LABEL   = 'WH_cat_2017_v4_v4' 
 
-NJOBS   =  -1  ## Maximum number of jobs to generate
-JOBSIZE = 100  ## Size of input NTuples in MB, per job (default 1000)
+NJOBS   =   -1  ## Maximum number of jobs to generate
+JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
 PRT_EVT = 10000  ## Print every Nth event in each job
@@ -84,7 +84,7 @@ VERBOSE = False ## Verbose printout
 
 
 ## Function to write the launcher script for a single job, and add that job to the main submit_all.sh script
-def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_name, in_dir_name, file_list, samp_wgt):
+def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_name, in_dir_name, file_list, job_size, samp_wgt):
 
     out_dir = OUT_DIR+'/'+LABEL
 
@@ -123,12 +123,16 @@ def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_
     ## Write a condor file to submit this particular job
     sub_files.append( open('batch/launchers/sub_%d_%s.sub' % (job_num, samp_name), 'w') )
 
+    ## See following resources for more info on Condor:
+    ##  * http://batchdocs.web.cern.ch/batchdocs/
+    ##  * https://indico.cern.ch/event/635217/
     sub_files[-1].write( '\n')
-    sub_files[-1].write( 'out_dir    = %s\n' % out_dir )
-    sub_files[-1].write( 'executable = %s\n' % run_files[-1].name )
-    sub_files[-1].write( 'output     = $(out_dir)/out/sub_%d_%s.out\n' % (job_num, samp_name) )
-    sub_files[-1].write( 'error      = $(out_dir)/err/sub_%d_%s.err\n' % (job_num, samp_name) )
-    sub_files[-1].write( 'log        = $(out_dir)/log/sub_%d_%s.log\n' % (job_num, samp_name) )
+    sub_files[-1].write( 'out_dir     = %s\n' % out_dir )
+    sub_files[-1].write( 'executable  = %s\n' % run_files[-1].name )
+    sub_files[-1].write( 'output      = $(out_dir)/out/sub_%d_%s.out\n' % (job_num, samp_name) )
+    sub_files[-1].write( 'error       = $(out_dir)/err/sub_%d_%s.err\n' % (job_num, samp_name) )
+    sub_files[-1].write( 'log         = $(out_dir)/log/sub_%d_%s.log\n' % (job_num, samp_name) )
+    sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
     sub_files[-1].write( 'queue\n' )
     sub_files[-1].close()
     print 'Wrote file %s' % sub_files[-1].name
@@ -348,14 +352,14 @@ def main():
                 break
             if (job_size > JOBSIZE and JOBSIZE > 0):
                 if VERBOSE: print 'In loop, writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
-                WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
+                WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, job_size, samp_wgt)
                 job_size  = 0.
                 job_files = []
             job_files.append( in_files[iFile][0] )
             job_size += in_files[iFile][1]
         ## End loop: for iFile in range(len(in_files))
         if VERBOSE: print 'After loop, writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
-        WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, samp_wgt)
+        WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, job_size, samp_wgt)
 
         print 'We have now written a total of %d launcher files' % len(run_files)
 
