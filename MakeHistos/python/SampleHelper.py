@@ -53,11 +53,14 @@ def GetSampleID(name):
     elif "ZJets" in samp_name:  	return -23; # can add more entries if need to distinguish between AMC/MG, 0j/1j/2j samples
     elif "tt_ll" in samp_name or samp_name == "tt": 	  return -0606;
     elif "tW_pos" in samp_name or "tW_neg" in samp_name:  return -0624;
+    elif samp_name == "tHq":		return -062500;
+    elif samp_name == "tHW":		return -062524;
     elif samp_name == "tZq": 		return -062300; # 00 for quark in general
     elif samp_name == "tZW": 		return -062324;
-    elif "ttW" in samp_name: 		return -060624;
+    elif samp_name == "ttWW":		return -06062424;
     elif samp_name == "ttZ": 		return -060623;
     elif samp_name == "ttH": 		return -060625;
+    elif "ttW" in samp_name:            return -060624;
     elif "WWW" in samp_name:  		return -242424;
     elif "WWZ" in samp_name: 		return -242423;
     elif "WZZ" in samp_name:  		return -242323;
