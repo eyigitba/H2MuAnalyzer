@@ -48,7 +48,7 @@ LOC   = 'CERN_lepMVA_3l_test_v1_with_extra_samples'
 YEAR   = 2017    ## Dataset year (2016 or 2017)
 LUMI   = 41000   ## 36814 for 2016, 41000 for 2017
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
-IN_DIR = ''
+#IN_DIR = ''
 IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1'
 HADD_IN = True   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
 
