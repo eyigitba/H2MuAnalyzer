@@ -55,7 +55,7 @@ const std::string SLIM = "Slim"; // "Slim" or "notSlim" - original 2016 NTuples 
 const TString OUT_DIR  = "plots";
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
-const std::vector<std::string> OPT_CUTS = {"WH_3l_ele"}; // Multiple selection cuts, applied independently in parallel
+const std::vector<std::string> OPT_CUTS = {"WH_3l_mu"}; // Multiple selection cuts, applied independently in parallel
 const std::vector<std::string> CAT_CUTS = {"NONE"}; // Event selection categories, also applied in parallel
 
 
@@ -378,6 +378,7 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 
   evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
   obj_sel.mu_pt_min       =  10; // Lower muon pT threshold for muons not from Higgs, default 20
+  obj_sel.mu_iso_max	  = 0.4;
   obj_sel.muPair_Higgs = "sort_OS_dimuon_pt"; // alternate selection, used by Hamburg group
   //obj_sel.muPair_Higgs = "sort_WH_3_mu_v1"; //for 3mu category only
 
@@ -638,8 +639,8 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
             TLorentzVector lMHT_vec = FourVec(ele,"T") + mht_vec;
             TLorentzVector lMLT_vec = FourVec(ele,"T") + mlt_vec;
 	  }
-	  //if ( ElePass(obj_sel, ele) && nBJets_Med == 0 && mt_lmet < 150 )  lep_is_ele = true;
-	  if ( ElePass(obj_sel, ele) && nBJets_Med > 0  )  lep_is_ele = true;   // for ttH 3l
+	  if ( ElePass(obj_sel, ele) && nBJets_Med == 0 && mt_lmet < 150 )  lep_is_ele = true;
+	  //if ( ElePass(obj_sel, ele) && nBJets_Med > 0  )  lep_is_ele = true;   // for ttH 3l
 	  else continue;
 	} // if (OPT_CUT == "WH_3l_ele") 	
 
@@ -671,8 +672,8 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
             TLorentzVector lMHT_vec = FourVec(extra_mu,PTC,"T") + mht_vec;
             TLorentzVector lMLT_vec = FourVec(extra_mu,PTC,"T") + mlt_vec;
 	  }
-	  //if ( MuonPass(obj_sel, extra_mu) && nBJets_Med == 0 && mt_lmet < 150 )  lep_is_mu = true;
-	  if ( MuonPass(obj_sel, extra_mu) && nBJets_Med > 0 )  lep_is_mu = true; // for ttH 3l
+	  if ( MuonPass(obj_sel, extra_mu) && nBJets_Med == 0 && mt_lmet < 150 )  lep_is_mu = true;
+	  //if ( MuonPass(obj_sel, extra_mu) && nBJets_Med > 0 )  lep_is_mu = true; // for ttH 3l
           else continue;
 	} // if (OPT_CUT == "WH_3l_mu")
   

@@ -39,6 +39,14 @@ INFILE_2 = 'HADD/histos_Presel2017_'
 CATS     = ['e2mu_looseLepMVA_mt150_noBtag_noZ_mass12', '3mu_looseLepMVA_mt150_noBtag_noZ_mass12',
             'e2mu_tightLepMVA_mt150_noBtag_noZ_mass12', '3mu_tightLepMVA_mt150_noBtag_noZ_mass12']
 
+SOURCE   = 'xzuo'
+FILE_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/'
+#INDIR    = FILE_DIR + 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1/plots' 
+INDIR    = FILE_DIR + 'WH_mu_med_ID_loose_iso_v1/plots'
+INFILE_1 = 'mass_hists_no_cut.root'
+CATS     = ['WH_mu_no']
+
+
 MASS_MIN = 110
 MASS_MAX = 160
 BLIND    = [120, 130]  ## Set to "[]" for unblinded, "[120, 130]" to blind signal region
@@ -98,17 +106,19 @@ class WorkspaceAndDatacardMakerNew:
     def getSigHist(self):
         if SOURCE == 'acarnes':  return self.in_file_1.Get(SUBDIR+'/'+self.cat+'_Net_Signal')
         if SOURCE == 'abrinke1': return self.in_file_1.Get('h_H_mass_zoom_Net_Sig')
+	if SOURCE == 'xzuo':	 return self.in_file_1.Get('dimu_mass_Net_Sig')
 
     def getBkgHist(self):
         if SOURCE == 'acarnes':  return self.in_file_1.Get(SUBDIR+'/'+self.cat+'_Net_Bkg')
         if SOURCE == 'abrinke1': return self.in_file_1.Get('h_H_mass_zoom_Net_Bkg')
+	if SOURCE == 'xzuo':     return self.in_file_1.Get('dimu_mass_Net_Bkg')
         # if SOURCE == 'abrinke1': return self.in_file_2.Get('ttW_H_mass_zoom')
         # if SOURCE == 'abrinke1': return self.in_file_2.Get('WZ_3l_H_mass_on')
 
     def getDataHist(self):
         if SOURCE == 'acarnes':  return self.in_file_1.Get(SUBDIR+'/'+self.cat+'_Net_Data')
         if SOURCE == 'abrinke1': return self.in_file_1.Get('h_H_mass_zoom_Net_Data')
-
+	if SOURCE == 'xzuo':     return self.in_file_1.Get('dimu_mass_Net_Data')
     
     #-------------------------------------------------------------------------
     # Make workspace for signal and background fitting functions
@@ -133,6 +143,20 @@ class WorkspaceAndDatacardMakerNew:
         self.h_bkg_fit  = bkg_fit.fit_hist
         self.h_data_fit = data_fit.fit_hist
 
+	# Save histograms for template fit
+        outfile_MC = R.TFile.Open('out_files/workspace/'+self.cat+'_template_MC.root', "RECREATE")
+	outfile_MC.cd()
+	sig_temp = self.sig_hist.Clone()
+	sig_temp.SetName('sig_fit_'+self.cat)
+   	sig_temp.Write()
+        bkg_temp = self.bkg_hist.Clone()
+	bkg_temp.SetName('bkg_fit_'+self.cat)
+	bkg_temp.Write()
+	data_temp = self.bkg_hist.Clone()
+	data_temp.Add(sig_temp)
+	data_temp.SetName('data_obs')
+	data_temp.Write()
+        outfile_MC.Close()
 
 	#-------------------------------------------------------------------
         ## Plot data and fits into a frame
@@ -317,6 +341,26 @@ class WorkspaceAndDatacardMakerNew:
         card_MC.write('----------------------------------------------------------------------------------------------------------------------------------\n')
         card_MC.write((self.cat).ljust(width-5)+('lnN  ').ljust(2)+('-').ljust(width)+('9.99').ljust(width)+'\n')
 
+	
+
+	card_MC = open('out_files/datacard/'+self.cat+'_template_MC.txt', 'w')
+        card_MC.write('imax *\n')
+        card_MC.write('jmax *\n')
+        card_MC.write('kmax *\n')
+        card_MC.write('----------------------------------------------------------------------------------------------------------------------------------\n')
+        card_MC.write('shapes * * out_files/workspace/'+self.cat+'_template_MC.root '+'$PROCESS\n')
+        card_MC.write('----------------------------------------------------------------------------------------------------------------------------------\n')
+        card_MC.write('bin            '+self.cat+'_MC\n')
+        card_MC.write('observation    -1.0\n')
+        card_MC.write('----------------------------------------------------------------------------------------------------------------------------------\n')
+        card_MC.write('bin'.ljust(width)+(self.cat+'_MC').ljust(width)+(self.cat+'_MC').ljust(width)+'\n')
+        card_MC.write('process'.ljust(width)+('sig_fit_'+self.cat).ljust(width)+('bkg_fit_'+self.cat).ljust(width)+'\n')
+        card_MC.write('process'.ljust(width)+'0'.ljust(width)+'1'.ljust(width)+'\n')
+        # card_MC.write('rate'.ljust(width)+('1.0').ljust(width)+('1.0').ljust(width)+'\n')
+        card_MC.write('rate'.ljust(width)+('%f' % self.sig_hist.Integral()).ljust(width)+('%f' % self.bkg_hist.Integral()).ljust(width)+'\n')
+        card_MC.write('----------------------------------------------------------------------------------------------------------------------------------\n')
+        card_MC.write((self.cat).ljust(width-5)+('lnN  ').ljust(2)+('-').ljust(width)+('9.99').ljust(width)+'\n')
+
 
 
 print '\n\n*** Inside MakeWorkspaceDatacardNew.py ... and running! ***\n'
@@ -328,6 +372,9 @@ for cat in CATS:
     if SOURCE == 'abrinke1': WDM = WorkspaceAndDatacardMakerNew( INDIR+'/plots/'+cat+'/'+INFILE_1,
                                                                  INDIR+'/files/'+INFILE_2+cat+'.root',
                                                                  'cat_'+cat )
+
+    if SOURCE == 'xzuo' :    WDM = WorkspaceAndDatacardMakerNew( INDIR+'/'+INFILE_1, '', cat)
+
     WDM.makeShapeWorkspace()
     WDM.makeShapeDatacard()
 
