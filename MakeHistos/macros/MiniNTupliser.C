@@ -152,6 +152,7 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
   float 	dimu_dEta;   // Keep this for convenience of producing data/MC from miniNTuple  -- XWZ 19.11.2019
   float		dimu_dPhi;
   float		dimu_dR;
+  int		dimu_gen_ID;
   float 	mu1_pt;
   float		mu1_eta;
   float		mu1_lepMVA;
@@ -277,6 +278,7 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
   Out_Tree->Branch("dimu_dEta",		& dimu_dEta,		"dimu_dEta/F");
   Out_Tree->Branch("dimu_dPhi",		& dimu_dPhi,		"dimu_dPhi/F");
   Out_Tree->Branch("dimu_dR",		& dimu_dR,		"dimu_dR/F");
+  Out_Tree->Branch("dimu_gen_ID",	& dimu_gen_ID,		"dimu_gen_ID/I");
   
   Out_Tree->Branch("cts_mu1",           & cts_mu1,              "cts_mu1/F"  );
   Out_Tree->Branch("cts_mu_pos",        & cts_mu_pos,           "cts_mu_pos/F"  );
@@ -439,6 +441,7 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
     dimu_dEta		= -999;
     dimu_dPhi		= -999;
     dimu_dR		= -999;
+    dimu_gen_ID		= 0;
     cts_mu1             = -999;
     cts_mu_pos          = -999;
 
@@ -548,6 +551,10 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 	} 
 	if (have_Z_mass) continue;
 	dimu = SelectedCandPair(obj_sel, br);     //  must have this object for the next line to work, somehow
+	if (not sample.Contains("SingleMu")) {
+	    if ( IsGenMatched(dimu, *br.muons, *br.genMuons, "H") ) dimu_gen_ID = 25;
+	    else if ( IsGenMatched(dimu, *br.muons, *br.genMuons, "Z") ) dimu_gen_ID = 23;
+	}
         dimu_vec = FourVec( SelectedCandPair(obj_sel, br), PTC);
         if ( dimu_vec.M() < 105 ||
              dimu_vec.M() > 160 ) continue;
