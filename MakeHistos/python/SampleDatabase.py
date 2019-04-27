@@ -242,9 +242,9 @@ def GetSamples(location = 'CERN', year = '2017'):
     samples.append(     SampleInfo('WW',              WW_DAS,                                          12.46,    year, in_dir, 'Bkg') )
     samples.append(     SampleInfo('WZ_2l',          'WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',     4.409,   year, in_dir, 'Bkg') ) ## Consistent with current WZ_3l, see below - AWB 28.09.2018
     if (year == 2016):
-        samples.append( SampleInfo('WZ_3l_AMC',      'WZTo3LNu'+py_tune+'13TeV-amcatnloFXFX-pythia8',   4.430,   year, in_dir, 'Bkg') ) ## From TOP-18-008. We used 2.113 in 2016 - AWB 09.10.2018
+        samples.append( SampleInfo('WZ_3l_AMC',      'WZTo3LNu'+py_tune+'13TeV-amcatnloFXFX-pythia8',   4.666,   year, in_dir, 'Bkg') ) ## From TOP-18-008. We used 2.113 in 2016 - AWB 09.10.2018
     if (year == 2017):
-        samples.append( SampleInfo('WZ_3l',          'WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8',     4.430,   year, in_dir, 'Bkg') ) ## From TOP-18-008. We used 2.113 in 2016 - AWB 09.10.2018
+        samples.append( SampleInfo('WZ_3l',          'WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8',     5.063,   year, in_dir, 'Bkg') ) ## From TOP-18-008. We used 2.113 in 2016 - AWB 09.10.2018
     samples.append(     SampleInfo('ZZ_2l_2q',       'ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',     3.22,    year, in_dir, 'Bkg') )
     if (year == 2016):
         samples.append( SampleInfo('ZZ_2l_2v',       'ZZTo2L2Nu_13TeV_powheg_pythia8',                  0.564,   year, in_dir, 'Bkg') )
@@ -259,10 +259,10 @@ def GetSamples(location = 'CERN', year = '2017'):
     if (year == 2016): WWZ_str = 'WWZ'
     if (year == 2017): WWZ_str = 'WWZ_4F'
 
-    samples.append( SampleInfo('WWW', 'WWW_4F'+py_tune+'13TeV-amcatnlo-pythia8', 0.2086,  year, in_dir, 'Bkg') )
-    samples.append( SampleInfo('WWZ', WWZ_str+py_tune+'13TeV-amcatnlo-pythia8',  0.1651,  year, in_dir, 'Bkg') )
-    samples.append( SampleInfo('WZZ', 'WZZ'+py_tune+'13TeV-amcatnlo-pythia8',    0.05565, year, in_dir, 'Bkg') )
-    samples.append( SampleInfo('ZZZ', 'ZZZ'+py_tune+'13TeV-amcatnlo-pythia8',    0.01398, year, in_dir, 'Bkg') )
+    samples.append( SampleInfo('WWW', 'WWW_4F'+py_tune+'13TeV-amcatnlo-pythia8', 0.2086,  year, in_dir, 'Bkg') ) ## From AN-2017/277
+    samples.append( SampleInfo('WWZ', WWZ_str+py_tune+'13TeV-amcatnlo-pythia8',  0.1651,  year, in_dir, 'Bkg') ) ## From AN-2017/277
+    samples.append( SampleInfo('WZZ', 'WZZ'+py_tune+'13TeV-amcatnlo-pythia8',    0.05565, year, in_dir, 'Bkg') ) ## From AN-2017/277
+    samples.append( SampleInfo('ZZZ', 'ZZZ'+py_tune+'13TeV-amcatnlo-pythia8',    0.01398, year, in_dir, 'Bkg') ) ## From AN-2017/277
 
     # ## To do - find cross sections and include later
     # if (year == 2017):
