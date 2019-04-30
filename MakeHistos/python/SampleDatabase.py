@@ -19,7 +19,7 @@ class SampleInfo:
         self.evt_type = evt_type   ## 'Data', 'Sig', or 'Bkg'
 
 
-def GetSamples(location = 'CERN', year = '2018'):
+def GetSamples(location = 'CERN', year = '2017'):
 
     print '\nGetting samples: location = %s, year = %d\n' % (location, year)
 
