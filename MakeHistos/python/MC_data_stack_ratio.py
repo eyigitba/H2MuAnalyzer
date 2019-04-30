@@ -15,8 +15,9 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 ## Directory for input histograms and output plots
 if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
 if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
+if USER == 'bortigno': PLOT_DIR = '/afs/cern.ch/user/b/bortigno/www/xmm/hmm/2018/'
 
-LABEL = 'VH_toy_2017_v4_v9'  ## Sub-folder within PLOT_DIR containing histograms
+LABEL = 'mc_data_stack_pre-prod-v18p0p2'  ## Sub-folder within PLOT_DIR containing histograms
 
 
 def ratioplot( term, sig_stack, all_stack, h_data, ratio_graph, legend ):   # Do not use TRatioPlot! It is a devil!    -XWZ 19.09.2018
