@@ -8,9 +8,10 @@
 ## Can run as ./macros/StackPlots.py i j to plots stacks with indices [i, j]
 ## Script prints index of each stack so you can see the last one which succeded
 
-## Basic python includes for manipulating files
+## Basic python includes
 import os
 import sys
+import math
 
 ## ROOT includes
 import ROOT as R
@@ -35,12 +36,12 @@ if USER == 'abrinke1':
     YEAR     = '2017'     ## Dataset year (2016 or 2017)
 
     # CONFIG   = 'WH_lep'   ## Pre-defined stack configuration from python/StackPlotConfig.py
-    # LABEL    = 'WH_lep_AWB_2019_01_21_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORY = 'e2mu_looseLepMVA_mt150_noBtag_noZ_mass12'  ## Category for which to draw plots
+    # LABEL    = 'WH_lep_AWB_2019_04_23_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = '3mu_medLepMVA_noZ_noBtag_mass12'  ## Category for which to draw plots
 
     CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
-    LABEL    = 'ttH_3l_AWB_2019_01_21_lepMVA_test_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    CATEGORY = 'e2mu_looseLepMVA_noZ_ge3j_btag_mass12'  ## Category for which to draw plots
+    LABEL    = 'ttH_3l_AWB_2019_04_24_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    CATEGORY = 'e2mu_noZ_ge2j_btag_mass12'  ## Category for which to draw plots
 
     IN_FILE  = 'histos_Presel2017_%s.root' % CATEGORY  ## File with input histograms
     SCALE     = 'lin' ## 'log' or 'lin' scaling of y-axis
@@ -294,6 +295,13 @@ def main():
     print '\nFinal list of background samples:'
     for group in groups['Bkg'].keys(): print group+': '+', '.join(groups['Bkg'][group])
 
+    ## Drop empty groups
+    for kind in ['Data', 'Sig', 'Bkg']:
+        for group in groups[kind]:
+            if len(groups[kind][group]) == 0:
+                print '\nRemoving group %s from %s!!!  Found no input samples' % (group, kind)
+                del groups[kind][group]
+
 
     ##########################################
     ###  Histograms, stacks, and canvases  ###
@@ -367,16 +375,34 @@ def main():
             print '\nFor distribution %s, could not find any data.  Filling with sum of MC.\n' % dist
             group_hist['Dat'] = 0
 
+        ## Set aliases for final histograms
+        h_sig  = group_hist['Sig']
+        h_bkg  = group_hist['MC']
+        h_dat  = group_hist['Dat']
+        nSig   = h_sig.Integral()
+        nBkg   = h_bkg.Integral()
+        nDat   = h_dat.Integral()
+
+        ## Compute B/S and S/sqrt(B) for this distribution
+        B_to_S = (nBkg/nSig) if (nSig > 0) else 0
+        sigSq  = 0
+        for i in range(1, h_sig.GetNbinsX()+1):
+            numB = h_bkg.GetBinContent(i)
+            errB = h_bkg.GetBinError(i)
+            ## Don't consider empty bins (statistically limited)
+            if (numB <= 0): continue
+            sigSq += ( pow(h_sig.GetBinContent(i), 2) / (numB + pow(errB, 2)) )
 
         ## Create TLegend
-        legend = R.TLegend(0.82, 0.3, 0.98, 0.9)
+        legend = R.TLegend(0.82, 0.1, 0.98, 0.9)
         for evt_type in groups.keys():
             for group in groups[evt_type].keys():
                 if MC_only and group == 'Data': continue
-                if evt_type == 'Data':  ## Display data integral and data / MC ration in the legend
-                    legend.AddEntry( group_hist[group], group+' (%d, %.2f)' % (group_hist['Data'].Integral(), group_hist['Data'].Integral() / group_hist['MC'].Integral()) )
-                elif evt_type == 'Sig' and group_hist['Sig'].Integral() > 0.0:  ## Display signal integral and scale factor in the legend
-                    legend.AddEntry( group_hist[group], group+' (%.2f x %d)' % (group_hist['Sig'].Integral(), group_hist['MC'].Integral() / group_hist['Sig'].Integral()) )
+                if   evt_type == 'Data' and nBkg > 0.0:   ## Display data integral and data / MC ration in the legend
+                    legend.AddEntry( group_hist[group], '%s (%d, %.2f)'  % (group, nDat, nDat / nBkg) )
+                elif evt_type == 'Sig'  and nSig > 0.0:  ## Display signal integral and scale factor in the legend
+                    legend.AddEntry( group_hist[group], '%s (%.3f)' % (group, nSig) )
+                    legend.AddEntry( group_hist[group], 'B/S=%d, %.3f#sigma' % (B_to_S, math.sqrt(sigSq)) )
                 else:
                     legend.AddEntry(group_hist[group], group)
 
@@ -384,7 +410,7 @@ def main():
         ## Draw stack plot
 	DrawOneStack( dist, stack_sig, stack_all, group_hist['Dat'], legend, out_file_name )
         ## Delete objects created in loop over dists
-        del group_hist, stack_all, stack_sig, stack_dat, legend
+        del group_hist, stack_all, stack_sig, stack_dat, h_sig, h_bkg, h_dat, legend
         
     ## End loop: for dist in dists
 
