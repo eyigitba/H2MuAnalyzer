@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h"
+#include "H2MuAnalyzer/MakeHistos/interface/ObjectHelper.h"
 
 bool PassSelection(NTupleBranches & br, std::string sel, bool verbose = false);
 

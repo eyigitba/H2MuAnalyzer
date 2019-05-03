@@ -22,6 +22,9 @@ bool MuonTrig ( const MuonInfo & muon, const std::string year) {
   } else if ( year == "2017" ) {
     // [2] = HLT_IsoMu27, [3] = HLT_IsoTkMu27
     return ( muon.isHltMatched[2] || muon.isHltMatched[3] );
+  } else if ( year == "2018" ) {
+    // [2] = HLT_IsoMu24, [6] = HLT_Mu50, [8] = HLT_TkMu100
+    return ( muon.isHltMatched[2] || muon.isHltMatched[6] || muon.isHltMatched[8] );
   }
   std::cout << "\n\nInside ObjectSelections.cc, invalid option year = " << year << std::endl;
   assert(false);
@@ -103,14 +106,14 @@ bool EleID ( const EleInfo & ele, const std::string ele_ID ) {
 ///  Jet functions  ///
 ///////////////////////
 
- // Return loose, medium, or tight jet PU ID from 2016 or 2017
+ // Return loose, medium, or tight jet PU ID from 2016, 2017, or 2018
 bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string year ) {
 
   float puID_cut = 999;  // Minimum puID value to pass cut
 
   if (year == "2016") return true;
   
-  else if (year == "2017") {
+  else if (year == "2017" || year == "2018") { // What is the true PU ID for 2018? - AWB 03.05.2019
 
     if (jet.pt >= 50) return true;
 
