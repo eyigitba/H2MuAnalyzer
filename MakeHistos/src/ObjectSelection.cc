@@ -31,7 +31,7 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     cfg.muPair_Higgs = "sort_OS_sum_muon_pt";
   } // End if (_year == "2016")
 
-  else if (_year == "2017") {
+  else if (_year == "2017" || _year == "2018") {
     cfg.year = _year;
 
     // Muon selection
@@ -72,7 +72,7 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
       cfg.jet_pt_min  = 20.0;  // Lower minimum jet pT for higher acceptance
     }
 
-  } // End if (_year == "2017")
+  } // End if (_year == "2017" || _year == "2018")
 
   else {
     std::cout << "Inside ConfigureEventWeight, invalid year = " << _year << std::endl;

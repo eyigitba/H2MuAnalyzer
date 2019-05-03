@@ -9,8 +9,9 @@ bool PassSelection(NTupleBranches & br, std::string sel, bool verbose) {
   
   if (sel.compare("NONE") == 0) pass = true;
   
-  else if (sel.compare("Presel2017") == 0) {        //added dimuon selection into preselection, instead of a stand alone selection  - XWZ 20.09.2018
-    if (verbose) std::cout << "  * Applying Presel2017 cuts" << std::endl;
+  // Added dimuon selection into preselection, instead of a stand alone selection - XWZ 20.09.2018
+  else if (sel.compare("Presel2017") == 0 || sel.compare("Presel2018") == 0) {
+    if (verbose) std::cout << "  * Applying Presel2017/2018 cuts" << std::endl;
     bool passDimu = false;
     bool hltmatched  = false; 
     bool passflag = false;
@@ -21,16 +22,18 @@ bool PassSelection(NTupleBranches & br, std::string sel, bool verbose) {
 
     } // End loop for (int i = 0; i < nMuPairs; i++)
 
+    std::string year = (sel.compare("Presel2017") == 0 ? "2017" : "2018");
+
     for (int iMu =0; iMu < br.nMuons; iMu++) {
       MuonInfo & Mu = br.muons->at(iMu) ;
-      if ( MuonPass(Mu) and (Mu.isHltMatched[2] == 1 or Mu.isHltMatched[3] == 1 or Mu.isHltMatched[4] == 1 or Mu.isHltMatched[5] == 1 or Mu.isHltMatched[6] == 1 or Mu.isHltMatched[7] == 1) )  hltmatched = true;
+      hltmatched = ( MuonPass(Mu) and MuonTrig(Mu, year) );
       if (verbose) std::cout << "hltmatched = " << hltmatched << std::endl;
     } // End loop for (int iMu =0; iMu < br.nMuons; iMu++)
-    
+
     if (br.Flag_all == 1 ) passflag = true;
     if (passDimu and hltmatched and passflag) pass = true;
-    
-  } // End if (sel.compare("Presel2017") == 0)
+
+  } // End if (sel.compare("Presel2017") == 0 || sel.compare("Presel2018") == 0)
  
 
   else if (sel.compare("Dimu_sel_2017") == 0) {

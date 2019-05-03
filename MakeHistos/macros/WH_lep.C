@@ -19,6 +19,7 @@
 #include "H2MuAnalyzer/MakeHistos/interface/EventWeight.h"        // Common event weights
 #include "H2MuAnalyzer/MakeHistos/interface/CategoryCuts.h"       // Common category definitions
 #include "H2MuAnalyzer/MakeHistos/interface/MiniNTupleHelper.h"   // "PlantTree" and "BookBranch" functions
+#include "H2MuAnalyzer/MakeHistos/interface/ReadMVA.h"            // Read and evaluate XMLs for MVA
 
 // #include "H2MuAnalyzer/MakeHistos/interface/SampleDatabase2016.h" // Input data and MC samples
 
@@ -29,17 +30,19 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
 const int MIN_FILE = 1;     // Minimum index of input files to process
 const int MAX_FILE = 1;     // Maximum index of input files to process
-const int MAX_EVT  = -1;    // Maximum number of events to process
-const int PRT_EVT  = 10000;  // Print every N events
+const int MAX_EVT  = 10000; // Maximum number of events to process
+const int PRT_EVT  = 1000;  // Print every N events
 const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
 const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WplusH_HToMuMu_WToAll_M125_13TeV_powheg_pythia8/H2Mu_WH_pos_125";
 const TString SAMPLE   = "H2Mu_WH_pos_125";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/WZ_3l_AMC";
-// const TString SAMPLE   = "WZ_3l_AMC";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
+// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZJets_MG_1";
+// const TString SAMPLE   = "ZJets_MG_1";
+// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/WZ_3l";
+// const TString SAMPLE   = "WZ_3l";
+// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/SingleMuon";
 // const TString SAMPLE   = "SingleMu";
 
 const std::string YEAR  = "2017";
@@ -48,11 +51,12 @@ const TString OUT_DIR   = "plots";
 const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
-const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu"}; // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> CAT_CUTS = { "NONE", "noZ_mass12", "mt150_noBtag_noZ_mass12", "tightLepMVA_mass12",
-					    "looseLepMVA_mt150_noBtag_noZ_mass12",
-					    "tightLepMVA_mt150_noBtag_noZ_mass12",
-					    "tightLepCut_mt150_noBtag_noZ_mass12" }; // Event selection categories, also applied in parallel
+const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu", "allMass_3mu", "allMass_e2mu", "hiPt_3mu"}; // Multiple selection cuts, applied independently in parallel
+const std::vector<std::string> CAT_CUTS = { "noZ_noBtag_mass12",
+                                            "looseLepMVA_noZ_noBtag_mass12",
+                                            "medLepMVA_noZ_noBtag_mass12",
+					    "tightLepMVA_noZ_noBtag_mass12",
+                                            "medLepMVA_onZ_noBtag_mass12" }; // Event selection categories, also applied in parallel
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -179,8 +183,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   ConfigureEventSelection (evt_sel, YEAR);
   ConfigureEventWeight    (evt_wgt, YEAR);
 
-  evt_sel.muPair_mass_min = 110; // Require at least one Higgs candidate pair
-  // obj_sel.muPair_Higgs = "sort_WH_3_mu_v1"; // Choose Higgs candidate based on MT(W muon, MET)
+  evt_sel.muPair_mass_min = 12; // Allow masses down to 12 GeV (instead of 60 GeV) for background studies
 
   if (verbose) obj_sel.Print();
   if (verbose) evt_sel.Print();
@@ -189,7 +192,16 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   std::string PTC = obj_sel.mu_pt_corr; // Store muon pT correction in a shorter string; not changed later
 
 
-  std::cout << "\n******* About to enter the event loop *******" << std::endl;
+  std::cout << "\n******* About to load XML files for signal-background BDTs *******" << std::endl;
+  MVA::MVA BDT_noMass( "data/XMLs/WH_3l/Xunwu/2019_04_30/2017_WH_ele_without_mass_all_sig_all_bkg_ge0j/",
+		       "weights/2017_WH_ele_without_mass_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
+		       "BDTG_UF_v2" );
+  MVA::MVA BDT_mass  ( "data/XMLs/WH_3l/Xunwu/2019_04_30/2017_WH_ele_with_mass_all_sig_all_bkg_ge0j/",
+		       "weights/2017_WH_ele_with_mass_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
+		       "BDTG_UF_v2" );
+
+
+  std::cout << "\n******* About to enter the loop over " << in_chain->GetEntries() << " events *******" << std::endl;
   for (int iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++) {
     
     if (iEvt > max_evt && max_evt > 0) break;
@@ -256,33 +268,54 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 
       for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++) {
 	std::string OPT_CUT = OPT_CUTS.at(iOpt);
-	assert(OPT_CUT == "3mu" || OPT_CUT == "e2mu");
+	assert(OPT_CUT == "3mu" || OPT_CUT == "e2mu" || OPT_CUT == "allMass_3mu" || OPT_CUT == "allMass_e2mu" || OPT_CUT == "hiPt_3mu");
+
+	// Choose Higgs mass (110 - 160 GeV) or all mass (> 12 GeV) requirements
+	bool allMass = ( OPT_CUT.find("allMass") != std::string::npos );
+	// Require Higgs candidate pair to have the vector pT value
+	bool hiPt    = ( OPT_CUT.find("hiPt")    != std::string::npos );
 
 	// Assume event fails the optional cut
 	BookAndFill(b_map_int, out_tree, sample, "OPT_"+OPT_CUT, 0 );
 
-	if (OPT_CUT == "3mu") {
+	if (OPT_CUT == "3mu" || OPT_CUT == "allMass_3mu" || OPT_CUT == "hiPt_3mu") {
 	  // Require exactly 0 selected electrons
 	  if ( SelectedEles(obj_sel, br).size() != 0 ) continue;
 	  // Require exactly 3 selected muons whose charge sums to +/-1
 	  if ( SelectedMuPairs(obj_sel, br).size() != 2 ) continue;
-	  // Require the Higgs candidate dimuon pair to fall inside the mass window
+	  // Choose a unique Higgs candidate pair
 	  H_pair     = SelectedMuPairs(obj_sel, br).at(iPair);
 	  H_pair_vec = FourVec(H_pair, PTC);
-	  if ( H_pair_vec.M() < 110 ||
-	       H_pair_vec.M() > 160 ) continue;
+	  if ( !allMass ) {
+	    // Require selected Higgs candidate dimuon pair to fall inside mass window
+	    if ( H_pair_vec.M() < 110 ||
+		 H_pair_vec.M() > 160 ) continue;
+	  } else {
+	    // Pick the candidate closer to the Z mass as the "H_pair"
+	    int iZ = ( abs(FourVec( SelectedMuPairs(obj_sel, br).at(0), PTC ).M() - 91) <
+		       abs(FourVec( SelectedMuPairs(obj_sel, br).at(1), PTC ).M() - 91) ? 0 : 1 );
+	    if (iZ != iPair) continue;
+	  }
+	  if ( hiPt ) {
+	    // Require Higgs candidate pair to have the higher vector pT value
+	    if ( H_pair_vec.Pt() < FourVec(SelectedMuPairs(obj_sel, br).at((iPair+1) % 2), PTC).Pt() ) continue;
+	  }
 	  MU = true;
 	}
-	else if (OPT_CUT == "e2mu") {
+	else if (OPT_CUT == "e2mu" || OPT_CUT == "allMass_e2mu") {
 	  // Require exactly 1 selected electron
 	  if ( SelectedEles(obj_sel, br).size() != 1 ) continue;
 	  // Require exactly 2 selected muons whose charge sums to 0
 	  if ( SelectedMuPairs(obj_sel, br).size() != 1 ) continue;
-	  // Require selected Higgs candidate dimuon pair to fall inside mass window
-	  H_pair     = SelectedMuPairs(obj_sel, br).at(0);
+	  // Require exactly 1 Higgs candidate pair
+	  if ( iPair != 0 ) continue;
+	  H_pair     = SelectedMuPairs(obj_sel, br).at(iPair);
 	  H_pair_vec = FourVec(H_pair, PTC);
-	  if ( H_pair_vec.M() < 110 ||
-	       H_pair_vec.M() > 160 ) continue;
+	  if ( !allMass ) {
+	    // Require selected Higgs candidate dimuon pair to fall inside mass window
+	    if ( H_pair_vec.M() < 110 ||
+		 H_pair_vec.M() > 160 ) continue;
+	  }
 	  MU = false;
 	}
 	pass_opt_cuts = true;
@@ -297,8 +330,8 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	
 	for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++) {
 
-	  // Assume event fails the category cut
-	  BookAndFill(b_map_int, out_tree, sample+"_"+OPT_CUT, "CAT_"+CAT_CUTS.at(iCat), 0 );
+	  // Assume event fails the optional x category cut
+	  BookAndFill(b_map_int, out_tree, sample+"_"+OPT_CUT, "OPT_"+OPT_CUT+"_CAT_"+CAT_CUTS.at(iCat), 0 );
 
 	  //////////////////////////////////////////////////////
 	  ///  Compute variables relevent for category cuts  ///
@@ -333,14 +366,14 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  TLorentzVector H_mu1_vec;
 	  TLorentzVector H_mu2_vec;
 	  TLorentzVector nonH_mu_vec;
-	  TLorentzVector ele_vec;
+	  TLorentzVector ele_vec;        // Electron in case of ele + 2 muon events
 	  TLorentzVector nonH_lep_vec;   // Lepton not chosen to be in Higgs candidate pair
 	  TLorentzVector nonH_lep_vecT;  // Transverse component only (eta = 0, pZ = 0, mass = 0)
 	  TLorentzVector nonH_pair_vec;  // OS lepton pair not chosen as Higgs candidate (mu-mu or ele-mu)
-	  TLorentzVector SS_mu1_vec;
-	  TLorentzVector SS_mu2_vec;
-	  TLorentzVector SS_lep1_vec;  // Same-sign lepton with higher pT
-	  TLorentzVector SS_lep2_vec;  // Same-sign lepton with lower pT
+	  TLorentzVector SS_mu1_vec;     // SS muon with higher pT (or only SS muon for ele + 2 muon events)
+	  TLorentzVector SS_mu2_vec;     // SS muon with lower pT (empty for ele + 2 muon events)
+	  TLorentzVector SS_lep1_vec;    // SS lepton with higher pT
+	  TLorentzVector SS_lep2_vec;    // SS lepton with lower pT
 	  TLorentzVector OS_mu_vec;
 
 	  H_mu1 = br.muons->at(H_pair.iMu1);
@@ -431,8 +464,14 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    CAT_UNCUT.erase( CAT_UNCUT.find("mass12"), std::string("mass12").length() );
 	  }
 	  if ( CAT_CUT.find("noZ") != std::string::npos ) {
-	    if ( MU && abs(nonH_pair_vec.M() - 91) < 10 )             { pass_cat_cut = false; continue; }
+	    if ( (abs(nonH_pair_vec.M() - 91) < 10 && MU) ||
+		  abs(H_pair_vec.M()    - 91)  < 10        )          { pass_cat_cut = false; continue; }
 	    CAT_UNCUT.erase( CAT_UNCUT.find("noZ"), std::string("noZ").length() );
+	  }
+	  if ( CAT_CUT.find("onZ") != std::string::npos ) {
+	    if ( (abs(nonH_pair_vec.M() - 91) > 10 || !MU) &&
+		 abs(H_pair_vec.M()    - 91) > 10          )         { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("onZ"), std::string("onZ").length() );
 	  }
 	  if ( CAT_CUT.find("mt150") != std::string::npos ) {
 	    if ( nonH_lep_MET_vec.M() > 150 )                         { pass_cat_cut = false; continue; }
@@ -444,13 +483,25 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    CAT_UNCUT.erase( CAT_UNCUT.find("noBtag"), std::string("noBtag").length() );
 	  }
 	  if ( CAT_CUT.find("looseLepMVA") != std::string::npos ) {
+	    if ( OS_mu.lepMVA < -0.4 )                                 { pass_cat_cut = false; continue; }
+	    if ( MU && (SS_mu1.lepMVA < -0.4 || SS_mu2.lepMVA < -0.4) ) { pass_cat_cut = false; continue; }
+	    if (!MU && (SS_mu1.lepMVA < -0.4 ||    ele.lepMVA < -0.4) ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("looseLepMVA"), std::string("looseLepMVA").length() );
+	  }
+	  if ( CAT_CUT.find("medLepMVA") != std::string::npos ) {
 	    if ( OS_mu.lepMVA < 0.4 )                                 { pass_cat_cut = false; continue; }
 	    if ( MU && (SS_mu1.lepMVA < 0.4 || SS_mu2.lepMVA < 0.4) ) { pass_cat_cut = false; continue; }
 	    if (!MU && (SS_mu1.lepMVA < 0.4 ||    ele.lepMVA < 0.4) ) { pass_cat_cut = false; continue; }
-	    CAT_UNCUT.erase( CAT_UNCUT.find("looseLepMVA"), std::string("looseLepMVA").length() );
+	    CAT_UNCUT.erase( CAT_UNCUT.find("medLepMVA"), std::string("medLepMVA").length() );
+	  }
+	  if ( CAT_CUT.find("muMeleT_lepMVA") != std::string::npos ) {
+	    if ( OS_mu.lepMVA < 0.4 )                                 { pass_cat_cut = false; continue; }
+	    if ( MU && (SS_mu1.lepMVA < 0.4 || SS_mu2.lepMVA < 0.4) ) { pass_cat_cut = false; continue; }
+	    if (!MU && (SS_mu1.lepMVA < 0.4 ||    ele.lepMVA < 0.8) ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("muMeleT_lepMVA"), std::string("muMeleT_lepMVA").length() );
 	  }
 	  if ( CAT_CUT.find("tightLepMVA") != std::string::npos ) {
-	    if ( OS_mu.lepMVA < 0.4 )                                 { pass_cat_cut = false; continue; }
+	    if ( OS_mu.lepMVA < 0.8 )                                 { pass_cat_cut = false; continue; }
 	    if ( MU && (SS_mu1.lepMVA < 0.8 || SS_mu2.lepMVA < 0.8) ) { pass_cat_cut = false; continue; }
 	    if (!MU && (SS_mu1.lepMVA < 0.8 ||    ele.lepMVA < 0.8) ) { pass_cat_cut = false; continue; }
 	    CAT_UNCUT.erase( CAT_UNCUT.find("tightLepMVA"), std::string("tightLepMVA").length() );
@@ -470,18 +521,18 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  if ( CAT_UNCUT.length() > 0 ) pass_cat_cut = InCategory(obj_sel, br, CAT_CUT, verbose);
 
 	  ///  *** SPECIAL CUTS ***  ///
-	  // Only keep signal events if the chosen Higgs candidate pair really comes from the Higgs
-	  if (  sample.Contains("H2Mu") && H_true_vec.M() != H_pair_vec.M() ) pass_cat_cut = false;
-	  // Throw away background events if the chosen Higgs candidate pair actually comes from the Higgs (e.g. ttH, tHq, etc.)
-	  if ( !sample.Contains("H2Mu") && H_true_vec.M() == H_pair_vec.M() ) pass_cat_cut = false;
+	  // // Only keep signal events if the chosen Higgs candidate pair really comes from the Higgs
+	  // if (  sample.Contains("H2Mu") && H_true_vec.M() != H_pair_vec.M() ) pass_cat_cut = false;
+	  // Throw away background events if there is a real di-muon pair from a Higgs
+	  if ( !sample.Contains("H2Mu") && H_true_vec.M() > 0 ) pass_cat_cut = false;
 
 
 	  if (not pass_cat_cut) continue;
 	  if (verbose) std::cout << "\nPassed cut " << OPT_CUT << ", in category " << CAT_CUT << std::endl;
 	  std::string h_pre = (std::string) sample + "_"+OPT_CUT+"_"+CAT_CUT+"_";
 
-	  // Now we know the event passes the category cut
-	  b_map_int["CAT_"+CAT_CUT] = 1;
+	  // Now we know the event passes the optional + category cut
+	  b_map_int["OPT_"+OPT_CUT+"_CAT_"+CAT_CUT] = 1;
 	  pass_cat_cuts = true;
 
 
@@ -557,14 +608,15 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    tupI{ hist_tree, b_map_int, out_tree, h_map_1D, h_pre };
 
 	  // Store sample and event information
-	  BookAndFill(b_map_str, out_tree, h_pre, "sample", sample );
-	  BookAndFill(b_map_int, out_tree, h_pre, "event",  br.event->event );
+	  BookAndFill(b_map_str, out_tree, h_pre, "sample",   sample );
+	  BookAndFill(b_map_int, out_tree, h_pre, "event",    br.event->event );
+	  BookAndFill(b_map_flt, out_tree, h_pre, "samp_wgt", samp_weight );  // Sample cross section x luminosity weight
 
 	  // Store event weights
 	  BookAndFill(tupF, "PU_wgt",    40, -2, 2, isData ? 1.0 : br.PU_wgt  );
 	  BookAndFill(tupF, "muon_wgt",  40, -2, 2, isData ? 1.0 : MuonWeight(br, evt_wgt, verbose) );
 	  BookAndFill(tupF, "GEN_wgt",   40, -2, 2, isData ? 1.0 : br.GEN_wgt );
-	  BookAndFill(tupF, "event_wgt", 40, -2, 2, isData ? 1.0 : event_wgt  );
+	  BookAndFill(tupF, "event_wgt", 40, -2, 2, isData ? 1.0 : event_wgt  );  // Event-by-event PU, NLO, eff SF, etc. weights
 
 
 	  // Plot kinematic histograms
@@ -609,7 +661,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "OS_mu_lepMVA",   40, -1, 1, OS_mu.lepMVA, event_wgt );
 	  BookAndFill(tupF, "SS_lep1_lepMVA", 40, -1, 1, SS_lep1_MVA,  event_wgt );
 	  BookAndFill(tupF, "SS_lep2_lepMVA", 40, -1, 1, SS_lep2_MVA,  event_wgt );
-	  BookAndFill(h_map_2D, h_pre+"SS_lep2_vs_lep2_lepMVA", 40, -1, 1, 40, -1, 1, SS_lep1_MVA, SS_lep2_MVA,  event_wgt );
+	  BookAndFill(h_map_2D, h_pre+"SS_lep2_vs_lep1_lepMVA", 40, -1, 1, 40, -1, 1, SS_lep1_MVA, SS_lep2_MVA,  event_wgt );
 
 	  BookAndFill(tupF, "SS_mu_lepMVA",  40, -1, 1, SS_mu_MVA,  event_wgt );
 	  BookAndFill(tupF, "SS_ele_lepMVA", 40, -1, 1, SS_ele_MVA, event_wgt );
@@ -626,14 +678,33 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "H_mass_true", 50, 110, 160, isData ? -99 : MuPairMass(H_true, PTC), event_wgt, false );  // Don't include overflow
 	  BookAndFill(tupF, "Z_mass_true", 40,   1, 201, isData ? -99 : MuPairMass(Z_true, PTC), event_wgt, false );  // Don't include overflow
 
+	  BookAndFill(tupF, "Z_mass_zoom",        20,  81, 101, H_pair_vec.M(),       event_wgt, false );  // Don't include overflow
 	  BookAndFill(tupF, "H_mass_zoom",        50, 110, 160, H_pair_vec.M(),       event_wgt );
 	  BookAndFill(tupF, "H_mass_on",          10, 110, 160, H_pair_vec.M(),       event_wgt );
 	  BookAndFill(tupF, "H_mass_off",         40,   0, 400, H_pair_vec.M(),       event_wgt );
 	  BookAndFill(tupF, "H_pt",               30,   0, 300, H_pair_vec.Pt(),      event_wgt );
 	  BookAndFill(tupF, "nonH_OS_dilep_mass", 40,   0, 400, nonH_pair_vec.M(),    event_wgt );
+	  BookAndFill(tupF, "nonH_OS_dilep_pt",   30,   0, 300, nonH_pair_vec.Pt(),   event_wgt );
 	  BookAndFill(tupF, "nonH_lep_MET_MT",    40,   0, 200, nonH_lep_MET_vec.M(), event_wgt );
 	  BookAndFill(tupF, "SS_dilep_mass",      40,   0, 400, SS_pair_vec.M(),      event_wgt );
 	  BookAndFill(tupF, "trilep_mass",        30,   0, 600, trilep_vec.M(),       event_wgt );
+
+	  // Extra variables especially for Xunwu's BDTs
+	  BookAndFill(tupF, "dimu_mass",      25, 110, 160, H_pair_vec.M(),                             event_wgt );
+          BookAndFill(tupF, "ldimu_dR",       30,   0,   6, nonH_lep_vec.DeltaR(H_pair_vec),            event_wgt );
+          BookAndFill(tupF, "cts_lmuSS",      20,  -1,   1, CosThetaStar(nonH_lep_vec, H_mu1_vec),      event_wgt );
+          BookAndFill(tupF, "cts_lmuOS",      20,  -1,   1, CosThetaStar(nonH_lep_vec, H_mu2_vec),      event_wgt );
+          BookAndFill(tupF, "lmuSS_abs_dEta", 25,   0,   5, abs(nonH_lep_vec.Eta() - SS_mu1_vec.Eta()), event_wgt );
+	  BookAndFill(tupF, "lmuSS_abs_dPhi", 32,   0, 3.2, abs(nonH_lep_vec.DeltaPhi(SS_mu1_vec)),     event_wgt );
+          BookAndFill(tupF, "lmuOS_pt",       40,   0, 200, OS_mu_vec.Pt(),                             event_wgt );
+          BookAndFill(tupF, "lmuOS_abs_dEta", 25,   0,   5, abs(nonH_lep_vec.Eta() - OS_mu_vec.Eta()),  event_wgt );
+          BookAndFill(tupF, "lmuOS_dR",       30,   0,   6, nonH_lep_vec.DeltaR(OS_mu_vec),             event_wgt );
+          BookAndFill(tupF, "met_pt",         30,   0, 300, br.met->pt,                                 event_wgt );
+          BookAndFill(tupF, "abs_dPhi_lmet",  32,   0, 3.2, abs(nonH_lep_vec.DeltaPhi(MET_vec)),        event_wgt );
+
+	  // Evaluate MVA output values
+	  BookAndFill(tupF, "BDT_noMass", 20, -1, 1, BDT_noMass.Evaluate(b_map_flt, b_map_int), event_wgt );
+	  BookAndFill(tupF, "BDT_mass",   20, -1, 1, BDT_mass  .Evaluate(b_map_flt, b_map_int), event_wgt );
 
 
 	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
