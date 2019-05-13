@@ -42,9 +42,10 @@ CATS     = ['e2mu_looseLepMVA_mt150_noBtag_noZ_mass12', '3mu_looseLepMVA_mt150_n
 SOURCE   = 'xzuo'
 FILE_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/'
 #INDIR    = FILE_DIR + 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1/plots' 
-INDIR    = FILE_DIR + 'WH_mu_med_ID_loose_iso_v1/plots'
-INFILE_1 = 'mass_hists_no_cut.root'
-CATS     = ['WH_mu_no']
+INDIR    = FILE_DIR + 'VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt/plots'
+INFILE_1 = 'mass_hists_cut_444.root'
+#INFILE_1 = 'mass_BDT_neg_lepMVA04.root'
+CATS     = ['WH_ele_lepMVA04']
 
 
 MASS_MIN = 110
