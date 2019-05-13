@@ -53,6 +53,7 @@ const TString SAMPLE   = "H2Mu_WH_neg_125";
 const std::string YEAR = "2017";
 const std::string SLIM = "Slim"; // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR  = "plots";
+const TString HIST_TREE = "Tree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both. Not in use in this macro
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"WH_3l_mu"}; // Multiple selection cuts, applied independently in parallel
@@ -62,16 +63,17 @@ const std::vector<std::string> CAT_CUTS = {"NONE"}; // Event selection categorie
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
 void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = "",
 	     std::vector<TString> in_files = {}, TString out_file_str = "",
-	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
+	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0,
+	     TString hist_tree = "" ) {
   
   // Set variables to hard-coded values if they are not initialized
-  if (sample.Length()  == 0) sample  	 = SAMPLE;
-  if (in_dir.Length()  == 0) in_dir  	 = IN_DIR;
-  if (out_dir.Length() == 0) out_dir 	 = OUT_DIR;
-  if (max_evt          == 0) max_evt 	 = MAX_EVT;
-  if (prt_evt          == 0) prt_evt 	 = PRT_EVT;
-  if (samp_weight      == 0) samp_weight = SAMP_WGT;
- 
+  if (sample.Length()    == 0) sample  	   = SAMPLE;
+  if (in_dir.Length()    == 0) in_dir  	   = IN_DIR;
+  if (out_dir.Length()   == 0) out_dir 	   = OUT_DIR;
+  if (max_evt            == 0) max_evt 	   = MAX_EVT;
+  if (prt_evt            == 0) prt_evt 	   = PRT_EVT;
+  if (samp_weight        == 0) samp_weight = SAMP_WGT;
+  if (hist_tree.Length() == 0) hist_tree   = HIST_TREE; 
 
   // Initialize empty file to access each file in the list
   TFile *file_tmp(0);
@@ -185,11 +187,13 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
   float 	lmuSS_dEta;
   float 	lmuSS_dPhi;	
   float 	lmuSS_dR;		
+  float		lmuSS_mass;
   float 	lmuOS_pt;		
   float 	lmuOS_eta;	
   float 	lmuOS_dEta;
   float 	lmuOS_dPhi;	
-  float 	lmuOS_dR;		
+  float 	lmuOS_dR;
+  float		lmuOS_mass;		
 
   float		dijet_mass;
   float		dijet_pt;
@@ -305,11 +309,13 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
   Out_Tree->Branch("lmuSS_dEta",	& lmuSS_dEta,		"lmuSS_dEta/F");
   Out_Tree->Branch("lmuSS_dPhi",	& lmuSS_dPhi,		"lmuSS_dPhi/F");
   Out_Tree->Branch("lmuSS_dR",		& lmuSS_dR,		"lmuSS_dR");
+  Out_Tree->Branch("lmuSS_mass",        & lmuSS_mass,           "lmuSS_mass");
   Out_Tree->Branch("lmuOS_pt",		& lmuOS_pt,		"lmuOS_pt/F");
   Out_Tree->Branch("lmuOS_eta",		& lmuOS_eta,		"lmuOS_eta/F");
   Out_Tree->Branch("lmuOS_dEta",	& lmuOS_dEta,		"lmuOS_dEta/F");
   Out_Tree->Branch("lmuOS_dPhi",	& lmuOS_dPhi,		"lmuOS_dPhi/F");
   Out_Tree->Branch("lmuOS_dR",		& lmuOS_dR,		"lmuOS_dR");
+  Out_Tree->Branch("lmuOS_mass",        & lmuOS_mass,           "lmuOS_mass");
 
   //jet var
   Out_Tree->Branch("dijet_mass",	& dijet_mass,		"dijet_mass/F");
@@ -379,10 +385,15 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
   ConfigureEventWeight    (evt_wgt, YEAR);
 
   evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
+// use default 60 GeV for WZ validation
   obj_sel.mu_pt_min       =  10; // Lower muon pT threshold for muons not from Higgs, default 20
   obj_sel.mu_iso_max	  = 0.4;
   obj_sel.muPair_Higgs = "sort_OS_dimuon_pt"; // alternate selection, used by Hamburg group
   //obj_sel.muPair_Higgs = "sort_WH_3_mu_v1"; //for 3mu category only
+
+  //obj_sel.ele_pt_min = 20;
+  obj_sel.ele_ID_cut = "loose";
+  obj_sel.ele_iso_max = 0.4;
 
   if (verbose) obj_sel.Print();
   if (verbose) evt_sel.Print();
@@ -473,11 +484,13 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
     lmuSS_dEta		= -999;	
     lmuSS_dPhi		= -999;	
     lmuSS_dR		= -999;		
+    lmuSS_mass		= -999;
     lmuOS_pt		= -999;		
     lmuOS_eta		= -999;	
     lmuOS_dEta		= -999;	
     lmuOS_dPhi		= -999;	
-    lmuOS_dR		= -999;		
+    lmuOS_dR		= -999;
+    lmuOS_mass		= -999;		
 
     dijet_mass		= -999;
     dijet_pt		= -999;
@@ -549,6 +562,7 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 	for (const auto & muPair : SelectedMuPairs(obj_sel, br)) {
 	    if (muPair.charge == 0 and muPair.mass > 81 and muPair.mass < 101) have_Z_mass = true;
 	} 
+
 	if (have_Z_mass) continue;
 	dimu = SelectedCandPair(obj_sel, br);     //  must have this object for the next line to work, somehow
 	if (not sample.Contains("SingleMu")) {
@@ -557,7 +571,7 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 	}
         dimu_vec = FourVec( SelectedCandPair(obj_sel, br), PTC);
         if ( dimu_vec.M() < 105 ||
-             dimu_vec.M() > 160 ) continue;
+             dimu_vec.M() > 160 ) continue;  // 70-110 for Z mass validation, 105-160 for analysis window
 
 	MuonInfos muons = SelectedMuons(obj_sel, br);
         EleInfos  eles  = SelectedEles(obj_sel, br);
@@ -628,9 +642,6 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 	///   WH_3l_ele cat   ///
 	/////////////////////////
 	if (OPT_CUT == "WH_3l_ele") {
-	  //obj_sel.ele_pt_min = 20;
-	  obj_sel.ele_ID_cut = "loose";
-	  obj_sel.ele_iso_max = 0.4;
 	  EleInfos  eles  = SelectedEles(obj_sel, br);
 	  if (muons.size() != 2 or SelectedEles(obj_sel, br).size() != 1) continue;
           else {
@@ -641,12 +652,12 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
             lep_lepMVA = ele.lepMVA;
 	    lep_charge = ele.charge;
 	
-	    TLorentzVector mlt_vec  = -FourVec(ele,"T") - FourVec(dimu,PTC,"T",*br.muons);
-            TLorentzVector lMET_vec = FourVec(ele,"T") + met_vec;
-            TLorentzVector lMHT_vec = FourVec(ele,"T") + mht_vec;
-            TLorentzVector lMLT_vec = FourVec(ele,"T") + mlt_vec;
+	    mlt_vec  = -FourVec(ele,"T") - FourVec(dimu,PTC,"T",*br.muons);
+            lMET_vec = FourVec(ele,"T") + met_vec;
+            lMHT_vec = FourVec(ele,"T") + mht_vec;
+            lMLT_vec = FourVec(ele,"T") + mlt_vec;
 	  }
-	  if ( ElePass(obj_sel, ele) && nBJets_Med == 0 && mt_lmet < 150 )  lep_is_ele = true;
+	  if ( ElePass(obj_sel, ele) && nBJets_Med == 0 )  lep_is_ele = true;
 	  //if ( ElePass(obj_sel, ele) && nBJets_Med > 0  )  lep_is_ele = true;   // for ttH 3l
 	  else continue;
 	} // if (OPT_CUT == "WH_3l_ele") 	
@@ -674,12 +685,12 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 	    lep_lepMVA = extra_mu.lepMVA;
 	    lep_charge = extra_mu.charge;
 
-	    TLorentzVector mlt_vec  = -FourVec(extra_mu,PTC,"T") - FourVec(dimu,PTC,"T",*br.muons);
-            TLorentzVector lMET_vec = FourVec(extra_mu,PTC,"T") + met_vec;
-            TLorentzVector lMHT_vec = FourVec(extra_mu,PTC,"T") + mht_vec;
-            TLorentzVector lMLT_vec = FourVec(extra_mu,PTC,"T") + mlt_vec;
+	    mlt_vec  = -FourVec(extra_mu,PTC,"T") - FourVec(dimu,PTC,"T",*br.muons);
+            lMET_vec = FourVec(extra_mu,PTC,"T") + met_vec;
+            lMHT_vec = FourVec(extra_mu,PTC,"T") + mht_vec;
+            lMLT_vec = FourVec(extra_mu,PTC,"T") + mlt_vec;
 	  }
-	  if ( MuonPass(obj_sel, extra_mu) && nBJets_Med == 0 && mt_lmet < 150 )  lep_is_mu = true;
+	  if ( MuonPass(obj_sel, extra_mu) && nBJets_Med == 0 )  lep_is_mu = true;
 	  //if ( MuonPass(obj_sel, extra_mu) && nBJets_Med > 0 )  lep_is_mu = true; // for ttH 3l
           else continue;
 	} // if (OPT_CUT == "WH_3l_mu")
@@ -703,11 +714,13 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
             lmuSS_dEta  = lep_vec.Eta() - mu1_vec.Eta();   
             lmuSS_dPhi  = lep_vec.DeltaPhi(mu1_vec);   
             lmuSS_dR    = lep_vec.DeltaR(mu1_vec);        
+	    lmuSS_mass  = lmu1_vec.M();
             lmuOS_pt    = lmu2_vec.Pt();   
             lmuOS_eta   = lmu2_vec.Eta();   
             lmuOS_dEta  = lep_vec.Eta() - mu2_vec.Eta();   
             lmuOS_dPhi  = lep_vec.DeltaPhi(mu2_vec);   
             lmuOS_dR    = lep_vec.DeltaR(mu2_vec);         
+	    lmuOS_mass  = lmu2_vec.M();
         }
         else {
             cts_lmuSS   = CosThetaStar(lep_vec, mu2_vec);
@@ -717,11 +730,13 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
             lmuSS_dEta  = lep_vec.Eta() - mu2_vec.Eta();        
             lmuSS_dPhi  = lep_vec.DeltaPhi(mu2_vec);            
             lmuSS_dR    = lep_vec.DeltaR(mu2_vec);              
+	    lmuSS_mass  = lmu2_vec.M();
             lmuOS_pt    = lmu1_vec.Pt();	          	
             lmuOS_eta   = lmu1_vec.Eta();                     
             lmuOS_dEta  = lep_vec.Eta() - mu1_vec.Eta();       
             lmuOS_dPhi  = lep_vec.DeltaPhi(mu1_vec);           
-            lmuOS_dR    = lep_vec.DeltaR(mu1_vec);             
+            lmuOS_dR    = lep_vec.DeltaR(mu1_vec);   
+	    lmuOS_mass  = lmu1_vec.M();          
         }
 
 	met_pt	= met_vec.Pt();	  
