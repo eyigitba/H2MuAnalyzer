@@ -7,6 +7,9 @@
 ///        Andrew Brinkerhoff  01.10.2018         ///
 /////////////////////////////////////////////////////
 
+// for using python-defined functions
+#include <Python.h>
+#include <stdlib.h>
 // Basic ROOT includes to read and write files
 #include "TFile.h"
 #include "TSystem.h"
@@ -16,6 +19,7 @@
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h" // List of branches in the NTuple tree
 #include "H2MuAnalyzer/MakeHistos/interface/HistoHelper.h"        // Use to book and fill output histograms
+#include "H2MuAnalyzer/MakeHistos/interface/ObjectHelper.h"       // for using GetLepMVASF()
 #include "H2MuAnalyzer/MakeHistos/interface/ObjectSelection.h"    // Common object selections
 #include "H2MuAnalyzer/MakeHistos/interface/EventSelection.h"     // Common event selections
 #include "H2MuAnalyzer/MakeHistos/interface/EventWeight.h"        // Common event weights
@@ -43,7 +47,6 @@ const TString OUT_DIR  = "output";
 // const std::vector<std::string> OPT_CUTS = {"NONE"}; // Multiple selection cuts, applied independently in parallel
 // const std::vector<std::string> CAT_CUTS = {"NONE"}; // Event selection categories, also applied in parallel
 
-
 // Prescales for data and MC: select 1/Xth of the events in each sample
 const int SIG_PRESC  = 1;
 const int BKG_PRESC  = 1;
@@ -59,8 +62,8 @@ const double LUMI = 36814; // pb-1
 using namespace TMVA;
 
 
-// Command-line options for running in batch.  Running "root -b -l -q macros/WH_e2mu_miniNTuple_v1.C" will use hard-coded options above.
-void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
+// Command-line options for running in batch.  Running "root -b -l -q macros/WH_BDT_for_template.C" will use hard-coded options above.
+void WH_BDT_for_template( TString myMethodList = "",
 		     TString sample = "", TString in_dir = "", TString out_dir = "",
 		     std::vector<TString> in_files = {}, TString out_file_str = "",
 		     int max_evt = 0, int prt_evt = 0, double samp_weight = 1.0) {
@@ -98,11 +101,11 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
   Use["BDTG_UF_v1"]     = 0;
   Use["BDTG_UF_v2"]     = 1;
   Use["BDTG_AWB"]       = 0;
-  Use["BDTG_AWB_lite"]  = 0;
+  Use["BDTG_AWB_lite"]  = 1;
   Use["BDTG_Carnes"]    = 0;
 
   // ---------------------------------------------------------------
-  std::cout << "\n==> Start WH_e2mu_miniNTuple_v1" << std::endl;
+  std::cout << "\n==> Start WH_BDT_for_template" << std::endl;
 
   // Select methods (don't look at this code - not of interest)
   std::vector<TString> mlist;
@@ -126,15 +129,15 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
   
   // Here the preparation phase begins
   TString out_file_name;
-  out_file_name.Form( "%s/2017_WH_ele_high_pt_dimu_train_with_mass.root", out_dir.Data() );
+  out_file_name.Form( "%s/2017_WH_ele_against_WZ_lepMVA04.root", out_dir.Data() );
   TFile * out_file = TFile::Open( out_file_name, "RECREATE" );
 
   ///////////////////////////////////////////////////////
   ///  Input samples: MC signal, MC background, data  ///
   ///////////////////////////////////////////////////////
   std::map<TString, TString> MN_name; // <short_name, full path to miniNtuple>
-  MN_name["signal"] 	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt/plots/all_samples.root";
-  MN_name["bkg"]	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt/plots/all_samples.root";
+  MN_name["signal"] 	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt_ID_fix/all_samples.root";
+  MN_name["bkg"]	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt_ID_fix/all_samples.root";
  
 
   //////////////////////////////////////////////////////////////////
@@ -167,8 +170,43 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 //                                        0x0000, 0xffc6, 0xffff, 0x0005, 0x0000, 0x0000, "all", "all", "ge0j") );
 //  factories.push_back( std::make_tuple( nullF, nullL, "MNT_2016_sum_no_jet_no_mtmlti_no_mu_trim2", var_names, var_vals,
 //                                        0x0000, 0xffc4, 0xfab3, 0x0005, 0x0000, 0x0000, "all", "all", "ge0j") );
-  factories.push_back( std::make_tuple( nullF, nullL, "MNT_2016_sum_no_jet_no_mtmlti_no_mu_trim3", var_names, var_vals,
-                                        0x0000, 0xf100, 0xfab3, 0x0005, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_with_mass", var_names, var_vals,
+//                                        0x0010, 0xf100, 0xfab3, 0x0005, 0x0000, 0x0000, "all", "all", "ge0j") );
+
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_DY_most_var", var_names, var_vals,
+//                                        0x0fef, 0xffff, 0xffff, 0xffff, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_mu_against_DY_trim1_var", var_names, var_vals,
+//                                        0x0b61, 0xffff, 0xfce7, 0xffff, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_mu_against_DY_8var", var_names, var_vals,
+//                                        0x0020, 0x0011, 0x0000, 0x003b, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_mu_against_DY_7var", var_names, var_vals,
+//                                        0x0020, 0x0001, 0x0000, 0x003b, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_mu_against_DY_6var", var_names, var_vals,
+//                                        0x0020, 0x0001, 0x0000, 0x002b, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_mu_against_DY_6_1var", var_names, var_vals,
+//                                        0x0020, 0x0001, 0x0000, 0x001b, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_mu_against_DY_5var", var_names, var_vals,
+//                                        0x0020, 0x0001, 0x0000, 0x000b, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_DY_WZvar", var_names, var_vals,
+//                                        0x0000, 0xf100, 0xfab3, 0x0005, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_DY_WZ7var", var_names, var_vals,
+//                                        0x0020, 0xf111, 0xfab3, 0x002f, 0x0000, 0x0000, "all", "all", "ge0j") );
+
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_inclu_WZvar", var_names, var_vals,
+//                                        0x0000, 0xf100, 0xfab3, 0x0005, 0x0000, 0x0000, "all", "all", "ge0j") );
+
+//  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_mu_against_WZ_WZvar", var_names, var_vals,
+//                                        0x0000, 0xf100, 0xfab3, 0x0005, 0x0000, 0x0000, "all", "all", "ge0j") );
+  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_inclu_16var", var_names, var_vals,
+                                        0x0020, 0xf111, 0xfab3, 0x002f, 0x0000, 0x0000, "all", "all", "ge0j") );
+  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_inclu_testvar", var_names, var_vals,
+                                        0x0020, 0x0fe5, 0x0f7b, 0x007f, 0x0000, 0x0000, "all", "all", "ge0j") );
+  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_inclu_trimvar", var_names, var_vals,
+                                        0x0020, 0x0f41, 0x0a53, 0x002f, 0x0000, 0x0000, "all", "all", "ge0j") );
+  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_inclu_trimvar_with_mass", var_names, var_vals,
+                                        0x0030, 0x0f41, 0x0a53, 0x002f, 0x0000, 0x0000, "all", "all", "ge0j") );
+  factories.push_back( std::make_tuple( nullF, nullL, "2017_WH_ele_against_inclu_slimvar", var_names, var_vals,
+                                        0x0020, 0x0f01, 0x0843, 0x000f, 0x0000, 0x0000, "all", "all", "ge0j") );
 
   // Initialize factories and dataloaders
   for (int iFact = 0; iFact < factories.size(); iFact++) {
@@ -299,9 +337,12 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
   spec_vars.push_back( TMVA_var( "event_wgt",   "event weight",        	"", 'F', -77 ) );
   spec_vars.push_back( TMVA_var( "xsec_norm",   "xsec normal",   	"", 'F', -77 ) );
   spec_vars.push_back( TMVA_var( "Sample_ID",   "Sample ID", 		"", 'I', -77 ) );
-  spec_vars.push_back( TMVA_var( "In_cat_WH",	"is in cat WH",		"", 'I', -77 ) );
+//  spec_vars.push_back( TMVA_var( "In_cat_WH",	"is in cat WH",		"", 'I', -77 ) );
 //  spec_vars.push_back( TMVA_var( "res_wgt",   "Resolution weight",    "", 'F', -77 ) );
 //  spec_vars.push_back( TMVA_var( "LHE_HT",    "Sample weight",     "GeV", 'F', -77 ) );
+  spec_vars.push_back( TMVA_var( "mu1_lepMVA",  "lepMVA(#mu1)",		"", 'F', -77 ) );
+  spec_vars.push_back( TMVA_var( "mu2_lepMVA",  "lepMVA(#mu2)",         "", 'F', -77 ) );
+  spec_vars.push_back( TMVA_var( "lep_lepMVA",  "lepMVA(lep)",          "", 'F', -77 ) );
   spec_vars.push_back( TMVA_var( "dimu_mass", "mass(#mu#mu)",      "GeV", 'F', -77 ) );
 
   // Fill each factory with the correct set of variables
@@ -466,19 +507,20 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
     float	  dimu_dR;
     float         mu1_pt;
     float         mu1_eta;
+    float	  mu1_lepMVA;
     float         mu2_pt;
     float         mu2_eta;
+    float	  mu2_lepMVA;
 
     float         lep_pt;
     float         lep_eta;
-//    float         extra_mu_pt;
-//    float         extra_mu_eta;
+    float	  lep_lepMVA;
 
     float         cts_mu1;
     float         cts_mu_pos;
-    float         cts_edimu;
-    float         cts_emuSS;
-    float         cts_emuOS;
+    float         cts_ldimu;
+    float         cts_lmuSS;
+    float         cts_lmuOS;
 
     float         ldimu_mass;
     float         ldimu_pt;
@@ -525,7 +567,7 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 
     float	  event_wgt;
     float 	  xsec_norm;
-    int           In_cat_WH;  // need to change by hand based on what category is under study
+//    int           In_cat_WH;  // need to change by hand based on what category is under study
     int           Sample_ID;
 
     in_chain->SetBranchAddress("nMuons",       	& nMuons     	);
@@ -545,19 +587,20 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
     in_chain->SetBranchAddress("dimu_dR",    	& dimu_dR	);
     in_chain->SetBranchAddress("mu1_pt",     	& mu1_pt	);
     in_chain->SetBranchAddress("mu1_eta",    	& mu1_eta	);
+    in_chain->SetBranchAddress("mu1_lepMVA",	& mu1_lepMVA    );
     in_chain->SetBranchAddress("mu2_pt",     	& mu2_pt	);
     in_chain->SetBranchAddress("mu2_eta",    	& mu2_eta	);
+    in_chain->SetBranchAddress("mu2_lepMVA",    & mu2_lepMVA    );
                                                      
     in_chain->SetBranchAddress("lep_pt",       	& lep_pt     	);
     in_chain->SetBranchAddress("lep_eta",      	& lep_eta    	);
-//    in_chain->SetBranchAddress("extra_mu_pt",  	& extra_mu_pt	);
-//    in_chain->SetBranchAddress("extra_mu_eta", 	& extra_mu_eta	);
+    in_chain->SetBranchAddress("lep_lepMVA",    & lep_lepMVA    );
 
     in_chain->SetBranchAddress("cts_mu1",   	& cts_mu1   	);
     in_chain->SetBranchAddress("cts_mu_pos",	& cts_mu_pos	);
-    in_chain->SetBranchAddress("cts_edimu", 	& cts_edimu 	);
-    in_chain->SetBranchAddress("cts_emuSS", 	& cts_emuSS 	);
-    in_chain->SetBranchAddress("cts_emuOS", 	& cts_emuOS 	);
+    in_chain->SetBranchAddress("cts_ldimu", 	& cts_ldimu 	);
+    in_chain->SetBranchAddress("cts_lmuSS", 	& cts_lmuSS 	);
+    in_chain->SetBranchAddress("cts_lmuOS", 	& cts_lmuOS 	);
    
     in_chain->SetBranchAddress("ldimu_mass",	& ldimu_mass	);
     in_chain->SetBranchAddress("ldimu_pt",	& ldimu_pt	);
@@ -604,7 +647,7 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 
     in_chain->SetBranchAddress("event_wgt",     & event_wgt     );
     in_chain->SetBranchAddress("xsec_norm",     & xsec_norm     );
-    in_chain->SetBranchAddress("In_cat_WH", 	& In_cat_WH 	);
+//    in_chain->SetBranchAddress("In_cat_WH", 	& In_cat_WH 	);
     in_chain->SetBranchAddress("Sample_ID",	& Sample_ID	);
 
 
@@ -624,7 +667,7 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 	std::cout << "Looking at event " << iEvt << " / " << nEvents << " (" << nEvt_pass << " passed so far, " << nEvt_tot << " in all samples)" << std::endl;
       
       in_chain->GetEntry(iEvt);
-      if (iEvt % 1000 == 0)  std::cout << "Sample_ID   " << Sample_ID << "\nevent_wgt  " << event_wgt << std::endl; 
+      if (iEvt % PRT_EVT == 0)  std::cout << "Sample_ID   " << Sample_ID << "\nevent_wgt  " << event_wgt << std::endl; 
 
 //      if(nEles == 2) continue;    
  
@@ -644,7 +687,13 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
       //////////////////////////////////////////////////////////////////////////////////
       ///  Weight signal events by cross section and inclusive H2Mu mass resolution  ///
       //////////////////////////////////////////////////////////////////////////////////
-      
+
+      double evt_wgt = 1.0;
+      evt_wgt = event_wgt; //some channels have multiple samples, may need to scale. apply evt_wgt in training
+      if (Sample_ID < 0 and Sample_ID!=-23 and Sample_ID!=-0606 and Sample_ID!=-0624 and Sample_ID!=-062300 and Sample_ID!=-062324 and Sample_ID!=-060624 and Sample_ID!=-060623 and Sample_ID!=-060625 and Sample_ID!=-2423 and Sample_ID!=-2323 and Sample_ID!=-2424 and Sample_ID!=-232323 and Sample_ID!=-242323 and Sample_ID!=-242423 and Sample_ID!=-242424)
+	continue;
+
+
 //      double samp_wgt = 1.0;
 //      double lumi_SF  = samp->getLumiScaleFactor(LUMI);
 //      if (samp_ID != 0) // Half of signal / background MC events go into training, half into testing
@@ -696,18 +745,29 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 	  if      ( vName == "Sample_ID" )
 	    var_vals.at(iVar) = Sample_ID;
 //	    var_vals.at(iVar) = -888;
-	  else if ( vName == "event_wgt")
-	    var_vals.at(iVar) = event_wgt;
+	  else if ( vName == "event_wgt") {
+	    if (Sample_ID == -23 or Sample_ID == -606) {
+		evt_wgt = event_wgt/2;
+		var_vals.at(iVar) = event_wgt/2;
+	    }
+	    else var_vals.at(iVar) = event_wgt;
+	  }
 	  else if ( vName == "xsec_norm")
 	    var_vals.at(iVar) = xsec_norm;
-	  else if ( vName == "In_cat_WH")
-	    var_vals.at(iVar) = In_cat_WH;
+//	  else if ( vName == "In_cat_WH")
+//	    var_vals.at(iVar) = In_cat_WH;
 //	  else if ( vName == "samp_wgt" )
 //	    var_vals.at(iVar) = samp_wgt;
 //	  else if ( vName == "res_wgt" )
 //	    var_vals.at(iVar) = res_wgt;
 //	  else if ( vName == "LHE_HT" )
 //	    var_vals.at(iVar) = LHE_HT;
+ 	  else if ( vName == "mu1_lepMVA")
+	    var_vals.at(iVar) = mu1_lepMVA;
+	  else if ( vName == "mu2_lepMVA")
+            var_vals.at(iVar) = mu2_lepMVA;
+	  else if ( vName == "lep_lepMVA")
+            var_vals.at(iVar) = lep_lepMVA;
 	  else if ( vName == "dimu_mass" )
 	    var_vals.at(iVar) = dimu_mass;
 	  
@@ -737,7 +797,7 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 	    // Electron variables
 	    else if (vName == "lep_pt")      	var_vals.at(iVar) = lep_pt;
 	    else if (vName == "lep_abs_eta")    var_vals.at(iVar) = abs(lep_eta);	    
-	    else if (vName == "cts_edimu") 	var_vals.at(iVar) = cts_edimu;
+	    else if (vName == "cts_ldimu") 	var_vals.at(iVar) = cts_ldimu;
 
 	    else if (vName == "ldimu_mass")	 var_vals.at(iVar) = ldimu_mass;
  	    else if (vName == "ldimu_pt")      	 var_vals.at(iVar) = ldimu_pt;
@@ -850,25 +910,84 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 	// // Weight by expected sample normalization x signal resolution
 	// double sig_evt_weight = samp_wgt * res_wgt * 1000.;
 	// double bkg_evt_weight = samp_wgt;
+
+	// apply lepMVA cut -------------------------------------------------
+	double lepMVA_cut = 0.4;
+	if (mu1_lepMVA < lepMVA_cut or mu2_lepMVA < lepMVA_cut or lep_lepMVA < lepMVA_cut) continue;
+//	float mu1_SF, mu2_SF, lep_SF;
+//	mu1_SF = GetLepMVASF( "muon", mu1_pt, mu1_eta, lepMVA_cut);
+//	mu2_SF = GetLepMVASF( "muon", mu2_pt, mu2_eta, lepMVA_cut);
+//	lep_SF = GetLepMVASF( "ele",  lep_pt, lep_eta, lepMVA_cut);
+//	if (iEvt % PRT_EVT == 0)  std::cout << "mu1_SF   " << mu1_SF << "\nmu2_SF  " << mu2_SF << "\nlep_SF   " << lep_SF << std::endl;
+//	evt_wgt = evt_wgt * mu1_SF * mu2_SF * lep_SF;
+
+
+/*	//get lepMVA SFs ----------------------------------------------------
+	setenv("PYTHONPATH","/afs/cern.ch/work/x/xzuo/h2mm_944/src/H2MuAnalyzer/ForMiniNTuple/lib",1);
+	PyObject *pName, *pModule, *pDict, *pFunc, *pArgs, *pLep, *pPt, *pCut, *pEta, *pValue, *presult;
+	double arg_pt, arg_eta, mu1_SF=1.0, mu2_SF=1.0, lep_SF=1.0;
+	Py_Initialize();
+	
+	pName = PyString_FromString((char*)"MNT_Helper");
+	pModule = PyImport_Import(pName);
+	pDict = PyModule_GetDict(pModule);
+	pFunc = PyDict_GetItemString(pDict, (char*)"GetSF");
+	if (PyCallable_Check(pFunc)) {
+	  arg_pt  = mu1_pt;
+	  arg_eta = mu1_eta;
+	  pLep = PyString_FromString((char*)"muon");
+	  pPt  = PyFloat_FromDouble(arg_pt);
+	  pEta = PyFloat_FromDouble(arg_eta);
+	  pCut = PyFloat_FromDouble(lepMVA_cut);
+	  pArgs = PyTuple_Pack(4, pLep, pPt, pEta, pCut);
+	  pValue = PyObject_CallObject(pFunc, pArgs);
+	  mu1_SF = PyFloat_AsDouble(pValue);
+
+	  arg_pt  = mu2_pt;
+          arg_eta = mu2_eta;
+          pLep = PyString_FromString((char*)"muon");
+          pPt  = PyFloat_FromDouble(arg_pt);
+          pEta = PyFloat_FromDouble(arg_eta);
+          pCut = PyFloat_FromDouble(lepMVA_cut);
+          pArgs = PyTuple_Pack(4, pLep, pPt, pEta, pCut);
+          pValue = PyObject_CallObject(pFunc, pArgs);
+          mu2_SF = PyFloat_AsDouble(pValue);
+
+	  arg_pt  = lep_pt;
+          arg_eta = lep_eta;
+          pLep = PyString_FromString((char*)"ele");
+          pPt  = PyFloat_FromDouble(arg_pt);
+          pEta = PyFloat_FromDouble(arg_eta);
+          pCut = PyFloat_FromDouble(lepMVA_cut);
+          pArgs = PyTuple_Pack(4, pLep, pPt, pEta, pCut);
+          pValue = PyObject_CallObject(pFunc, pArgs);
+          lep_SF = PyFloat_AsDouble(pValue);
+	}
+	else PyErr_Print();
+	if (iEvt % PRT_EVT == 0)  std::cout << "mu1_SF   " << mu1_SF << "\nmu2_SF  " << mu2_SF << "\nlep_SF   " << lep_SF << std::endl;
+	event_wgt = event_wgt * mu1_SF * mu2_SF * lep_SF;
+	//got lepMVA SFs -----------------------------------------------------------
+*/
+
 	
 	// Load values into event
 	if ( MN.first == "signal" and Sample_ID > 0 ) { // Signal MC    Sample_ID > 0 
 	  if ( (iEvt % (2*presc)) != 1 ) {   // only iEvt % 2 == 1 is used for BDT (the other half for limits), now limited by stats.   -- XWZ 02.12.2018
 	    if (!MULTICLASS) {
-	      std::get<1>(factories.at(iFact))->AddSignalTrainingEvent( var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddSignalTrainingEvent( var_vals, evt_wgt * xsec_norm );
 	      nTrain_sig.at(iFact) += 1;
 	    } else {
-	      std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, evt_wgt * xsec_norm );
 	      if (multi_str == "nonVH") nTrain_nonVH.at(iFact) += 1;
 	      if (multi_str == "ZH")    nTrain_ZH.at(iFact)    += 1;
 	      if (multi_str == "WH")    nTrain_WH.at(iFact)    += 1;
 	    }
 	  } else {
 	    if (!MULTICLASS) {
-	      std::get<1>(factories.at(iFact))->AddSignalTestEvent( var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddSignalTestEvent( var_vals, evt_wgt * xsec_norm  );
 	      nTest_sig.at(iFact) += 1;
 	    } else {
-	      std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, evt_wgt * xsec_norm  );
 	      if (multi_str == "nonVH") nTest_nonVH.at(iFact) += 1;
 	      if (multi_str == "ZH")    nTest_ZH.at(iFact)    += 1;
 	      if (multi_str == "WH")    nTest_WH.at(iFact)    += 1;
@@ -878,20 +997,20 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 	if ( MN.first == "bkg" and Sample_ID < 0) { // Background MC       Sample_ID < 0
 	  if ( (iEvt % (2*presc)) != 0 ) {
 	    if (!MULTICLASS) {
-	      std::get<1>(factories.at(iFact))->AddBackgroundTrainingEvent( var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddBackgroundTrainingEvent( var_vals, evt_wgt * xsec_norm  );
 	      nTrain_bkg.at(iFact) += 1;
 	    } else {
-	      std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, evt_wgt * xsec_norm );
 	      if (multi_str == "WZ")  nTrain_WZ.at(iFact)  += 1;
 	      if (multi_str == "ZZ")  nTrain_ZZ.at(iFact)  += 1;
 	      if (multi_str == "ttX") nTrain_ttX.at(iFact) += 1;
 	    }
 	  } else {
 	    if (!MULTICLASS) {
-	      std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, evt_wgt * xsec_norm );
 	      nTest_bkg.at(iFact) += 1;
 	    } else {
-	      std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, evt_wgt * xsec_norm );
 	      if (multi_str == "WZ")  nTest_WZ.at(iFact)  += 1;
 	      if (multi_str == "ZZ")  nTest_ZZ.at(iFact)  += 1;
 	      if (multi_str == "ttX") nTest_ttX.at(iFact) += 1;
@@ -900,10 +1019,10 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
 	}
 //	if (Sample_ID == 0) { // Data
 //	  if (!MULTICLASS) {
-//	    std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, event_wgt );
+//	    std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, evt_wgt );
 //	    nTest_bkg.at(iFact) += 1;
 //	  } else {
-//	    std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt );
+//	    std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, evt_wgt );
 //	  }
 //	}
 	
@@ -1097,7 +1216,7 @@ void WH_e2mu_miniNTuple_v1( TString myMethodList = "",
     
     if (Use["BDTG_AWB_lite"]) // Fast, simple BDT
       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_lite", (std::string)
-			 "!H:!V:NTrees=40::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=3:MinNodeSize=0.000001" );
+			 "!H:!V:NTrees=40::BoostType=Grad:Shrinkage=0.1:nCuts=10:MaxDepth=3:MinNodeSize=0.000001" );
     
     // Factory settings from Andrew Carnes ... what do they do? - AWB 04.01.2017
     if (Use["BDTG_Carnes"])
@@ -1174,6 +1293,6 @@ int main( int argc, char** argv ) {
     if (!methodList.IsNull()) methodList += TString(",");
     methodList += regMethod;
   }
-  WH_e2mu_miniNTuple_v1(methodList);
+  WH_BDT_for_template(methodList);
   return 0;
 }
