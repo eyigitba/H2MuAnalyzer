@@ -4,6 +4,11 @@
 #include <iostream>
 #include <assert.h>
 
+#include "TFile.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TH3.h"
+#include "TAxis.h"
 #include "TLorentzVector.h"
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h"
@@ -17,6 +22,8 @@ float MuPairMassErr ( const MuPairInfo & muPair, const std::string pt_corr ); //
 bool  IsGenMatched  ( const MuPairInfo & muPair, const MuonInfos & muons, const GenMuonInfos & genMuons, const std::string gen_ID ); // Match di-muon pairs to GEN Higgs or Z
 
 bool  EleID ( const EleInfo & ele, const std::string ele_ID ); // Return loose, medium, or tight electron ID
+
+float GetLepMVASF(const std::string lep_type, float pt, float eta, float lepMVA_cut); // return lepMVA SF, lep_type is "muon" or "ele" 
 
 bool JetPUID ( const JetInfo & jet, const std::string pu_ID, const std::string year ); // Return loose, medium, or tight jet PU ID from 2016 or 2017
 

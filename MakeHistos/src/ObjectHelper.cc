@@ -99,6 +99,70 @@ bool EleID ( const EleInfo & ele, const std::string ele_ID ) {
 }
 
 
+
+///////////////////
+///  lepMVA SF  ///
+///////////////////
+float GetLepMVASF(const std::string lep_type, float pt, float eta, float lepMVA_cut) {
+  if (lepMVA_cut < -1 or lepMVA_cut > 1) { 
+    std::cout << "\nlepMVA cut out of range" << std::endl;
+    return 0.0;
+  }
+  if ( pt > 200 ) return 1.0; // pt out of range
+  if ( std::abs(eta) > 2.4) return 0.0; // eta out of range
+
+  float abs_eta = std::abs(eta);
+  float scale_factor = 0.0;
+
+  TH3D * SF_mu = new TH3D();
+  TH2D * SF_ele_loose = new TH2D();
+  TH2D * SF_ele_medium = new TH2D();
+  TH2D * SF_ele_tight = new TH2D();
+
+  if (lep_type == "muon") {
+    TFile * in_file = new TFile("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/lepMVA_SF_v1/SF_muon_variable_eta_bin.root", "READ");
+    SF_mu = (TH3D *) (in_file->Get("SFs/SF_3Dmuon")->Clone());
+    int pt_bin   = SF_mu->GetXaxis()->FindBin(pt);
+    int eta_bin  = SF_mu->GetYaxis()->FindBin(abs_eta);
+    int MVA_bin  = SF_mu->GetZaxis()->FindBin(lepMVA_cut);
+    scale_factor = SF_mu->GetBinContent(pt_bin, eta_bin, MVA_bin);
+    SF_mu->Delete();
+    in_file->Close();
+    return scale_factor;
+  } // end of if (lep_type == "muon") 
+  else if (lep_type == "ele") {
+    TFile * in_file = new TFile("/afs/cern.ch/work/x/xzuo/h2mm_944/src/H2MuAnalyzer/LepMVA_efficiency/python/scaleFactors_ele_2017.root", "READ");
+    if (lepMVA_cut == -0.4) {
+	SF_ele_loose = (TH2D * ) (in_file->Get("EleToTTVLeptonMvattZ4l")->Clone());
+	int pt_bin   = SF_ele_loose->GetXaxis()->FindBin(pt);
+	int eta_bin  = SF_ele_loose->GetYaxis()->FindBin(abs_eta);
+	scale_factor = SF_ele_loose->GetBinContent(pt_bin, eta_bin);
+	SF_ele_loose->Delete();
+    }
+    else if (lepMVA_cut == 0.4) {
+	SF_ele_medium = (TH2D *) (in_file->Get("EleToTTVLeptonMvattZ3l")->Clone());
+	int pt_bin   = SF_ele_medium->GetXaxis()->FindBin(pt);
+        int eta_bin  = SF_ele_medium->GetYaxis()->FindBin(abs_eta);
+	scale_factor = SF_ele_medium->GetBinContent(pt_bin, eta_bin);
+	SF_ele_medium->Delete();
+    }
+    else if (lepMVA_cut == 0.8) {
+	SF_ele_tight = (TH2D *) (in_file->Get("EleToTTVLeptonMvatZq")->Clone());
+	int pt_bin   = SF_ele_tight->GetXaxis()->FindBin(pt);
+        int eta_bin  = SF_ele_tight->GetYaxis()->FindBin(abs_eta);
+        scale_factor = SF_ele_tight->GetBinContent(pt_bin, eta_bin);
+	SF_ele_tight->Delete();
+    }
+    else scale_factor = 1.0;
+
+    in_file->Close();
+    return scale_factor;
+  } // end of else if (lep_type == "ele")
+  return scale_factor;
+}
+
+
+
 ///////////////////////
 ///  Jet functions  ///
 ///////////////////////
