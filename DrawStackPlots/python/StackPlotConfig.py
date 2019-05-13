@@ -113,22 +113,30 @@ def ConfigStackPlot(known_config, year):
                 cfg.groups['Bkg']['ZJets']      = ['ZJets_hiM_AMC', 'ZJets_hiM_MG']
                 cfg.groups['Bkg']['single top'] = ['tW_pos', 'tW_neg']
                 cfg.groups['Bkg']['ttX']        = ['ttW', 'ttZ', 'ttH', 'tZq']
+                # ## Samples to exclude from consideration
+                # cfg.excl_samps = ['ZJets_hiM_AMC',  ## Using inclusive samples, don't need 'hiM'
+                #                   'ZJets_hiM_MG']
+                ## Samples to exclude from consideration
+                cfg.excl_samps = ['ZJets_MG_1',  ## Using 'hiM' samples, don't need inclusive
+                                  'ZJets_MG_2',
+                                  'ZJets_AMC']
             else:
-                cfg.groups['Bkg']['ZJets']      = ['ZJets_hiM_AMC', 'ZJets_hiM_MG']
+                ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
+                ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
+                cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
                 cfg.groups['Bkg']['top+X']      = ['tZq'] ## Missing tZW
                 cfg.groups['Bkg']['ttW']        = ['ttW']
                 cfg.groups['Bkg']['ttZ']        = ['ttZ']
                 cfg.groups['Bkg']['ttH']        = ['ttH']
+                ## Samples to exclude from consideration
+                cfg.excl_samps = ['ZJets_hiM_AMC',  ## Using inclusive samples, don't need 'hiM'
+                                  'ZJets_hiM_MG']
 
             ## Preserve ordering of groups
             cfg.groups['Data'] = OrderedDict(cfg.groups['Data'])
             cfg.groups['Sig']  = OrderedDict(cfg.groups['Sig'])
             cfg.groups['Bkg']  = OrderedDict(cfg.groups['Bkg'])
 
-            ## Samples to exclude from consideration
-            cfg.excl_samps = ['ZJets_MG_1',  ## Using 'hiM' samples, don't need inclusive
-                              'ZJets_MG_2',
-                              'ZJets_AMC']
 
         else: print 'Year %s not valid for config %s. Exiting.' % year, sys.exit()
 

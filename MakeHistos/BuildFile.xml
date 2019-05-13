@@ -1,2 +1,6 @@
 
 <use name="root"/>
+<!-- For TMVA, corresponds to library "-lTMVA" -->
+<use name="roottmva"/>
+<!-- For TXMLEngine, corresponds to library "-lXMLIO" -->
+<use name="rootxmlio"/>

@@ -14,7 +14,7 @@ void ConfigureEventWeight( EventWeightConfig & cfg, const std::string _year ) {
     cfg.GEN        = true; // GEN_wgt
   } // End if (_year == "2016")
 
-  else if (_year == "2017") {
+  else if (_year == "2017" || _year == "2018") {
     cfg.year = _year;
 
     // Weights to apply
@@ -23,7 +23,7 @@ void ConfigureEventWeight( EventWeightConfig & cfg, const std::string _year ) {
     cfg.muon_Iso   = true; // MuIso_SF_3
     cfg.trig_IsoMu = true; // IsoMu_SF_3
     cfg.GEN        = true; // GEN_wgt
-  } // End if (_year == "2017")
+  } // End if (_year == "2017" || _year == "2018")
 
   else {
     std::cout << "Inside ConfigureEventWeight, invalid year = " << _year << std::endl;
@@ -46,13 +46,13 @@ float MuonWeight( const NTupleBranches & br, const EventWeightConfig & cfg, cons
 
   } // End conditional: if (cfg.year == "2016")
 
-  else if (cfg.year == "2017") {
+  else if (cfg.year == "2017" || cfg.year == "2018") {
 
     if (cfg.muon_ID   ) mu_weight *= br.MuID_SF_3;
     if (cfg.muon_Iso  ) mu_weight *= br.MuIso_SF_3;
     if (cfg.trig_IsoMu) mu_weight *= br.IsoMu_SF_3;
 
-  } // End conditional: if (cfg.year == "2017")
+  } // End conditional: if (cfg.year == "2017" || cfg.year == "2018")
 
   else {
     std::cout << "Inside MuonWeight.cc, invalid year = " << cfg.year << std::endl;
@@ -81,12 +81,12 @@ float EventWeight( const NTupleBranches & br, const EventWeightConfig & cfg, con
 
   } // End conditional: if (cfg.year == "2016")
 
-  else if (cfg.year == "2017") {
+  else if (cfg.year == "2017" || cfg.year == "2018") {
 
     if (cfg.PU ) evt_weight *= br.PU_wgt;
     if (cfg.GEN) evt_weight *= br.GEN_wgt;
 
-  } // End conditional: if (cfg.year == "2017")
+  } // End conditional: if (cfg.year == "2017" || cfg.year == "2018")
 
   else {
     std::cout << "Inside EventWeight.cc, invalid year = " << cfg.year << std::endl;

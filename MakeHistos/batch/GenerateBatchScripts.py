@@ -33,36 +33,42 @@ if 'bortigno' in os.getcwd(): USER = 'bortigno'
 if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Root macro to run from each job
-# MACRO = 'macros/ReadNTupleChain.C'
+#MACRO = 'macros/ReadNTupleChain.C'
 #MACRO = 'macros/MC_data_comparison.C'
-#MACRO = 'macros/ttH_3l.C'
-MACRO = 'macros/MiniNTupliser.C'
+#MACRO = 'macros/ggH_VBF_2l.C'
+#MACRO = 'macros/WH_lep.C'
+MACRO = 'macros/ttH_3l.C'
+#MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/MiniNTupliser_4l_cat.C'
 #MACRO = 'macros/MiniNTupliser_WH_all_comb.C'
 #MACRO = 'macros/lepMVA_SF_calc.C'
 #MACRO = 'macros/lepMVA_efficiency.C'
 #MACRO = 'macros/lepMVA_variables.C'
 
-#LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
-#LOC   = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
-LOC   = 'CERN_lepMVA_3l_test_v1_with_extra_samples'
-YEAR   = 2017    ## Dataset year (2016 or 2017 or 2018)
-LUMI   = 41000   ## 36814 for 2016, 41000 for 2017, temporarily use 50000 for 2018 ABC
+LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
+#LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
+#LOC   = 'CERN_lepMVA_3l_test_v1'
+YEAR   = 2017    ## Dataset year (2016 or 2017)
+LUMI   = 41500   ## 36814 for 2016, 41500 for 2017
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
-IN_DIR = ''
-IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1'
+#IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
+#IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1'
 HADD_IN = True   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
 
 ## Directory for logs and output root files
-if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
-if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
+if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%d/Histograms' % YEAR
+if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%d/Histograms' % YEAR
 
+#LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
+#LABEL = 'WH_lep_AWB_2019_04_24_v1'
+LABEL = 'ttH_3l_AWB_2019_05_01_v1'
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'
-LABEL = 'VH_selection_2019april/pt10_iso04/WH_mu_high_dimu_pt_ID_fix'
+#LABEL = 'VH_selection_2019april/pt10_iso04/WH_mu_high_dimu_pt_ID_fix'
 #LABEL  = 'ttH_3l_AWB_2019_04_12_v1'
 #LABEL = 'data_MC_2018_M70_170_v1'
+#LABEL = 'WH_mu_med_ID_loose_iso_v1'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
@@ -121,7 +127,7 @@ def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_
     run_files[-1].write('\neval `scramv1 runtime -sh`')
     run_files[-1].write(run_macro)
     run_files[-1].close()
-    print 'Wrote file %s' % run_files[-1].name
+    # print 'Wrote file %s' % run_files[-1].name
     os.chmod(run_files[-1].name, 0o777)
 
     ## Write a condor file to submit this particular job
@@ -139,7 +145,7 @@ def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_
     sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
     sub_files[-1].write( 'queue\n' )
     sub_files[-1].close()
-    print 'Wrote file %s' % sub_files[-1].name
+    # print 'Wrote file %s' % sub_files[-1].name
     os.chmod(sub_files[-1].name, 0o777)
 
 
@@ -289,7 +295,7 @@ def main():
         
         versions = []  ## In case of multiple crab submissions
 
-        print 'Running command ls %s' % in_dir_name
+        if VERBOSE: print 'Running command ls %s' % in_dir_name
         # for ver in subprocess.check_output(['ls', in_dir_name]).splitlines():  ## Only available in Python >= 2.7
         ls_files = Popen(['ls', in_dir_name], stdout=PIPE)
 
@@ -300,15 +306,15 @@ def main():
                 versions.append([int(ver.split('_')[0]), int(ver.split('_')[1]), ver])
 
             if len(versions) > 0:
-                print versions
-                print "\n"
+                if VERBOSE: print versions
+                if VERBOSE: print "\n"
                 versions.sort(key = itemgetter(0, 1), reverse=True)  ## Choose the latest crab submission
             else:
                 print '\n\nWARNING!!!  No crab output found for sample %s, from DAS %s' % (samp.name, samp.DAS_name)
                 print 'Looked in %s - maybe it is somewhere else?\n\n' % in_dir_name
                 continue
         
-            print 'Chose version %d_%06d' % (versions[0][0], versions[0][1])
+            if VERBOSE: print 'Chose version %d_%06d' % (versions[0][0], versions[0][1])
 #	if samp.name is 'SingleMu_2017F':
 #		in_dir_name += '/180802_164117'
 #	if samp.name is 'ZJets_AMC':        # temporary for 2017 WH
@@ -328,7 +334,7 @@ def main():
 
             elif not HADD_IN:
                 ls_files = Popen(['ls', in_dir_name+'/'+subdir], stdout=PIPE)
-                print 'Running command ls %s' % (in_dir_name+'/'+subdir)
+                if VERBOSE: print 'Running command ls %s' % (in_dir_name+'/'+subdir)
                 for in_file in ls_files.communicate()[0].split():
                     if 'tuple' in in_file and '.root' in in_file: ## Only look at tuple_*.root files
                         du_file = Popen(['ls', '-l', in_dir_name+'/'+subdir+'/'+in_file], stdout=PIPE)
@@ -336,7 +342,7 @@ def main():
                         in_files.append(['%s/%s' % (subdir, in_file), fileMB])
 
         if len(in_files) > 0:
-            print 'Final file list has %d entries' % len(in_files)
+            if VERBOSE: print 'Final file list has %d entries' % len(in_files)
         else:
             print '\n\nWARNING!!!  No output root files found for sample %s, from DAS %s' % (samp.name, samp.DAS_name)
             print 'Looked in %s - maybe it is somewhere else?\n\n' % in_dir_name
@@ -401,6 +407,7 @@ def main():
         hadd_files[cat].write('\n\necho "Navigating back to ${run_dir}"')
         hadd_files[cat].write('\ncd ${run_dir}')
         hadd_files[cat].close()
+        os.chmod(hadd_files[cat].name, 0o777)
 
     subs_file.close()
     runs_file.close()
@@ -412,15 +419,15 @@ def main():
     os.chmod(runs_file.name, 0o777) ## Render runs_all.sh executable
     os.chmod(hadd_file.name, 0o777) ## Render hadd_all.sh executable
 
-    for run_file in run_files:
-        print run_file.name
-    print ''
-    for sub_file in sub_files:
-        print sub_file.name
-    print ''
-    for cat in hadd_files.keys():
-        os.chmod(hadd_files[cat].name, 0o777)
-        print hadd_files[cat].name
+    if VERBOSE:
+        for run_file in run_files:
+            print run_file.name
+            print ''
+        for sub_file in sub_files:
+            print sub_file.name
+            print ''
+        for cat in hadd_files.keys():
+            print hadd_files[cat].name
 
         
 ## End function: main()
