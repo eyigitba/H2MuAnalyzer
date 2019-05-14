@@ -89,7 +89,7 @@ def ConfigStackPlot(known_config, year):
     ###  Configuration for validation of WH backgrounds (Z+jets, ttbar, ttW, ttZ)  ###
     ##################################################################################
 
-    if (known_config == 'WH_lep' or 'ttH_3l'):
+    if (known_config == 'WH_lep' or 'ttH_3l' or 'validation'):
 
         cfg.year       = year
         cfg.ntuple_loc = 'CERN'
@@ -102,6 +102,7 @@ def ConfigStackPlot(known_config, year):
             cfg.groups['Bkg']['WZ']         = ['WZ_3l']
             cfg.groups['Bkg']['ZZ']         = ['ZZ_4l']
             ## Powheg sample has ~70% of the stats, MadGraph sample has ~30%.  Weight by 0.7 and 0.3.
+            ## remember to check the weights in macro/StackPlots.py:341
             cfg.groups['Bkg']['ttbar']      = ['tt_ll_POW', 'tt_ll_MG']
             cfg.groups['Bkg']['Other']      = []  ## Any background sample not of a specified type goes into 'Other'
 
@@ -110,6 +111,7 @@ def ConfigStackPlot(known_config, year):
                 # ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
                 # cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
                 ## Assume 50-50 split for AMC and MG
+                ## remember to change in macros/StackPlots.py:338
                 cfg.groups['Bkg']['ZJets']      = ['ZJets_hiM_AMC', 'ZJets_hiM_MG']
                 cfg.groups['Bkg']['single top'] = ['tW_pos', 'tW_neg']
                 cfg.groups['Bkg']['ttX']        = ['ttW', 'ttZ', 'ttH', 'tZq']
@@ -123,6 +125,7 @@ def ConfigStackPlot(known_config, year):
             else:
                 ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
                 ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
+                ## remember to change in macros/StackPlots.py:338
                 cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
                 cfg.groups['Bkg']['top+X']      = ['tZq'] ## Missing tZW
                 cfg.groups['Bkg']['ttW']        = ['ttW']
@@ -137,8 +140,23 @@ def ConfigStackPlot(known_config, year):
             cfg.groups['Sig']  = OrderedDict(cfg.groups['Sig'])
             cfg.groups['Bkg']  = OrderedDict(cfg.groups['Bkg'])
 
+        if (year == '2018'):
 
-        else: print 'Year %s not valid for config %s. Exiting.' % year, sys.exit()
+            cfg.groups['Data']['Data']   = []  ## By default, all data samples go into 'Data'
+            cfg.groups['Sig']['Signal']  = []  ## By default, all signal samples go into 'Signal'
+            cfg.groups['Bkg']['ttbar']      = ['tt_ll_MG']#, 'tt_ll_POW']
+            #cfg.groups['Bkg']['Other']      = []  ## Any background sample not of a specified type goes into 'Other'
+
+            ## remember to change in macros/StackPlots.py:338
+            cfg.groups['Bkg']['ZJets']      = ['ZJets_MG_1']#['ZJets_hiM_AMC']#, 'ZJets_hiM_MG']
+            ## Samples to exclude from consideration
+            cfg.excl_samps = ['ZJets_hiM_AMC', 'ZJets_hiM_MG',
+                              'ZJets_MG_2',
+                              'ZJets_AMC']
+  
+
+
+        else: print 'Year %s not valid for config unknown. Exiting.' %year, sys.exit()
 
         ## Colors for each group
         cfg.colors = {}

@@ -50,7 +50,15 @@ if USER == 'abrinke1':
 elif USER == 'xzuo':
     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 elif USER == 'bortigno':
-    PLOT_DIR = 'NONE'
+    PLOT_DIR = '/afs/cern.ch/work/b/bortigno/x2mm_histos/2018/pre-prod-v18p0p2-test-v2'
+    CATEGORY = '2mu_NONE'
+    IN_FILE  = 'histos_Presel2018_%s.root' %CATEGORY ## File with input histograms
+    CONFIG   = 'None'
+    YEAR     = '2018'
+    LABEL    = '2018_mc_data'
+    SCALE    = 'lin'
+    RATIO_MIN = 0.0
+    RATIO_MAX = 2.0
 else: print 'Invalid USER = %s' % USER
 
 
@@ -59,14 +67,14 @@ else: print 'Invalid USER = %s' % USER
 def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):   # Do not use TRatioPlot! It is a devil! - XWZ 19.09.2018
 
     ## Create a new TCanvas
-    canv = R.TCanvas('can_'+dist, 'can_'+dist, 1)
+    canv = R.TCanvas('can_'+dist, 'can_'+dist, 600, 600)
     canv.Clear()
     canv.cd()
     
     ## Draw the upper pad, with the stack histogram
     upper_pad = R.TPad('upperPad_'+dist, 'upperPad_'+dist, 0, 0.3, 1, 1)
     upper_pad.SetBottomMargin(0.05);
-    upper_pad.SetRightMargin(0.20)
+    upper_pad.SetRightMargin(0.05);
     upper_pad.Draw()
     upper_pad.cd()
 
@@ -97,7 +105,7 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
     ## Draw the signal histogram, normalized to total MC area
     h_sig = sig_stack.GetStack().Last().Clone('tmp')
     if h_sig.Integral() > 0: h_sig.Scale( all_stack.GetStack().Last().Integral() / h_sig.Integral() )
-    h_sig.Draw('HISTSAME')
+    #h_sig.Draw('HISTSAME')
 
     ## Save the net signal, net background, and net data histograms
     h_net_sig  = sig_stack.GetStack().Last().Clone('h_'+dist+'_Net_Sig')
@@ -113,7 +121,8 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
 
     lower_pad = R.TPad('lowerPad_'+dist, 'lowerPad_'+dist, 0, 0.05, 1, 0.3)
     lower_pad.SetTopMargin(0.05)
-    lower_pad.SetRightMargin(0.20)
+    lower_pad.SetRightMargin(0.05)
+    lower_pad.SetBottomMargin(0.3)
     lower_pad.Draw()
     lower_pad.cd()
 
@@ -122,6 +131,14 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
         ratio_hist = h_data.Clone('ratioHist')
         ratio_hist.Divide(all_stack.GetStack().Last())
         ratio_hist.SetTitle('')
+        ratio_hist.GetYaxis().SetTitle("Data/MC")
+        ratio_hist.GetYaxis().SetTitleOffset(0.35)
+        ratio_hist.GetYaxis().SetTitleSize(0.1)
+        ratio_hist.GetYaxis().SetLabelSize(0.1)
+        ratio_hist.GetXaxis().SetTitle(dist)
+        ratio_hist.GetXaxis().SetTitleOffset(1.0)
+        ratio_hist.GetXaxis().SetTitleSize(0.1)
+        ratio_hist.GetXaxis().SetLabelSize(0.1)
         ratio_hist.SetMinimum(RATIO_MIN)
         ratio_hist.SetMaximum(RATIO_MAX)
         # ratio_hist.GetYaxis().SetNdivisions(502)  ## For some reason causes segfault after a dozen or so plots - AWB 09.10.2018
@@ -129,7 +146,10 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
         ratio_hist.Draw()
 
     canv.Update()
+    canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.pdf')
     canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.png')
+    canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.root')
+
 
     ## Open output root file and save canvas and net histograms
     out_file_loc = R.TFile.Open(out_file_name, 'UPDATE')
@@ -157,6 +177,7 @@ def main():
     #######################################
 
     if USER == 'abrinke1': in_file_dir = PLOT_DIR+'/'+LABEL+'/files/HADD'
+    elif USER == 'bortigno': in_file_dir = '/eos/cms/store/user/bortigno/x2mumu_histos/2018/pre-prod-v18p0p2-test-v2/files/HADD/'
     else:                  in_file_dir = PLOT_DIR+'/'+LABEL+'/files/sum'
 
     in_file_name  = in_file_dir+'/'+IN_FILE
@@ -394,7 +415,8 @@ def main():
             sigSq += ( pow(h_sig.GetBinContent(i), 2) / (numB + pow(errB, 2)) )
 
         ## Create TLegend
-        legend = R.TLegend(0.82, 0.1, 0.98, 0.9)
+        legend = R.TLegend(0.73, 0.55, 0.92, 0.88)
+        legend.SetLineWidth(0)
         for evt_type in groups.keys():
             for group in groups[evt_type].keys():
                 if MC_only and group == 'Data': continue

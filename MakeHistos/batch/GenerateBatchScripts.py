@@ -52,7 +52,7 @@ LUMI   = 28000   ## 36814 for 2016, 41000 for 2017, 14+7.10+6.94+31.93 for 2018
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR = ''
 IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/'
-HADD_IN = True   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
+HADD_IN = False   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
 
 ## Directory for logs and output root files
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
@@ -66,7 +66,7 @@ if USER == 'bortigno': OUT_DIR = '/afs/cern.ch/work/b/bortigno/x2mm_histos/2018/
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'
 #LABEL = 'WH_mu_med_ID_loose_iso_v1'
-LABEL  = 'pre-prod-v18p0p2'
+LABEL  = 'pre-prod-v18p0p2-test-v2'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
@@ -88,7 +88,7 @@ SAMP_LIST = []  ## Leave [] empty to process multiple samples
 #            'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## for keeping track of what is used
 #SAMP_LIST = ['ZJets_hiM_MG']
 
-VERBOSE = False ## Verbose printout
+VERBOSE = True ## Verbose printout
 
 
 ## Function to write the launcher script for a single job, and add that job to the main submit_all.sh script
