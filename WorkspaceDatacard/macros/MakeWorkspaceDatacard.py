@@ -1,198 +1,394 @@
 #! /usr/bin/env python
 
-##############################################
-# Workspace And Datacard Maker               #
-##############################################
-# Makes .root file and datacard needed for   #
-# shape limit setting.                       #
-# output .root and .txt files to be used     #
-# with higgs combine.                        #
-##############################################
+########################################################################
+##                    Workspace and Datacard Maker                    ##
+########################################################################
+##  Makes .root file and datacard needed for shape limit setting.     ##
+##  Output .root and .txt files to be used with Higgs Combine.        ##
+##  Modeled after Viktor Khristenko's code in:                        ##
+##  UFDimuAnalysis/python/limit_setting/WorkspaceAndDatacardMaker.py  ##
+########################################################################
 
 #============================================
-# import
+# Imports
 #============================================
 
-import PDFDatabase as pdfs
-import BGSFrun
-import prettytable
-import string
 import re
+import os
+import sys
+import string
 import argparse
-from ROOT import *
+import prettytable
+
+import ROOT as R
+import ROOT.RooFit as RF
+
+from shutil import rmtree
+import xml.etree.ElementTree as ET
+
+sys.path.insert(1, '%s/python' % os.getcwd())
+sys.path.insert(1, '%s/../FitBackground/python' % os.getcwd())
+import FitFunctions    as FF  ## From FitBackground/python/FitFunctions.py
+import DataLoader      as DL  ## From WorkspaceDatacard/python/DataLoader.py
+import PlotHelper      as PH  ## From WorkspaceDatacard/python/PlotHelper.py
+import WorkspaceHelper as WH  ## From WorkspaceDatacard/python/WorkspaceHelper.py
+import DatacardHelper  as DH  ## From WorkspaceDatacard/python/DatacardHelper.py
+
 
 #============================================
-# code
+# User-defined settings
+#============================================
+
+## Configure the script user
+if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
+if 'bortigno' in os.getcwd(): USER = 'bortigno'
+if 'xzuo'     in os.getcwd(): USER = 'xzuo'
+
+## Configure the channels, distributions, and fits to use
+## Chosen from XML files in configs/ directory
+# CONFIGS = ['WH_lep_AWB_2019_05_01_v3']
+# CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
+CONFIGS = ['WH_lep_AWB_2019_05_14_TMVA_retrain_v1']
+
+
+#============================================
+# Main code
 #============================================
 
 class WorkspaceAndDatacardMaker:
-# object to make workspace, root files, and datacards needed for analytic shape or template
-# limit setting via higgs combine.
+# Class to make workspace, root files, and datacards needed for
+# analytic shape or template limit setting via Higgs Combine
 
-    infilename = ''
-    category = ''
-    signal_hist = 0
-    bkg_hist = 0
-    net_hist= 0
-    data_hist =0
-    tfile = 0
-    nuisance_params = []
+    def __init__(self, _source, _in_dir, _out_dir, _cat, _cat_loc, _dist, _min_max, _blind, _rebin, _models):
 
-    def __init__(self, infilename, category):
-        self.infilename = infilename
-        self.category = category
-        self.tfile = TFile(infilename)
-        self.setDataHist()
-        self.setNetBackgroundHist()
-        self.setNetSignalHist()
-        self.setNetMCHist()
-	
+        self.out_dir = _out_dir ## Output directory for datacards, workspaces, plots, etc.
+        self.cat     = _cat     ## Category name for this workspace
+        self.dist    = _dist    ## Distribution for signal extraction
+        self.blind   = _blind   ## Range to blind in data
+        self.rebin   = _rebin   ## Rebin input distribution for optimal S^2/
+        self.models  = _models  ## Set of analytic or template models to use
+
+        self.in_data = DL.DataLoader(USER, _source, _in_dir, _cat_loc, _dist, _min_max, _rebin)
+
+        self.h_sig_fit  = None  ## Histogram of analytic best-fit to signal shape
+        self.h_bkg_fit  = None  ## Histogram of analytic best-fit to background shape
+        self.h_data_fit = None  ## Histogram of analytic best-fit to data shape
+        # self.nuisances = []     ## List of nuisance parameters (not yet implemented - AWB 13.05.19)
+
+    def Clear(self):
+        if not self.in_data    is None: self.in_data.Clear()
+        if not self.in_data    is None: del self.in_data
+        if not self.h_sig_fit  is None: del self.h_sig_fit
+        if not self.h_bkg_fit  is None: del self.h_bkg_fit
+        if not self.h_data_fit is None: del self.h_data_fit
+
+        self.out_dir    = ''
+        self.cat        = ''
+        self.dist       = ''
+        self.blind      = []
+        self.rebin      = 0
+        self.models     = []
+        self.in_data    = None
+        self.h_sig_fit  = None
+        self.h_bkg_fit  = None
+        self.h_data_fit = None
     
-    # uses the naming convention from categorize.cxx to automatically grab the histograms
-    def setNetBackgroundHist(self):
-    # grab net bkg MC, use as data for prototyping
-        self.bkg_hist = self.tfile.Get('net_histos/'+self.category+"_Net_Bkg")
-        self.bkg_hist.SetTitle(self.category+"_Net_Bkg")
-    
-    def setNetSignalHist(self):
-    # just use the net signal histogram instead of the different channels for prototyping
-        self.signal_hist = self.tfile.Get('net_histos/'+self.category+"_Net_Signal")
-        self.signal_hist.SetTitle(self.category+"_Net_Signal")
+
+    #-------------------------------------------------------------------------
+    # Make workspaces for signal and background template-based model
+    #-------------------------------------------------------------------------
+
+    def makeTemplateWorkspace(self, model):
+        ## Don't print plots to screen while running (faster)
+	R.gROOT.SetBatch(R.kTRUE)
+
+	## Save histograms for template fit.  Two separate types of workspace:
+        ##  * 'stack' for a single summed stack for signal and background,
+        ##  * 'group' for independent signal and background groups by process
+        model_str = model.replace('template', 'rebin') if self.rebin else model
+        WS = R.TFile.Open(self.out_dir+'/workspace/'+self.cat+'_'+self.dist+'_'+model_str+'.root', 'RECREATE')
+        WS.cd()
+
+        if 'stack' in model and not self.rebin:
+            self.in_data.sig_hists[0].Write()
+            self.in_data.bkg_hists[0].Write()
+            self.in_data.data_hist.Write('data_obs')
+        ## End conditional: if 'stack' in model and not rebin:
+        elif 'group' in model and not self.rebin:
+            for i in range(1, len(self.in_data.sig_hists)):
+                self.in_data.sig_hists[i].Write()
+            for i in range(len(self.in_data.bkg_hists)):
+                self.in_data.bkg_hists[i].Write()
+            self.in_data.data_hist.Write('data_obs')
+        ## End conditional elif 'group' in model and not rebin:
+        elif 'stack' in model and self.rebin:
+            self.in_data.sig_rebin[0].Write()
+            self.in_data.bkg_rebin[0].Write()
+            self.in_data.data_rebin.Write('data_obs')
+        ## End conditional: elif 'stack' in model and rebin:
+        elif 'group' in model and self.rebin:
+            for i in range(1, len(self.in_data.sig_rebin)):
+                self.in_data.sig_rebin[i].Write()
+            for i in range(len(self.in_data.bkg_rebin)):
+                self.in_data.bkg_rebin[i].Write()
+            self.in_data.data_rebin.Write('data_obs')
+        ## End conditional elif 'group' in model and rebin:
+        else:
+            print 'Model %s not valid!  Exiting.' % model
+            sys.exit()
+
+        WS.Print()
+
+    ## End function: def makeTemplateWorkspace(self, model):
 
 
-    def setDataHist(self):
-    # grab net bkg MC, use as data for prototyping
-        self.data_hist = self.tfile.Get('net_histos/Data_2017BCDEF')
-        self.data_hist.SetTitle(self.category+"_Data")
-    
-    def setNetMCHist(self):
-        # add up the signal and background
-        self.net_hist = self.signal_hist.Clone()
-        self.net_hist.Add(self.bkg_hist)
-        self.net_hist.SetName(self.category+'_Net_MC')
-        self.net_hist.SetTitle(self.category+'_Net_MC')
+    #-------------------------------------------------------------------------
+    # Make workspace for signal and background analytic-fit model
+    #-------------------------------------------------------------------------
 
-    # make workspace for signal and backgroudn fitting function
-    def makeShapeWorkspace(self):
-	# don't display plots; instead saving them as files
-	gROOT.SetBatch(kTRUE)
-        wspace = RooWorkspace(self.category)
-	bgsf = BGSFrun.BGSpectrumFitter(self.infilename, self.category)
-	h1 = bgsf.bg_all_hist
-	x1, massmin, massmax = bgsf.getX(h1)
-    
-        # create binned dataset from histogram
-        # needs to be named data_obs for higgs combine limit setting
-        data   = RooDataHist('data_obs', 'data_obs', RooArgList(x1), self.net_hist)
-        # import is a keyword so we wspace.import() doesn't work in python. have to do this
-        getattr(wspace, 'import')(data, RooCmdArg())
+    def makeShapeWorkspaces(self, sig_mod, sig_ord, sig_frz, bkg_mod, bkg_ord, bkg_frz):
+        ## Don't print plots to screen while running (faster)
+	R.gROOT.SetBatch(R.kTRUE)
 
-        # need to set the signal model to something concrete, so we will fit it to the expected SM histogram
-        #bhist  = RooDataHist('bkg', 'bkg', RooArgList(x), self.net_hist)
-        shist  = RooDataHist('sig', 'sig', RooArgList(x1), self.signal_hist)
-    
-        #-------------------------------------------------------------------------
-        # create background model(from PDFDatabase.py)
-	model1, model1_params = pdfs.bwZreduxFixed(x1)
-	model1.SetNameTitle('bmodel_'+self.category, 'bmodel_'+self.category)
-	bmodel = bgsf.fit(h1,model1,x1)
-	
-	# similar thing for background 
-        #for i in bkgParamList:
-        #    i.setConstant(True)
+        sig_fit  = FF.FitFunction('sig_fit_%s'  % self.cat, self.in_data.sig_hists[0], sig_mod, sig_ord, self.in_data.min_max, [],         'dimu_mass')
+        bkg_fit  = FF.FitFunction('bkg_fit_%s'  % self.cat, self.in_data.bkg_hists[0], bkg_mod, bkg_ord, self.in_data.min_max, [],         'dimu_mass')
+        data_fit = FF.FitFunction('data_fit_%s' % self.cat, self.in_data.data_hist,    bkg_mod, bkg_ord, self.in_data.min_max, self.blind, 'dimu_mass')
 
-        getattr(wspace, 'import')(bmodel, RooCmdArg())
+        FF.DoFit(sig_fit)
+        FF.DoFit(bkg_fit)
+        FF.DoFit(data_fit)
 
-        #-------------------------------------------------------------------------
-        # create signal model(triple gaussian)
+        self.h_sig_fit  = sig_fit.fit_hist
+        self.h_bkg_fit  = bkg_fit.fit_hist
+        self.h_data_fit = data_fit.fit_hist
 
-        # define the parameters for the three gaussians
-        # print massmin, massmax	
-	meanG1 = RooRealVar("MeanG1", "MeanG1", 150, massmin, massmax)
-        meanG2 = RooRealVar("MeanG2", "MeanG2", 150, massmin, massmax)
-        meanG3 = RooRealVar("MeanG3", "MeanG3", 150, massmin, massmax)
-        widthG1 = RooRealVar("WidthG1", "WidthG1", 5.0, 0.1, 20.0)
-        widthG2 = RooRealVar("WidthG2", "WidthG2", 5.0, 0.1, 20.0)
-        widthG3 = RooRealVar("WidthG3", "WidthG3", 5.0, 0.1, 20.0)
-        # mixing parameters for the three gaussians
-        coefG1 = RooRealVar("coefG1",  "coefG1", 0.5,0.,1.)
-        coefG2 = RooRealVar("coefG2",  "coefG2", 0.5,0.,1.)
-        # define the three gaussians
-        gaus1 = RooGaussian("gaus1", "gaus1", x1, meanG1, widthG1)
-        gaus2 = RooGaussian("gaus2", "gaus2", x1, meanG2, widthG2)
-        gaus3 = RooGaussian("gaus3", "gaus3", x1, meanG3, widthG3)
-        # double gaussian
-        smodel = RooAddPdf('smodel_'+self.category, 'smodel_'+self.category, RooArgList(gaus1, gaus2, gaus3), RooArgList(coefG1,coefG2))
-        sigParamList = [meanG1, meanG2, meanG3, widthG1, widthG2, widthG3, coefG1, coefG2]
-	smodel.fitTo(shist)
+        ## Plot data and fits into a frame
+        PH.DrawFits(sig_fit, bkg_fit, data_fit, self.cat+'_'+sig_mod+str(sig_ord)+'_'+bkg_mod+str(bkg_ord), self.out_dir)
 
-	# plotting
-        x1frame = x1.frame()
-        shist.plotOn(x1frame) 
-        smodel.plotOn(x1frame)
-        smodel.paramOn(x1frame)
-	chi2 = x1frame.chiSquare()
-        c1 = TCanvas('fig_signal_fit', 'fit', 10, 10, 500, 500)
-        x1frame.Draw()
-        t = TLatex(.6,.2,"#chi^{2}/ndof = %7.3f" % chi2);  
-        t.SetNDC(kTRUE);
-        t.Draw();
-        c1.SaveAs('.root')
-        c1.SaveAs('.png')
+        ## After fitting, we freeze all parameters in the signal fit
+        WH.FreezeParams(sig_fit, sig_frz)
+        ## Also freeze all the fit parameters in the background fit (to be revisited - AWB 09.05.2019)
+        WH.FreezeParams(bkg_fit, bkg_frz)
+        ## And all the fit parameters in the data fit (also to be revisited - AWB 09.05.2019)
+        WH.FreezeParams(data_fit, bkg_frz)
 
-        # after fitting, we nail the parameters down so that higgs combine 
-        # knows what the SM signal shape is
-        for i in sigParamList:
-            i.setConstant(True)
+        sig_frz_str = '_frz'.join(f for f in sig_frz)
+        if len(sig_frz_str) > 0: sig_frz_str = '_frz'+sig_frz_str
+        bkg_frz_str = '_frz'.join(f for f in bkg_frz)
+        if len(bkg_frz_str) > 0: bkg_frz_str = '_frz'+bkg_frz_str
+        shape_str = sig_mod+str(sig_ord)+sig_frz_str+'_'+bkg_mod+str(bkg_ord)+bkg_frz_str+'_shape'
 
-        getattr(wspace, 'import')(smodel, RooCmdArg())
+        ## Create a new workspace for this category
+        WS_data = R.RooWorkspace(self.cat+'_'+self.dist+'_'+shape_str+'_data')  ## Using data for background
+        WS_MC   = R.RooWorkspace(self.cat+'_'+self.dist+'_'+shape_str+'_MC')    ## Using MC for background
+        ## "Data" input to workspace must have name "data_obs"
+        ## Rename signal and background models for simplicity
+        data_fit.dat  .SetName('data_obs')
+        bkg_fit .dat  .SetName('data_obs')
+        data_fit.model.SetName('data_fit')
+        bkg_fit .model.SetName('bkg_fit')
+        sig_fit .model.SetName('sig_fit')
+        ## "import" is a keyword so workspace.import() doesn't work in python
+        ##   Have to do this instead:
+        getattr(WS_data, 'import')(data_fit.dat,   R.RooCmdArg())
+        getattr(WS_data, 'import')(data_fit.model, R.RooCmdArg())
+        getattr(WS_MC,   'import')(bkg_fit.dat,    R.RooCmdArg())
+        getattr(WS_MC,   'import')(bkg_fit.model,  R.RooCmdArg())
+        getattr(WS_data, 'import')(sig_fit.model,  R.RooCmdArg())
+        getattr(WS_MC,   'import')(sig_fit.model,  R.RooCmdArg())
 
-	#-------------------------------------------------------------------
-	# saving workspace to rootfile
-        wspace.SaveAs(self.category+'_s.root')
-        wspace.Print()
+	# Save workspaces to root file
+        WS_data.SaveAs(self.out_dir+'/workspace/'+WS_data.GetName()+'.root')
+        WS_data.Print()
+        WS_MC.SaveAs(self.out_dir+'/workspace/'+WS_MC.GetName()+'.root')
+        WS_MC.Print()
 
-    def makeShapeDatacard(self):
-    # analytic shape fit datacard
-        # figure out the size of the column
-        width = max(len('smodel_'+self.category), len('process'))
-        width+=4
-
-        f = open(self.category+'_s.txt', 'w') 
-        f.write('imax *\n')
-        f.write('jmax *\n')
-        f.write('kmax *\n')
-        f.write('----------------------------------------------------------------------------------------------------------------------------------\n')
-        f.write('shapes * * '+self.category+'_s.root '+self.category+':$PROCESS\n')
-        f.write('----------------------------------------------------------------------------------------------------------------------------------\n')
-        f.write('bin            '+self.category+'\n')
-        f.write('observation    -1.0\n')
-        f.write('----------------------------------------------------------------------------------------------------------------------------------\n')
-        f.write('bin'.ljust(width)+self.category.ljust(width)+self.category.ljust(width)+'\n')
-        f.write('process'.ljust(width)+('smodel_'+self.category).ljust(width)+('bmodel_'+self.category).ljust(width)+'\n')
-        f.write('process'.ljust(width)+'0'.ljust(width)+'1'.ljust(width)+'\n')
-        f.write('rate'.ljust(width)+'1'.ljust(width)+'1'.ljust(width)+'\n')
-        f.write('----------------------------------------------------------------------------------------------------------------------------------\n')
-        f.write('alpha'.ljust(width)+'rateParam'.ljust(width)+self.category.ljust(width)+('bmodel_'+self.category).ljust(width)+'1'.ljust(width)+'[0.9,1.1]'.ljust(width)+'\n')
-        f.write('lumi'.ljust(width)+'lnN'.ljust(width)+'1.05'.ljust(width)+'1.05'.ljust(width)+'\n')
-      
-        # get maximum length of the strings to figure out the width of the columns for the systematics section 
-        pwidth = len('param')
-        for n in self.nuisance_params:
-            if len(n) > pwidth: pwdith = len(n)
-        pwidth+=4
-      
-        # write the systematics section
-        for n in self.nuisance_params:
-            f.write(n.ljust(pwidth)+'param'.ljust(pwidth)+'0.0'.ljust(pwidth)+'0.1'.ljust(pwidth)+'\n')
+    ## End function: def makeShapeWorkspaces(self, sig_mod, sig_ord, sig_frz, bkg_mod, bkg_ord, bkg_frz):
 
 
-print('program is running ...')
-# Needs the file with the dimu_mass plots created by categorize.cxx
-# also needs to know the category you want to make the root file and datacard for
-wdm = WorkspaceAndDatacardMaker('/path/to/your/data/filename.root', 'your_category') 
-# For example try 'files/muPairs_mass.root' for rootfile and 'c_01_test' for category
-print wdm.infilename, wdm.category
-wdm.makeShapeWorkspace()
-wdm.makeShapeDatacard()
-# use higgs combine to combine the categories for the net limit, p-value, whatever
+    #---------------------------------------------------------------------------------------
+    # Make datacard with template-based and analytic signal and background fitting functions
+    #---------------------------------------------------------------------------------------
+
+    def makeShapeDatacards(self, sig_mod, sig_ord, sig_frz, bkg_mod, bkg_ord, bkg_frz):
+
+        ## Compute the size of the column
+        width = max(15, 3 + len(self.cat))
+
+        sig_frz_str = '_frz'.join(f for f in sig_frz)
+        if len(sig_frz_str) > 0: sig_frz_str = '_frz'+sig_frz_str
+        bkg_frz_str = '_frz'.join(f for f in bkg_frz)
+        if len(bkg_frz_str) > 0: bkg_frz_str = '_frz'+bkg_frz_str
+        shape_str = sig_mod+str(sig_ord)+sig_frz_str+'_'+bkg_mod+str(bkg_ord)+bkg_frz_str+'_shape'
+
+        card_data = open(self.out_dir+'/datacard/'+self.cat+'_'+self.dist+'_'+shape_str+'_data.txt', 'w')
+        DH.WriteHeader    (card_data, self.cat, self.out_dir, self.cat+'_'+self.dist+'_'+shape_str+'_data')
+        DH.WriteSigBkgBody(card_data, self.cat, self.dist, 'shape_data', width, self.h_sig_fit.Integral(), self.h_data_fit.Integral())
+        
+        card_MC = open(self.out_dir+'/datacard/'+self.cat+'_'+self.dist+'_'+shape_str+'_MC.txt', 'w') 
+        DH.WriteHeader    (card_MC, self.cat, self.out_dir, self.cat+'_'+self.dist+'_'+shape_str+'_MC')
+        DH.WriteSigBkgBody(card_MC, self.cat, self.dist, 'shape_MC', width, self.h_sig_fit.Integral(), self.h_bkg_fit.Integral())
+
+    ## End function: def makeShapeDatacards(self, sig_mod, sig_ord, sig_frz, bkg_mod, bkg_ord, bkg_frz):
+
+    def makeTemplateDatacards(self, model):
+
+        ## Compute the size of the column
+        width = max(15, 3 + len(self.cat))
+
+        model_str = model.replace('template', 'rebin') if self.rebin else model
+
+        card = open(self.out_dir+'/datacard/'+self.cat+'_'+self.dist+'_'+model_str+'.txt', 'w')
+        DH.WriteHeader(card, self.cat, self.out_dir, self.cat+'_'+self.dist+'_'+model_str)
+
+        if model_str == 'template_stack':
+            DH.WriteSigBkgBody(card, self.cat, self.dist, 'template_stack', width, self.in_data.sig_hists[0].Integral(), self.in_data.bkg_hists[0].Integral())
+        elif model_str == 'template_group':
+            DH.WriteGroupBody(card, self.cat, self.dist, 'template_group', width, self.in_data.sig_hists, self.in_data.bkg_hists)
+        elif model_str == 'rebin_stack':
+            DH.WriteSigBkgBody(card, self.cat, self.dist, 'rebin_stack', width, self.in_data.sig_rebin[0].Integral(), self.in_data.bkg_rebin[0].Integral())
+        elif model_str == 'rebin_group':
+            DH.WriteGroupBody(card, self.cat, self.dist, 'rebin_group', width, self.in_data.sig_rebin, self.in_data.bkg_rebin)
+        else:
+            print 'Invalid model string %s!!!  Exiting.' % model_str
+            sys.exit()
+
+    ## End function: def makeTemplateDatacards(self, model):
+
+
+
+#####################
+##  Main function  ##
+#####################
+
+def main():
+
+    print '\n\n*** Inside MakeWorkspaceDatacardNew.py ... and running! ***\n'
+
+    for config in CONFIGS:
+
+        ## Create new output sub-directory
+        out_dir = 'out_files/'+config
+        if os.path.exists(out_dir):
+            delete_dir = raw_input('\n*** Directory %s already exists!!! ***\nType "Y" to delete and continue, "N" to exit.\n\n' % out_dir)
+            if delete_dir == 'Y':
+                rmtree(out_dir)
+                print '\nDeleted %s\n' % out_dir
+            else:
+                print 'You typed %s, not "Y" - exiting\n' % delete_dir.lower()
+        os.makedirs(out_dir+'/workspace')
+        os.makedirs(out_dir+'/datacard')
+        os.makedirs(out_dir+'/plot')
+
+
+        ## Parse the XML configuration
+        XML = ET.parse('configs/'+config+'.xml').getroot()
+        source = (XML.find('source').text).replace(' ','')
+        in_dir = (XML.find('in_dir').text).replace(' ','')
+        print '\nParsed XML from configs/'+config+'.xml specifying:'
+        print '  * source = %s' % source
+        print '  * in_dir = %s' % in_dir
+
+        ## Loop over categories in XML
+        for cat in XML.find('categories'):
+            cat_name = cat.get('name')
+            cat_loc  = cat.get('loc')
+            print '\nInitializing workspace and datacard maker for category %s (from %s)' % (cat_name, cat_loc)
+
+            ## Loop over discriminants
+            for discr in XML.find('discriminants'):
+
+                ###############################################################################
+                ##  Parse info from XML (should move to separate function - AWB 13.05.2019)  ##
+                ###############################################################################
+                dist     = (discr.find('dist').text).replace(' ','')
+                blind    = (discr.find('blind').text).replace(' ','')
+                min_max  = (discr.find('min_max').text).replace(' ','')
+                rebin    = (discr.find('rebin').text).replace(' ','')
+                models   = (discr.find('models').text).replace(' ','')
+
+                if (not min_max.startswith('[') or not min_max.endswith(']')):
+                    print '\n\nInvalid option for min_max = %s' % min_max
+                elif min_max == '[]': min_max = []
+                else: min_max = [int(min_max.split(',')[0].replace('[','')), int(min_max.split(',')[1].replace(']',''))]
+
+                if (not blind.startswith('[') or not blind.endswith(']')):
+                    print '\n\nInvalid option for blind = %s' % blind
+                elif blind == '[]': blind = []
+                else: blind = [float(blind.split(',')[0].replace('[','')), float(blind.split(',')[1].replace(']',''))]
+
+                if (rebin != 'True' and rebin != 'False'):
+                    print '\n\nInvalid option for rebin = %s' % rebin
+                    sys.exit()
+                else: rebin = True if rebin == 'True' else False
+
+                if (not models.startswith('[') or not models.endswith(']')):
+                    print '\n\nInvalid option for models = %s' % models
+                else: models = models.replace('[','').replace(']','')
+                model_list = []
+                for mod in models.split(','): model_list.append(mod)
+                models = model_list
+
+                ## Create new instance of WorkspaceAndDatacardMaker
+                print '  * Using discriminant %s, rebin = %d' % (dist, rebin)
+                print '    Bin range = %s, blinding data in %s' % (' to '.join(str(i) for i in min_max), ' to '.join(str(j) for j in blind))
+                print '    Models = %s' % ','.join(k for k in models)
+
+                ## Initialize using specified configuration
+                WDM = WorkspaceAndDatacardMaker(source, in_dir, out_dir, cat_name, cat_loc, dist, min_max, blind, rebin, models)
+
+                ## Create MC template-based workspaces with grouped processes
+                ##  or inclusive signal and background stacks
+                for model in models:
+                    if not 'template' in model: continue
+                    WDM.makeTemplateWorkspace(model)
+                    WDM.makeTemplateDatacards(model)
+
+
+                ## Loop over signal and background fit settings
+
+                ###############################################################################
+                ##  Parse info from XML (should move to separate function - AWB 13.05.2019)  ##
+                ###############################################################################
+                if not 'shape' in models:
+                    WDM.Clear()
+                    continue
+
+                for sig_fit in discr.find('sig_fits'):
+                    sig_mod  = (sig_fit.find('shape').text).replace(' ','')
+                    sig_ord  = int((sig_fit.find('order').text).replace(' ',''))
+                    sig_frz = (sig_fit.find('freeze').text).replace(' ','').replace('[','').replace(']','')
+                    sig_frz_list = []
+                    for frz in sig_frz.split(','): sig_frz_list.append(frz)
+                    sig_frz = sig_frz_list
+                    
+                    for bkg_fit in discr.find('bkg_fits'):
+                        bkg_mod  = (bkg_fit.find('shape').text).replace(' ','')
+                        bkg_ord  = int((bkg_fit.find('order').text).replace(' ',''))
+                        bkg_frz = (bkg_fit.find('freeze').text).replace(' ','').replace('[','').replace(']','')
+                        bkg_frz_list = []
+                        for frz in bkg_frz.split(','): bkg_frz_list.append(frz)
+                        bkg_frz = bkg_frz_list
+
+                        ## Create analytic shape-based workspaces on data and MC
+                        for model in models:
+                            if not model == 'shape': continue
+                            print '\nCreating shape workspace with signal model %s (order %d), background model %s (order %d)' % (sig_mod, sig_ord, bkg_mod, bkg_ord)
+                            WDM.makeShapeWorkspaces(sig_mod, sig_ord, sig_frz, bkg_mod, bkg_ord, bkg_frz)
+                            WDM.makeShapeDatacards (sig_mod, sig_ord, sig_frz, bkg_mod, bkg_ord, bkg_frz)
+
+                        ## End loop: for model in models:
+                    ## End loop: for bkg_fit in discr.find('bkg_fits'):
+                ## End loop: for sig_fit in discr.find('sig_fits'):
+
+                WDM.Clear()
+
+            ## End loop: for discr in XML.find('discriminants'):
+        ## End loop: for cat in XML.find('categories'):
+    ## End loop: for config in CONFIGS:
+
+
+## End function: def main()
+
+if __name__ == '__main__':
+    main()
