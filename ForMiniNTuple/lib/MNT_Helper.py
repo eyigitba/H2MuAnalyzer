@@ -197,7 +197,7 @@ def GetSF(lep_type, pt, eta, lepMVA_cut):
     scale_factor = 0.0
 
     if lep_type == "muon":
-	in_file = TFile.Open("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/lepMVA_SF_v1/SF_muon_variable_eta_bin.root", "READ")
+	in_file = TFile.Open("/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/lepMVA_SF_v1/SF_muon_variable_eta_bin.root", "READ")
 	SF_mu = in_file.Get("SFs/" + "SF_3D" + lep_type).Clone()
 	pt_bin = FindBinNum(pt_binning, pt) 
 	eta_bin = FindBinNum(eta_binning, eta)
