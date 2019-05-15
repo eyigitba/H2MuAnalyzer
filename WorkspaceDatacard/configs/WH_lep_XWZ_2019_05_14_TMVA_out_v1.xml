@@ -1,0 +1,33 @@
+
+<root>
+
+  <source> xzuo_TMVA </source>
+  <in_dir> /afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_with_BDT/plots </in_dir>
+  
+  <categories>
+    <cat name="e2mu" loc="2017_WH_ele_against_inclu_trimvar_with_mass_all_sig_all_bkg_ge0j"/>
+  </categories>
+
+  <discriminants>
+    
+    <!-- Template-based discrimination for BDT including mass with 40 bins from -1 to +1 -->
+    <BDT_mass>
+      <dist>     BDTG_UF_v2 </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    False </rebin>
+      <models>   [template_stack] </models>
+    </BDT_mass>
+    
+    <!-- Template-based discrimination for BDT including mass with optimized re-binning -->
+    <BDT_mass_rebin>
+      <dist>     BDTG_UF_v2 </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    True </rebin>
+      <models>   [template_stack] </models>
+    </BDT_mass_rebin>
+    
+  </discriminants>
+
+</root>
