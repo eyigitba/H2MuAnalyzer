@@ -6,6 +6,8 @@
 ##  signal and background   ##
 ##############################
 
+import sys
+
 import ROOT as R
 import ROOT.RooFit as RF
 import ROOT.TMath as TM
@@ -43,18 +45,21 @@ class FitFunction:
         ## https://github.com/uiowahep/Analysis/blob/master/Configuration/higgs/UF_AWB_settings.py#L261
         if fit_type == 'poly':
             InitPoly(self)
-        if fit_type == 'expo':
+        elif fit_type == 'expo':
             InitExpo(self)
-        if fit_type == 'Bern':
+        elif fit_type == 'Bern':
             InitBern(self)
-        if fit_type == 'BWZ':
+        elif fit_type == 'BWZ':
             InitBWZ(self)
-        if fit_type == 'BWZRed':
+        elif fit_type == 'BWZRed':
             InitBWZRed(self)
-        if fit_type == 'PolyPlusBWZ':
+        elif fit_type == 'PolyPlusBWZ':
             InitPolyPlusBWZ(self)
-        if fit_type == 'Gaus':
+        elif fit_type == 'Gaus':
             InitGaus(self)
+        else:
+            print 'Fit type %s does not match any valid option!!! Exiting.' % fit_type
+            sys.exit()
 
 ## Modify the histogram range and blind the signal region
 def InitHist(FF):
@@ -269,7 +274,7 @@ def InitBWZ(FF):
 ## Create a reduced Breit-Wigner model
 def InitBWZRed(FF):
 
-    FF.order = 1
+    FF.order = 3
     FF.params[0].append( R.RooRealVar('a1', 'a1', 1.4, -99.9, 99.9) )
     FF.params[0].append( R.RooRealVar('a2', 'a2', 7.5, -99.9, 99.9) )
     FF.params[0].append( R.RooRealVar('a3', 'a3', 0.1, -99.9, 99.9) )
