@@ -134,9 +134,119 @@ def WriteGroupBody(card, cat, dist, fit, width, sig_hists, bkg_hists):
         card.write(('9.99').ljust(width))
     card.write('\n')
 
+    ## Rate uncertainty by channel:
+    card.write(('prompt').ljust(width-5))
+    card.write(('lnN  ').ljust(2))
+    for i in range(1, len(sig_hists)):
+	card.write(('-').ljust(width))
+    for i in range(1, len(bkg_hists)):
+	channel = bkg_hists[i].GetName().replace('Net_', '')
+	if ( channel=='WZ' or channel=='ZZ' or channel=='ttZ' or channel=='tZq' or channel=='triboson'):
+	    card.write(('1.2').ljust(width))
+	else:
+	    card.write(('-').ljust(width))
+    card.write('\n')
+
+    card.write(('Nprompt').ljust(width-5))
+    card.write(('lnN  ').ljust(2))
+    for i in range(1, len(sig_hists)):
+        card.write(('-').ljust(width))
+    for i in range(1, len(bkg_hists)):
+        channel = bkg_hists[i].GetName().replace('Net_', '')
+        if ( channel=='WZ' or channel=='ZZ' or channel=='ttZ' or channel=='tZq' or channel=='triboson'):
+	    card.write(('-').ljust(width))
+	else:
+	    card.write(('1.4').ljust(width))
+    card.write('\n')
+
     ## Final line to add bin-by-bin MC stats uncertainties
     card.write('* autoMCStats 0 0 1\n')
 
     print 'Wrote out datacard %s\n' % card.name
 
 ## End function: def WriteGroupBody(card, cat, dist, fit, width):
+
+def WriteCutAndCount(card, cat, out_dir, dist, width, MASS_WINDOW, sig_hists, bkg_hists):
+    print '\nCut and count analysis in mass window [%.2f,%.2f]' %(MASS_WINDOW[0], MASS_WINDOW[1])
+
+    Itg_min = sig_hists[0].FindBin(MASS_WINDOW[0]+0.01)
+    Itg_max = sig_hists[0].FindBin(MASS_WINDOW[1]-0.01)
+    print 'integrate bins in [%d, %d]' %(Itg_min, Itg_max)
+
+    ## Header
+    card.write('imax *\n')
+    card.write('jmax *\n')
+    card.write('kmax *\n')
+    card.write('----------------------------------------------------------------------------------------------------------------------------------\n')
+
+    card.write('bin            '+cat+'\n')
+    card.write('observation    -1.0\n')
+    card.write('----------------------------------------------------------------------------------------------------------------------------------\n')
+
+    ## Category name (same for each process)
+    card.write('bin'.ljust(width))
+    for i in range(2, len(sig_hists)+len(bkg_hists)):
+        card.write((cat).ljust(width))
+    card.write('\n')
+
+    ## Process names
+    card.write('process'.ljust(width))
+    for i in range(1, len(sig_hists)):
+        card.write((sig_hists[i].GetName()).ljust(width))
+    for i in range(1, len(bkg_hists)):
+        card.write((bkg_hists[i].GetName()).ljust(width))
+    card.write('\n')
+
+    ## Process numbers (<= 0 for signal, > 0 for background)
+    card.write('process'.ljust(width))
+    for i in range(1, len(sig_hists)):
+        card.write('%d'.ljust(width+1) % (1 + i - len(sig_hists)))
+    for i in range(1, len(bkg_hists)):
+        card.write('%d'.ljust(width+1) % i)
+    card.write('\n')
+
+    ## Rate parameters (i.e. total integral) for each process
+    card.write('rate'.ljust(width))
+    for i in range(1, len(sig_hists)):
+        card.write(('%f' % sig_hists[i].Integral(Itg_min, Itg_max)).ljust(width))
+    for i in range(1, len(bkg_hists)):
+        card.write(('%f' % bkg_hists[i].Integral(Itg_min, Itg_max)).ljust(width))
+    card.write('\n')
+
+    card.write('----------------------------------------------------------------------------------------------------------------------------------\n')
+
+    ## Systematic uncertainties: only on rate per process
+    card.write(('bkg_norm').ljust(width-5))
+    card.write(('lnN  ').ljust(2))
+    for i in range(1, len(sig_hists)):
+        card.write(('-').ljust(width))
+    for i in range(1, len(bkg_hists)):
+        card.write(('9.99').ljust(width))
+    card.write('\n')
+
+    ## Rate uncertainty by channel:
+    card.write(('prompt').ljust(width-5))
+    card.write(('lnN  ').ljust(2))
+    for i in range(1, len(sig_hists)):
+        card.write(('-').ljust(width))
+    for i in range(1, len(bkg_hists)):
+        channel = bkg_hists[i].GetName().replace('Net_', '')
+        if ( channel=='WZ' or channel=='ZZ' or channel=='ttZ' or channel=='tZq' or channel=='triboson'):
+            card.write(('1.2').ljust(width))
+        else:
+            card.write(('-').ljust(width))
+    card.write('\n')
+
+    card.write(('Nprompt').ljust(width-5))
+    card.write(('lnN  ').ljust(2))
+    for i in range(1, len(sig_hists)):
+        card.write(('-').ljust(width))
+    for i in range(1, len(bkg_hists)):
+        channel = bkg_hists[i].GetName().replace('Net_', '')
+        if ( channel=='WZ' or channel=='ZZ' or channel=='ttZ' or channel=='tZq' or channel=='triboson'):
+            card.write(('-').ljust(width))
+        else:
+            card.write(('1.4').ljust(width))
+    card.write('\n')
+
+## End function: def WriteCutAndCount(card, cat, out_dir, dist, width, MASS_WINDOW, sig_hists, bkg_hists):

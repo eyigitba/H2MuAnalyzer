@@ -24,7 +24,7 @@ import ROOT as R
 #           'T400_syst_0p3_fit_autoMCStats0',
 #           'T400_syst_0p3_fit']
 # LABELS = ['test_BDT_mass_rebin_v1']
-LABELS = ['test_XWZ_new_script_v1']
+LABELS = ['test_XWZ_BDT_temp_v1']
 
 ## Print additional debugging info
 VERBOSE = False

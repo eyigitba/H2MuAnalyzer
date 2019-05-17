@@ -47,8 +47,11 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 ## Configure the channels, distributions, and fits to use
 ## Chosen from XML files in configs/ directory
 # CONFIGS = ['WH_lep_AWB_2019_05_01_v3']
-# CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
-CONFIGS = ['WH_lep_AWB_2019_05_14_TMVA_retrain_v1']
+#CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
+#CONFIGS = ['WH_ele_XWZ_2019_05_15_v1_merge3']
+CONFIGS = ['WH_ele_XWZ_mass_05_16_v1']
+#CONFIGS = ['WH_mu_XWZ_2019_05_15_v1']
+# CONFIGS = ['WH_lep_AWB_2019_05_14_TMVA_retrain_v1']
 
 
 #============================================
@@ -255,7 +258,15 @@ class WorkspaceAndDatacardMaker:
 
     ## End function: def makeTemplateDatacards(self, model):
 
+    def makeCutAndCountDatacards(self):
 
+	## Compute the size of the column
+        width = max(15, 3 + len(self.cat))
+	MASS_WINDOW = [120, 130]  # currently hard coded here, could use MASS_WINDOW = self.blind
+
+	card = open(self.out_dir+'/datacard/'+self.cat+'_'+self.dist+'_CutAndCount'+'.txt', 'w')
+	DH.WriteCutAndCount(card, self.cat, self.out_dir, self.dist, width, MASS_WINDOW, self.in_data.sig_hists, self.in_data.bkg_hists)
+    ## End function: makeCutAndCountDatacards(self):
 
 #####################
 ##  Main function  ##
@@ -310,7 +321,7 @@ def main():
                 if (not min_max.startswith('[') or not min_max.endswith(']')):
                     print '\n\nInvalid option for min_max = %s' % min_max
                 elif min_max == '[]': min_max = []
-                else: min_max = [int(min_max.split(',')[0].replace('[','')), int(min_max.split(',')[1].replace(']',''))]
+                else: min_max = [float(min_max.split(',')[0].replace('[','')), float(min_max.split(',')[1].replace(']',''))]
 
                 if (not blind.startswith('[') or not blind.endswith(']')):
                     print '\n\nInvalid option for blind = %s' % blind
@@ -343,7 +354,6 @@ def main():
                     if not 'template' in model: continue
                     WDM.makeTemplateWorkspace(model)
                     WDM.makeTemplateDatacards(model)
-
 
                 ## Loop over signal and background fit settings
 
