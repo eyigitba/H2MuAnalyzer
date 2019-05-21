@@ -25,7 +25,7 @@
       <dist>     BDTG_UF_v2 </dist>
       <min_max>  [-1, 1] </min_max>
       <blind>    [0, 1] </blind>
-      <rebin>    [0.5, 0.02] </rebin>
+      <rebin>    [conserv, 0.5, 0.02] </rebin>
       <models>   [template_stack] </models>
     </BDT_mass_rebin>
     

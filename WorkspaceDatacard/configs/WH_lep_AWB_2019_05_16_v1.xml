@@ -71,7 +71,7 @@
       <dist>     H_pair_mass_zoomH </dist>
       <min_max>  [110, 160] </min_max>
       <blind>    [120, 130] </blind>
-      <rebin>    [0.5, 0.02] </rebin>
+      <rebin>    [conserv, 0.5, 0.02] </rebin>
       <models>   [template_stack, template_group] </models>
     </mass_0p5_GeV_rebin>
     
@@ -91,7 +91,7 @@
       <dist>     BDT_XWZ_withMass_zoom </dist>
       <min_max>  [-1, 1] </min_max>
       <blind>    [0, 1] </blind>
-      <rebin>    [0.5, 0.02] </rebin>
+      <rebin>    [conserv, 0.5, 0.02] </rebin>
       <models>   [template_stack, template_group] </models>
     </BDT_mass_rebin>
     
@@ -110,7 +110,7 @@
       <dist>     BDT_AWB_withMass_zoom </dist>
       <min_max>  [-1, 1] </min_max>
       <blind>    [0, 1] </blind>
-      <rebin>    [0.5, 0.02] </rebin>
+      <rebin>    [conserv, 0.5, 0.02] </rebin>
       <models>   [template_stack, template_group] </models>
     </BDT_mass_rebin>
     
@@ -129,7 +129,7 @@
       <dist>     BDT_AWB_retrain_zoom </dist>
       <min_max>  [-1, 1] </min_max>
       <blind>    [0, 1] </blind>
-      <rebin>    [0.5, 0.02] </rebin>
+      <rebin>    [conserv, 0.5, 0.02] </rebin>
       <models>   [template_stack, template_group] </models>
     </BDT_mass_rebin>
 
@@ -138,7 +138,7 @@
       <dist>     BDT_AWB_noMass_zoom </dist>
       <min_max>  [-1, 1] </min_max>
       <blind>    [0, 1] </blind>
-      <rebin>    [0.5, 0.02] </rebin>
+      <rebin>    [conserv, 5.0, 0.02] </rebin>
       <models>   [template_stack, template_group] </models>
     </BDT_mass_rebin>
     
