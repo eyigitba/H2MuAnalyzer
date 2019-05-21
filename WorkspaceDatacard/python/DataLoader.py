@@ -170,7 +170,10 @@ class DataLoader:
         
         ## Rebin histograms for maximum S/sqrt(B) significance with a conservative estimate of uncertainties
         if self.rebin != False:
-            new_bins = array.array('d', ACT.MergeBins(self.sig_hists[0], self.bkg_hists[0], 'conserv', self.rebin[0], self.rebin[1], False) )
+            ## rebin[0] sets the significance calculation strategy: 'noSyst', 'nominal', or 'conserv'
+            ## rebin[1] sets the minimum allowed background in a single bin
+            ## rebin[2] sets the maximum allowed loss in total significance from rebinning
+            new_bins = array.array('d', ACT.MergeBins(self.sig_hists[0], self.bkg_hists[0],  self.rebin[0], self.rebin[1], self.rebin[2], False) )
             self.data_rebin = self.data_hist.Rebin( len(new_bins)-1, self.data_hist.GetName(), new_bins )
             for hist in self.sig_hists:
                 self.sig_rebin.append( hist.Rebin( len(new_bins)-1, hist.GetName(), new_bins ) )

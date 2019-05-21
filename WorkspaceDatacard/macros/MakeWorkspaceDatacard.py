@@ -121,12 +121,12 @@ class WorkspaceAndDatacardMaker:
                 self.in_data.bkg_hists[i].Write()
             self.in_data.data_hist.Write('data_obs')
         ## End conditional elif 'group' in model and not rebin:
-        elif 'stack' in model and len(self.rebin) == 2:
+        elif 'stack' in model and len(self.rebin) == 3:
             self.in_data.sig_rebin[0].Write()
             self.in_data.bkg_rebin[0].Write()
             self.in_data.data_rebin.Write('data_obs')
         ## End conditional: elif 'stack' in model and rebin:
-        elif 'group' in model and len(self.rebin) == 2:
+        elif 'group' in model and len(self.rebin) == 3:
             for i in range(1, len(self.in_data.sig_rebin)):
                 self.in_data.sig_rebin[i].Write()
             for i in range(len(self.in_data.bkg_rebin)):
@@ -323,7 +323,10 @@ def main():
                     print '\n\nInvalid option for rebin = %s' % rebin
                     sys.exit()
                 elif rebin == 'False': rebin = False
-                else: rebin = [float(rebin.split(',')[0].replace('[','')), float(rebin.split(',')[1].replace(']',''))]
+                else: rebin = [str(rebin.split(',')[0].replace('[','')), float(rebin.split(',')[1]), float(rebin.split(',')[2].replace(']',''))]
+                if rebin != False and len(rebin) != 3:
+                    print '\n\nInvalid option rebin with !=3 elements: ['+','.join(str(i) for i in rebin)+']'
+                    sys.exit()
 
                 if (not models.startswith('[') or not models.endswith(']')):
                     print '\n\nInvalid option for models = %s' % models
