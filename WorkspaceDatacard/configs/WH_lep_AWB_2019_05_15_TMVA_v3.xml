@@ -1,0 +1,27 @@
+
+<root>
+
+  <source>  abrinke1_TMVA </source>
+  <in_dir>  /afs/cern.ch/user/a/abrinke1/HiggsToMuMu/2017/CMSSW_9_4_10/src/H2MuAnalyzer/TrainMVA/output </in_dir>
+  <in_file> TMVA_BDT_2017_WH_lep_all_vs_all_v2.root </in_file>
+  
+  <categories>
+    <!-- <cat name="lep_withMass" loc="f_Opt_AWB_withMass_v3_all_sig_all_bkg_"/> -->
+    <!-- <cat name="lep_noMass"   loc="f_Opt_AWB_noMass_v3_all_sig_all_bkg_"/> -->
+    <cat name="lep_noMass"   loc="f_Opt_AWB_noMass_v3_resWgt_all_sig_all_bkg_resWgt"/>
+  </categories>
+
+  <discriminants>
+    
+    <!-- Template-based discrimination for BDT with optimized re-binning -->
+    <BDT_mass_rebin>
+      <dist>     BDTG_UF_v1 </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    [conserv, 0.5, 0.02] </rebin>
+      <models>   [template_stack] </models>
+    </BDT_mass_rebin>
+    
+  </discriminants>
+
+</root>
