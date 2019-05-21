@@ -282,8 +282,10 @@ def InitBWZRed(FF):
     FF.params[0].append( R.RooRealVar('a2', 'a2', 7.5, -99.9, 99.9) )
     if (FF.order >= 3):
         FF.params[0].append( R.RooRealVar('a3', 'a3', 0.1, -99.9, 99.9) )
+        params_arg_list = R.RooArgList( R.RooArgSet(FF.var, FF.params[0][0], FF.params[0][1], FF.params[0][2]) )
+    else:
+        params_arg_list = R.RooArgList( R.RooArgSet(FF.var, FF.params[0][0], FF.params[0][1]) )
 
-    params_arg_list = R.RooArgList( R.RooArgSet(FF.var, FF.params[0][0], FF.params[0][1], FF.params[0][2]) )
     x_str = FF.var_name
     # FF.funcs.append( R.RooGenericPdf('BWZRed', 'BWZRed', 'exp(a2*'+x_str+' + a3*'+x_str+'*'+x_str+')/(pow('+x_str+'-91.1876,a1) + pow(2.5/2,a1))', params_arg_list) )
     if (FF.order == 3):
