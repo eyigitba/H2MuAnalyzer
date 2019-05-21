@@ -1,0 +1,148 @@
+
+<root>
+
+  <source>  abrinke1 </source>
+  <in_dir>  /afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms/WH_lep_AWB_2019_05_16_v1 </in_dir>
+  <in_file> StackPlots.root </in_file>
+  
+  <categories>
+    <cat name="e2mu" loc="e2mu_medLepMVA_noZ_noBtag_mass12"/>
+    <cat name="mu3"  loc="3mu_medLepMVA_noZ_noBtag_mass12"/>
+  </categories>
+
+  <discriminants>
+    
+    <!-- Template and shape-based discrimination for di-muon mass with 0.5 GeV bins -->
+    <mass_0p5_GeV>
+      <dist>     H_pair_mass_zoomH </dist>
+      <min_max>  [110, 160] </min_max>
+      <blind>    [120, 130] </blind>
+      <rebin>    False </rebin>
+      <models>   [shape, template_stack, template_group] </models>
+      
+      <sig_fits>
+	<fit>
+	  <shape>  Gaus </shape>
+	  <order>  3 </order>
+	  <freeze> [Coefs, Params] </freeze>
+	</fit>
+      </sig_fits>
+      
+      <bkg_fits>
+
+	<fit>
+	  <shape>  BWZ </shape>
+	  <order>  1 </order>
+	  <freeze> [[Coefs, Params] </freeze>
+	</fit>
+	<fit>
+	  <shape>  BWZ </shape>
+	  <order>  1 </order>
+	  <freeze> [] </freeze>
+	</fit>
+
+	<fit>
+	  <shape>  BWZRed </shape>
+	  <order>  2 </order>
+	  <freeze> [[Coefs, Params] </freeze>
+	</fit>
+	<fit>
+	  <shape>  BWZRed </shape>
+	  <order>  2 </order>
+	  <freeze> [] </freeze>
+	</fit>
+
+	<fit>
+	  <shape>  BWZRed </shape>
+	  <order>  3 </order>
+	  <freeze> [[Coefs, Params] </freeze>
+	</fit>
+	<fit>
+	  <shape>  BWZRed </shape>
+	  <order>  3 </order>
+	  <freeze> [] </freeze>
+	</fit>
+
+      </bkg_fits>
+    </mass_0p5_GeV>
+    
+    <!-- Template-based discrimination for di-muon mass with optimized re-binning -->
+    <mass_0p5_GeV_rebin>
+      <dist>     H_pair_mass_zoomH </dist>
+      <min_max>  [110, 160] </min_max>
+      <blind>    [120, 130] </blind>
+      <rebin>    [0.5, 0.02] </rebin>
+      <models>   [template_stack, template_group] </models>
+    </mass_0p5_GeV_rebin>
+    
+
+    <!-- Xunwu's e2mu template-based discrimination using BDT including mass as an input, 20 bins from [-1, 1] -->
+    <BDT_mass>
+      <dist>     BDT_XWZ_withMass </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    False </rebin>
+      <models>   [template_stack, template_group] </models>
+    </BDT_mass>
+    
+
+    <!-- Xunwu's e2mu template-based discrimination using BDT including mass as an input, rebinned from 100 bins -->
+    <BDT_mass_rebin>
+      <dist>     BDT_XWZ_withMass_zoom </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    [0.5, 0.02] </rebin>
+      <models>   [template_stack, template_group] </models>
+    </BDT_mass_rebin>
+    
+    <!-- Andrew's e2mu + 3mu template-based discrimination using BDT including mass as an input, 20 bins from [-1, 1] -->
+    <BDT_mass>
+      <dist>     BDT_AWB_withMass </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    False </rebin>
+      <models>   [template_stack, template_group] </models>
+    </BDT_mass>
+    
+
+    <!-- Andrew's e2mu + 3mu template-based discrimination using BDT including mass as an input, rebinned from 100 bins -->
+    <BDT_mass_rebin>
+      <dist>     BDT_AWB_withMass_zoom </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    [0.5, 0.02] </rebin>
+      <models>   [template_stack, template_group] </models>
+    </BDT_mass_rebin>
+    
+    <!-- Andrew's e2mu + 3mu template-based discrimination using BDT with non-mass BDT + di-muon mass as the inputs, 20 bins from [-1, 1] -->
+    <BDT_mass>
+      <dist>     BDT_AWB_retrain </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    False </rebin>
+      <models>   [template_stack, template_group] </models>
+    </BDT_mass>
+    
+
+    <!-- Andrew's e2mu + 3mu template-based discrimination using BDT with non-mass BDT + di-muon mass as the inputs, rebinned from 100 bins -->
+    <BDT_mass_rebin>
+      <dist>     BDT_AWB_retrain_zoom </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    [0.5, 0.02] </rebin>
+      <models>   [template_stack, template_group] </models>
+    </BDT_mass_rebin>
+
+    <!-- Andrew's e2mu + 3mu template-based discrimination using BDT without mass as an input, rebinned from 100 bins -->
+    <BDT_mass_rebin>
+      <dist>     BDT_AWB_noMass_zoom </dist>
+      <min_max>  [-1, 1] </min_max>
+      <blind>    [0, 1] </blind>
+      <rebin>    [0.5, 0.02] </rebin>
+      <models>   [template_stack, template_group] </models>
+    </BDT_mass_rebin>
+    
+    
+  </discriminants>
+
+</root>
