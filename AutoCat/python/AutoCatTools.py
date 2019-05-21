@@ -52,7 +52,7 @@ def ComputeSignificance(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning =
             num = h_sig.Integral(bin[0], bin[1])
             den = h_bkg.Integral(bin[0], bin[1])
             if den <= min_bkg:
-            sigma_no_uncert += ( pow(num, 2) / den )
+                sigma_no_uncert += ( pow(num, 2) / den )
         sigma_no_uncert = math.sqrt(sigma_no_uncert)
 
         if verbose: print 'Net significance with original binning and no statistical uncertainties = %.3f\n' % sigma_no_uncert

@@ -46,9 +46,8 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Configure the channels, distributions, and fits to use
 ## Chosen from XML files in configs/ directory
-# CONFIGS = ['WH_lep_AWB_2019_05_01_v3']
 # CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
-CONFIGS = ['WH_lep_AWB_2019_05_14_TMVA_retrain_v1']
+CONFIGS = ['WH_lep_AWB_2019_05_16_v1']
 
 
 #============================================
@@ -163,7 +162,7 @@ class WorkspaceAndDatacardMaker:
         self.h_data_fit = data_fit.fit_hist
 
         ## Plot data and fits into a frame
-        PH.DrawFits(sig_fit, bkg_fit, data_fit, self.cat+'_'+sig_mod+str(sig_ord)+'_'+bkg_mod+str(bkg_ord), self.out_dir)
+        PH.DrawFits(sig_fit, bkg_fit, data_fit, self.cat+'_'+self.dist+'_'+sig_mod+str(sig_ord)+'_'+bkg_mod+str(bkg_ord), self.out_dir)
 
         ## After fitting, we freeze all parameters in the signal fit
         WH.FreezeParams(sig_fit, sig_frz)
