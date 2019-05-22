@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, '%s/lib' % os.getcwd() )
 from ROOT import *
-from MNT_Helper import LoadColors, LinearStack, RatioPlot, FillHistTerm
+from MNT_Helper import LoadColors, LinearStack, RatioPlot, FillHistTerm, GetSF
 #R.gROOT.SetBatch(True)
 
 ## Configure the script user
@@ -21,8 +21,11 @@ if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018
 if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
 #LABEL = 'miniNtuple_WH_2016_v5'  ## Sub-folder within PLOT_DIR containing histograms
-LABEL = 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1'
+#LABEL = 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1'
 #LABEL = 'WH_mu_med_ID_loose_iso_v1'
+
+LABEL = 'VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt'
+LEP = 'ele'
 
 def InitHists(histos, terms, signals, bkgs):
     for sample in signals + bkgs:
@@ -34,7 +37,7 @@ def InitHists(histos, terms, signals, bkgs):
     histos["lep_pt"]["data"]        = TH1F("lep_pt" + "_" + "Data", "lep_pt" + "_" + "Data",                        50,0,500)
 
 def main():
-    out_name = "mass_hists_cut_4n44.root"
+    out_name = "mass_hists_cut_444.root"
 
     file_dir = PLOT_DIR+"/"+LABEL+"/"
     out_file = TFile( file_dir + "plots/" + out_name , "RECREATE")
@@ -71,11 +74,16 @@ def main():
     print file_chain.GetEntries()
     for iEvt in range( file_chain.GetEntries() ):
 	file_chain.GetEvent(iEvt)
-	if file_chain.mu1_lepMVA < 0.4 or file_chain.mu2_lepMVA < -0.4 or file_chain.lep_lepMVA < 0.4:
+	if file_chain.mu1_lepMVA < 0.4 or file_chain.mu2_lepMVA < 0.4 or file_chain.lep_lepMVA < 0.4:
 	    continue
-	FillHistTerm(histos, "dimu_mass"   	, signals, bkgs, file_chain.dimu_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
- 	FillHistTerm(histos, "mu2_pt"           , signals, bkgs, file_chain.mu2_pt              , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "lep_pt"           , signals, bkgs, file_chain.lep_pt              , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+	mu1_SF = GetSF("muon", file_chain.mu1_pt, file_chain.mu1_eta, 0.4)
+	mu2_SF = GetSF("muon", file_chain.mu2_pt, file_chain.mu2_eta, 0.4)
+	lep_SF = GetSF(LEP,    file_chain.lep_pt, file_chain.lep_eta, 0.4)
+	MVA_SF = mu1_SF * mu2_SF * lep_SF
+
+	FillHistTerm(histos, "dimu_mass"   	, signals, bkgs, file_chain.dimu_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+ 	FillHistTerm(histos, "mu2_pt"           , signals, bkgs, file_chain.mu2_pt              , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "lep_pt"           , signals, bkgs, file_chain.lep_pt              , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
 
     out_file.cd()
     scaled_signal = {}

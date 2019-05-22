@@ -96,8 +96,8 @@ def RatioPlot( name, all_stack, scaled_signal, h_data, ratio_graph, legend, plot
     lower_pad.SetGridy()
     lower_pad.Draw()
     lower_pad.cd()
-    ratio_graph.SetMinimum(0.5)
-    ratio_graph.SetMaximum(1.5)
+    ratio_graph.SetMinimum(0.4)
+    ratio_graph.SetMaximum(2.0)
 #    ratio_graph.SetMinimum(0.5)
 #    ratio_graph.SetMaximum(2.5)
 
@@ -147,6 +147,7 @@ def FillHistTerm(histos, term, signals, bkgs, value, Sample_ID, event_wgt):
     #background
     elif Sample_ID == -23:
         histos[term]["DY"].Fill(value, event_wgt / 2)  # used two high mass DY samples
+#	histos[term]["DY"].Fill(value, event_wgt / 3)  # used three regular mass DY samples
     elif Sample_ID == -0606:
         histos[term]["ttbar"].Fill(value, event_wgt / 2)  # used two ttbar samples
     elif Sample_ID == -2423:
@@ -163,7 +164,7 @@ def FillHistTerm(histos, term, signals, bkgs, value, Sample_ID, event_wgt):
         histos[term]["ttZ"].Fill(value, event_wgt)
     elif Sample_ID == -0624:
 	histos[term]["tW"].Fill(value, event_wgt) 
-    elif Sample_ID != -062500 and Sample_ID != -062524 and Sample_ID != -06062424 and Sample_ID != -999: #tHq, tHW, and ttWW 
+    elif Sample_ID != -062500 and Sample_ID != -062524 and Sample_ID != -06062424 and Sample_ID != -999: #tHq, tHW, and ttWW (no proper xsec)
         histos[term]["others"].Fill(value, event_wgt)
 
 
@@ -196,7 +197,7 @@ def GetSF(lep_type, pt, eta, lepMVA_cut):
     scale_factor = 0.0
 
     if lep_type == "muon":
-	in_file = TFile.Open("/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/lepMVA_SF_v1/SF_muon_variable_eta_bin.root", "READ")
+	in_file = TFile.Open("/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/lepMVA_SF_v1/SF_muon_variable_eta_bin.root", "READ")
 	SF_mu = in_file.Get("SFs/" + "SF_3D" + lep_type).Clone()
 	pt_bin = FindBinNum(pt_binning, pt) 
 	eta_bin = FindBinNum(eta_binning, eta)

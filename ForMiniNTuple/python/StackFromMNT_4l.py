@@ -4,11 +4,12 @@
 
 ## Basic python includes for manipulating files
 import os
+import sys
 
 sys.path.insert(0, '%s/lib' % os.getcwd())
 from ROOT import *
-from MNT_Helper import LinearStack, RatioPlot, PassLepMVA, FillHistTerm
-#R.gROOT.SetBatch(True)
+from MNT_Helper import LoadColors, LinearStack, RatioPlot, FillHistTerm, GetSF
+gROOT.SetBatch(True)
 
 ## Configure the script user
 if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
@@ -20,8 +21,8 @@ if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018
 if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
 #LABEL = 'miniNtuple_WH_2016_v5'  ## Sub-folder within PLOT_DIR containing histograms
-LABEL = 'ZH_4l_ele_angle_test_v1'
-
+LABEL = 'VH_selection_2019april/pt10_iso04/validation_ZZ_mu'
+LEP = "mu"
 
 def InitHists(histos, terms, signals, bkgs):
     for sample in signals + bkgs + ["data"]:
@@ -34,7 +35,7 @@ def InitHists(histos, terms, signals, bkgs):
 	histos["mu1_charge"][sample]	= TH1F("mu1_charge" + "_" + sample, "mu1_charge" + "_" + sample, 		8,-2,2)
 	histos["mu2_charge"][sample]	= TH1F("mu2_charge" + "_" + sample, "mu2_charge" + "_" + sample, 		8,-2,2)
 
-	histos["dimu_mass"][sample] 	= TH1F("dimu_mass" + "_" + sample, "dimu_mass" + "_" + sample, 			12,100,160)
+	histos["dimu_mass"][sample] 	= TH1F("dimu_mass" + "_" + sample, "dimu_mass" + "_" + sample, 			40,70,110)
         histos["dimu_pt"][sample] 	= TH1F("dimu_pt" + "_" + sample, "dimu_pt" + "_" + sample, 			50,0,400)	
 	histos["dimu_mass_err"][sample] = TH1F("dimu_mass_err" + "_" + sample, "dimu_mass_err" + "_" + sample, 		50,0,10)
 	histos["dimu_abs_eta"][sample] 	= TH1F("dimu_abs_eta" + "_" + sample, "dimu_abs_eta" + "_" + sample, 		50,0,6)
@@ -53,7 +54,7 @@ def InitHists(histos, terms, signals, bkgs):
         histos["lep2_lepMVA"][sample]   = TH1F("lep2_lepMVA" + "_" + sample, "lep2_lepMVA" + "_" + sample,              50,-1,1)
 	histos["lep2_charge"][sample]	= TH1F("lep2_charge" + "_" + sample, "lep2_charge" + "_" + sample, 		8,-2,2)
 
-	histos["dilep_mass"][sample]	= TH1F("dilep_mass" + "_" + sample, "dilep_mass" + "_" + sample, 		30,70,100)
+	histos["dilep_mass"][sample]	= TH1F("dilep_mass" + "_" + sample, "dilep_mass" + "_" + sample, 		30,70,110)
 	histos["dilep_pt"][sample]	= TH1F("dilep_pt" + "_" + sample, "dilep_pt" + "_" + sample, 			50,0,300)
 	histos["dilep_abs_eta"][sample]	= TH1F("dilep_abs_eta" + "_" + sample, "dilep_abs_eta" + "_" + sample, 		50,0,6)
 	histos["dilep_abs_dEta"][sample]= TH1F("dilep_abs_dEta" + "_" + sample, "dilep_abs_dEta" + "_" + sample, 	50,0,4)
@@ -123,7 +124,7 @@ def PrintEventYield(histos, signals, bkgs):
     print "sig_num = %f" %sig_num + "      ZZ_num = %f" %ZZ_num + "      bkgs_num = %f" %bkgs_num
 
 def main():
-    out_name = "stack_plots.root"
+    out_name = "stack_plots_lepMVA4444_0.root"
 
     file_dir = PLOT_DIR+"/"+LABEL+"/"
     out_file = TFile( file_dir + "plots/" + out_name , "RECREATE")
@@ -135,7 +136,8 @@ def main():
     terms = ["mu1_pt", "mu2_pt", "mu1_lepMVA", "mu1_charge", "mu1_abs_eta", "mu2_abs_eta", "mu2_lepMVA", "mu2_charge", 	#mu_vars
 	    "dimu_mass", "dimu_pt", "dimu_mass_err", "dimu_abs_eta", "dimu_abs_dEta", 	#mu_vars
 	    "dimu_abs_dPhi", "dimu_dR", "cts_mu1", "cts_mu_pos",  	#mu_vars
-	    "lep1_pt", "lep1_abs_eta", "lep1_lepMVA", "lep1_charge", "lep2_pt", "lep2_abs_eta", "lep2_lepMVA", "lep2_charge", #lep_vars
+	    "lep1_pt", "lep1_abs_eta", "lep1_lepMVA", "lep1_charge", 
+	    "lep2_pt", "lep2_abs_eta", "lep2_lepMVA", "lep2_charge", #lep_vars
 	    "dilep_mass", "dilep_pt", "dilep_abs_eta", "dilep_abs_dEta", #lep_vars
 	    "dilep_abs_dPhi", "dilep_dR", "cts_lep1", "cts_lep_pos", #lep_vars
 	    "quadlep_mass", "quadlep_pt", "quadlep_eta", "dipair_dEta_H", "dipair_dPhi_H", "dipair_dR_H", #quadlep_vars
@@ -148,28 +150,30 @@ def main():
 	    ] #end
 
     signals = ["ttH", "ZH", "WH", "VBF", "ggH"]
-    bkgs = ["triboson", "ttZ", "tZq", "tX+ttX", "ttbar", "WW", "ZZ", "WZ", "DY"]
+    bkgs = ["others", "triboson", "tW", "ttZ", "tZq", "ttbar", "WW", "ZZ", "WZ", "DY"]
     data = ["data"]
 
     color = {}
-    color["data"] = kBlack
+    LoadColors(color, "WH")
 
-    color["ggH"] = kRed
-    color["VBF"] =  kBlue + 1
-    color["ZH"] =  kOrange + 7
-    color["WH"] = kGreen + 2
-#    color["WH_neg"] = kViolet + 1
-    color["ttH"]  = kPink + 6
-
-    color["DY"] =  kAzure + 7
-    color["WZ"] =       kGreen - 9
-    color["ZZ"] =  kCyan - 7
-    color["WW"] =  kBlue - 8
-    color["tX+ttX"] = kPink + 6 #
-    color["ttbar"] = kYellow - 9
-    color["tZq"] = kViolet -9
-    color["ttZ"] = kRed -7
-    color["triboson"] = kOrange + 6 #
+#    color["data"] = kBlack
+#
+#    color["ggH"] = kRed
+#    color["VBF"] =  kBlue + 1
+#    color["ZH"] =  kOrange + 7
+#    color["WH"] = kGreen + 2
+##    color["WH_neg"] = kViolet + 1
+#    color["ttH"]  = kPink + 6
+#
+#    color["DY"] =  kAzure + 7
+#    color["WZ"] =       kGreen - 9
+#    color["ZZ"] =  kCyan - 7
+#    color["WW"] =  kBlue - 8
+#    color["tX+ttX"] = kPink + 6 #
+#    color["ttbar"] = kYellow - 9
+#    color["tZq"] = kViolet -9
+#    color["ttZ"] = kRed -7
+#    color["triboson"] = kOrange + 6 #
 
     histos = {}
     stack_all = {}
@@ -190,89 +194,97 @@ def main():
     print file_chain.GetEntries()
     for iEvt in range( file_chain.GetEntries() ):
 	file_chain.GetEvent(iEvt)
+	if (iEvt % 10000 == 1):
+	    print "looking at event %d" %iEvt
 
-	if not (PassLepMVA("0.4", file_chain.mu1_lepMVA) and PassLepMVA("0.4", file_chain.mu2_lepMVA) and PassLepMVA("0.4", file_chain.lep1_lepMVA) and PassLepMVA("0.4", file_chain.lep2_lepMVA)): 
-		continue
+	if ( file_chain.mu1_lepMVA < 0.4 or file_chain.mu2_lepMVA < 0.4 or file_chain.lep1_lepMVA < 0.4 or file_chain.lep2_lepMVA < 0.4):
+	    continue
+	mu1_SF = GetSF("muon", file_chain.mu1_pt, file_chain.mu1_eta, 0.4)
+        mu2_SF = GetSF("muon", file_chain.mu2_pt, file_chain.mu2_eta, 0.4)
+        lep1_SF = GetSF(LEP,    file_chain.lep1_pt, file_chain.lep1_eta, 0.4)
+	lep2_SF = GetSF(LEP,    file_chain.lep2_pt, file_chain.lep2_eta, 0.4)
+        MVA_SF = mu1_SF * mu2_SF * lep1_SF * lep2_SF
 
-	FillHistTerm(histos, "mu1_pt"	      	, signals, bkgs, file_chain.mu1_pt		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "mu2_pt"		, signals, bkgs, file_chain.mu2_pt		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "mu1_abs_eta"   	, signals, bkgs, abs(file_chain.mu1_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "mu2_abs_eta"   	, signals, bkgs, abs(file_chain.mu2_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "mu1_lepMVA"	, signals, bkgs, file_chain.mu1_lepMVA		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "mu2_lepMVA"	, signals, bkgs, file_chain.mu2_lepMVA		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "mu1_charge"	, signals, bkgs, file_chain.mu1_charge 		, file_chain.Sample_ID 	, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "mu2_charge"	, signals, bkgs, file_chain.mu2_charge	 	, file_chain.Sample_ID 	, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dimu_mass"   	, signals, bkgs, file_chain.dimu_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dimu_pt"   	, signals, bkgs, file_chain.dimu_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dimu_mass_err"	, signals, bkgs, file_chain.dimu_mass_err 	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dimu_abs_eta"   	, signals, bkgs, abs(file_chain.dimu_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dimu_abs_dEta"   	, signals, bkgs, abs(file_chain.dimu_dEta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dimu_abs_dPhi"   	, signals, bkgs, abs(file_chain.dimu_dPhi)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dimu_dR"   	, signals, bkgs, file_chain.dimu_dR   		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cts_mu1"   	, signals, bkgs, file_chain.cts_mu1   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "cts_mu_pos"   	, signals, bkgs, file_chain.cts_mu_pos   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "lep1_pt"   	, signals, bkgs, file_chain.lep1_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "lep1_abs_eta"   	, signals, bkgs, abs(file_chain.lep1_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "lep1_lepMVA"	, signals, bkgs, file_chain.lep1_lepMVA 	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "lep1_charge"	, signals, bkgs, file_chain.lep1_charge 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "lep2_pt"          , signals, bkgs, file_chain.lep2_pt             , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "lep2_abs_eta"     , signals, bkgs, abs(file_chain.lep2_eta)       , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "lep2_lepMVA"      , signals, bkgs, file_chain.lep2_lepMVA         , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
- 	FillHistTerm(histos, "lep2_charge"	, signals, bkgs, file_chain.lep2_charge 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dilep_mass"	, signals, bkgs, file_chain.dilep_mass 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dilep_pt"		, signals, bkgs, file_chain.dilep_pt 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dilep_abs_eta"	, signals, bkgs, abs(file_chain.dilep_eta) 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dilep_abs_dEta"	, signals, bkgs, abs(file_chain.dilep_dEta)	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dilep_abs_dPhi"	, signals, bkgs, abs(file_chain.dilep_dPhi)	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dilep_dR"		, signals, bkgs, file_chain.dilep_dR 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cts_lep1"		, signals, bkgs, file_chain.cts_lep1 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cts_lep_pos"	, signals, bkgs, file_chain.cts_lep_pos 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "quadlep_mass"	, signals, bkgs, file_chain.quadlep_mass 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "quadlep_pt"	, signals, bkgs, file_chain.quadlep_pt 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "quadlep_eta"	, signals, bkgs, file_chain.quadlep_eta 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dipair_dEta_H"	, signals, bkgs, file_chain.dipair_dEta_H 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dipair_dPhi_H"	, signals, bkgs, file_chain.dipair_dPhi_H 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dipair_dR_H"	, signals, bkgs, file_chain.dipair_dR_H 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dipair_dEta_pt"	, signals, bkgs, file_chain.dipair_dEta_pt 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dipair_dPhi_pt"	, signals, bkgs, file_chain.dipair_dPhi_pt 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "dipair_dR_pt"	, signals, bkgs, file_chain.dipair_dR_pt 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cts_dipair_H"	, signals, bkgs, file_chain.cts_dipair_H 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cts_dipair_pt"	, signals, bkgs, file_chain.cts_dipair_pt 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cs_costheta"      , signals, bkgs, file_chain.cs_costheta 	, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cs_cosphi" 	, signals, bkgs, file_chain.cs_cosphi 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cs_sinphi" 	, signals, bkgs, file_chain.cs_sinphi 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cos_theta1" 	, signals, bkgs, file_chain.cos_theta1 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cos_phi1" 	, signals, bkgs, file_chain.cos_phi1 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "cos_phiH" 	, signals, bkgs, file_chain.cos_phiH 		, file_chain.Sample_ID, file_chain.xsec_norm * file_chain.event_wgt)
-	FillHistTerm(histos, "met_pt"   	, signals, bkgs, file_chain.met_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "mht_pt"   	, signals, bkgs, file_chain.mht_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "mht_mass"   	, signals, bkgs, file_chain.mht_mass   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dijet_mass"   	, signals, bkgs, file_chain.dijet_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dijet_pt"   	, signals, bkgs, file_chain.dijet_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dijet_abs_eta"  	, signals, bkgs, abs(file_chain.dijet_eta)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dijet_abs_dEta"   , signals, bkgs, abs(file_chain.dijet_dEta)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dijet_abs_dPhi"   , signals, bkgs, abs(file_chain.dijet_dPhi)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "dijet_dR"   	, signals, bkgs, file_chain.dijet_dR   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "jet1_pt"  	, signals, bkgs, file_chain.jet1_pt  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "jet1_abs_eta"  	, signals, bkgs, abs(file_chain.jet1_eta)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "jet2_pt"   	, signals, bkgs, file_chain.jet2_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "jet2_abs_eta"   	, signals, bkgs, abs(file_chain.jet2_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "jet0_pt"   	, signals, bkgs, file_chain.jet0_pt  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)	
-        FillHistTerm(histos, "jet0_abs_eta"   	, signals, bkgs, abs(file_chain.jet0_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "nJets"   		, signals, bkgs, file_chain.nJets  		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "nCentJets"   	, signals, bkgs, file_chain.nCentJets   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "nFwdJets"   	, signals, bkgs, file_chain.nFwdJets  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "nBJets_Med" 	, signals, bkgs, file_chain.nBJets_Med 	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "nBJets_Loose"   	, signals, bkgs, file_chain.nBJets_Loose  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "nBJets_Tight"   	, signals, bkgs, file_chain.nBJets_Tight   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "nMuons"   	, signals, bkgs, file_chain.nMuons  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt)
-        FillHistTerm(histos, "nEles"  		, signals, bkgs, file_chain.nEles  		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt)
+
+	FillHistTerm(histos, "mu1_pt"	      	, signals, bkgs, file_chain.mu1_pt		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "mu2_pt"		, signals, bkgs, file_chain.mu2_pt		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "mu1_abs_eta"   	, signals, bkgs, abs(file_chain.mu1_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "mu2_abs_eta"   	, signals, bkgs, abs(file_chain.mu2_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "mu1_lepMVA"	, signals, bkgs, file_chain.mu1_lepMVA		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "mu2_lepMVA"	, signals, bkgs, file_chain.mu2_lepMVA		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "mu1_charge"	, signals, bkgs, file_chain.mu1_charge 		, file_chain.Sample_ID 	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "mu2_charge"	, signals, bkgs, file_chain.mu2_charge	 	, file_chain.Sample_ID 	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dimu_mass"   	, signals, bkgs, file_chain.dimu_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dimu_pt"   	, signals, bkgs, file_chain.dimu_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dimu_mass_err"	, signals, bkgs, file_chain.dimu_mass_err 	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dimu_abs_eta"   	, signals, bkgs, abs(file_chain.dimu_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dimu_abs_dEta"   	, signals, bkgs, abs(file_chain.dimu_dEta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dimu_abs_dPhi"   	, signals, bkgs, abs(file_chain.dimu_dPhi)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dimu_dR"   	, signals, bkgs, file_chain.dimu_dR   		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cts_mu1"   	, signals, bkgs, file_chain.cts_mu1   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "cts_mu_pos"   	, signals, bkgs, file_chain.cts_mu_pos   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "lep1_pt"   	, signals, bkgs, file_chain.lep1_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "lep1_abs_eta"   	, signals, bkgs, abs(file_chain.lep1_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "lep1_lepMVA"	, signals, bkgs, file_chain.lep1_lepMVA 	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "lep1_charge"	, signals, bkgs, file_chain.lep1_charge 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "lep2_pt"          , signals, bkgs, file_chain.lep2_pt             , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "lep2_abs_eta"     , signals, bkgs, abs(file_chain.lep2_eta)       , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "lep2_lepMVA"      , signals, bkgs, file_chain.lep2_lepMVA         , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+ 	FillHistTerm(histos, "lep2_charge"	, signals, bkgs, file_chain.lep2_charge 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dilep_mass"	, signals, bkgs, file_chain.dilep_mass 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dilep_pt"		, signals, bkgs, file_chain.dilep_pt 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dilep_abs_eta"	, signals, bkgs, abs(file_chain.dilep_eta) 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dilep_abs_dEta"	, signals, bkgs, abs(file_chain.dilep_dEta)	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dilep_abs_dPhi"	, signals, bkgs, abs(file_chain.dilep_dPhi)	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dilep_dR"		, signals, bkgs, file_chain.dilep_dR 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cts_lep1"		, signals, bkgs, file_chain.cts_lep1 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cts_lep_pos"	, signals, bkgs, file_chain.cts_lep_pos 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "quadlep_mass"	, signals, bkgs, file_chain.quadlep_mass 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "quadlep_pt"	, signals, bkgs, file_chain.quadlep_pt 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "quadlep_eta"	, signals, bkgs, file_chain.quadlep_eta 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dipair_dEta_H"	, signals, bkgs, file_chain.dipair_dEta_H 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dipair_dPhi_H"	, signals, bkgs, file_chain.dipair_dPhi_H 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dipair_dR_H"	, signals, bkgs, file_chain.dipair_dR_H 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dipair_dEta_pt"	, signals, bkgs, file_chain.dipair_dEta_pt 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dipair_dPhi_pt"	, signals, bkgs, file_chain.dipair_dPhi_pt 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "dipair_dR_pt"	, signals, bkgs, file_chain.dipair_dR_pt 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cts_dipair_H"	, signals, bkgs, file_chain.cts_dipair_H 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cts_dipair_pt"	, signals, bkgs, file_chain.cts_dipair_pt 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cs_costheta"      , signals, bkgs, file_chain.cs_costheta 	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cs_cosphi" 	, signals, bkgs, file_chain.cs_cosphi 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cs_sinphi" 	, signals, bkgs, file_chain.cs_sinphi 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cos_theta1" 	, signals, bkgs, file_chain.cos_theta1 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cos_phi1" 	, signals, bkgs, file_chain.cos_phi1 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "cos_phiH" 	, signals, bkgs, file_chain.cos_phiH 		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	FillHistTerm(histos, "met_pt"   	, signals, bkgs, file_chain.met_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "mht_pt"   	, signals, bkgs, file_chain.mht_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "mht_mass"   	, signals, bkgs, file_chain.mht_mass   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dijet_mass"   	, signals, bkgs, file_chain.dijet_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dijet_pt"   	, signals, bkgs, file_chain.dijet_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dijet_abs_eta"  	, signals, bkgs, abs(file_chain.dijet_eta)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dijet_abs_dEta"   , signals, bkgs, abs(file_chain.dijet_dEta)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dijet_abs_dPhi"   , signals, bkgs, abs(file_chain.dijet_dPhi)    	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "dijet_dR"   	, signals, bkgs, file_chain.dijet_dR   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "jet1_pt"  	, signals, bkgs, file_chain.jet1_pt  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "jet1_abs_eta"  	, signals, bkgs, abs(file_chain.jet1_eta)  	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "jet2_pt"   	, signals, bkgs, file_chain.jet2_pt   	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "jet2_abs_eta"   	, signals, bkgs, abs(file_chain.jet2_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "jet0_pt"   	, signals, bkgs, file_chain.jet0_pt  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)	
+        FillHistTerm(histos, "jet0_abs_eta"   	, signals, bkgs, abs(file_chain.jet0_eta)   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "nJets"   		, signals, bkgs, file_chain.nJets  		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "nCentJets"   	, signals, bkgs, file_chain.nCentJets   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "nFwdJets"   	, signals, bkgs, file_chain.nFwdJets  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "nBJets_Med" 	, signals, bkgs, file_chain.nBJets_Med 	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "nBJets_Loose"   	, signals, bkgs, file_chain.nBJets_Loose  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "nBJets_Tight"   	, signals, bkgs, file_chain.nBJets_Tight   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "nMuons"   	, signals, bkgs, file_chain.nMuons  	  	, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+        FillHistTerm(histos, "nEles"  		, signals, bkgs, file_chain.nEles  		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
 
 
     out_file.cd()
     scaled_signal = {}
 
-    PrintEventYield(histos, signals, bkgs)
+    #PrintEventYield(histos, signals, bkgs)
 
     for term in terms:
 	histos[term]["data"].SetMarkerStyle(20)
@@ -304,6 +316,10 @@ def main():
 	legend[term].AddEntry(scaled_signal[term], "signal X200")
 	LinearStack( term, stack_all[term], scaled_signal[term], histos[term]["data"], legend[term], PLOT_DIR+"/"+LABEL+"/plots")
 
+	ratios[term] = TGraphAsymmErrors()
+        ratios[term].Divide(histos[term]["data"], stack_all[term].GetStack().Last(), "pois")
+        ratios[term].SetName("ratiograph_"+term)
+	RatioPlot( term, stack_all[term], scaled_signal[term], histos[term]["data"], ratios[term], legend[term], PLOT_DIR+"/"+LABEL+"/plots" )
 
     out_file.Close()
 main()

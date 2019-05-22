@@ -17,19 +17,22 @@ int getSampleID(TString name, const bool verbose) {
     else if ( name.Contains("ZJets") ) 		return -23; // can add more entries if need to distinguish between AMC/MG, 0j/1j/2j samples
     else if ( name.Contains("tt_ll") or name == "tt" ) 	return -0606;
     else if ( name.Contains("tW_pos") or name.Contains("tW_neg") ) return -0624;
+    else if ( name == "tHq" )			return -062500; // 00 for quark in general
+    else if ( name == "tHW" )                   return -062524; 
     else if ( name == "tZq" ) 			return -062300; // 00 for quark in general
     else if ( name == "tZW" ) 			return -062324;
-    else if ( name.Contains("ttW") ) 		return -060624;
     else if ( name == "ttZ" ) 			return -060623;
     else if ( name == "ttH" ) 			return -060625;
+    else if ( name == "ttWW")                   return -06062424;
+    else if ( name.Contains("ttW") )            return -060624;
+
+    else if ( name.Contains("WWW") )            return -242424;
+    else if ( name.Contains("WWZ") )            return -242423;
+    else if ( name.Contains("WZZ") )            return -242323;
+    else if ( name.Contains("ZZZ") )            return -232323;
     else if ( name.Contains("WW") ) 		return -2424;
     else if ( name.Contains("WZ") ) 		return -2423;
     else if ( name.Contains("ZZ") ) 		return -2323;
-    else if ( name.Contains("WWW") ) 		return -242424;
-    else if ( name.Contains("WWZ") ) 		return -242423;
-    else if ( name.Contains("WZZ") ) 		return -242323;
-    else if ( name.Contains("ZZZ") ) 		return -232323;
-
     return -999;  //just so that this function can be compiled. do not expect -999 to show in any case
 }
 

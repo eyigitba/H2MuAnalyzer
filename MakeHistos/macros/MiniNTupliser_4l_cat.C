@@ -52,6 +52,7 @@ const TString SAMPLE   = "ZZ_4l";
 const std::string YEAR = "2017";
 const std::string SLIM = "Slim"; // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR  = "plots";
+const TString HIST_TREE = "Tree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both. Not in use in this macro
 
 const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"ZH_4l_ele"}; // Multiple selection cuts, applied independently in parallel
@@ -61,16 +62,17 @@ const std::vector<std::string> CAT_CUTS = {"NONE"}; // Event selection categorie
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
 void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out_dir = "",
 	     std::vector<TString> in_files = {}, TString out_file_str = "",
-	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0) {
+	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0,
+	     TString hist_tree = "" ) {
   
   // Set variables to hard-coded values if they are not initialized
-  if (sample.Length()  == 0) sample  	 = SAMPLE;
-  if (in_dir.Length()  == 0) in_dir  	 = IN_DIR;
-  if (out_dir.Length() == 0) out_dir 	 = OUT_DIR;
-  if (max_evt          == 0) max_evt 	 = MAX_EVT;
-  if (prt_evt          == 0) prt_evt 	 = PRT_EVT;
-  if (samp_weight      == 0) samp_weight = SAMP_WGT;
- 
+  if (sample.Length()      == 0) sample      = SAMPLE;
+  if (in_dir.Length()      == 0) in_dir      = IN_DIR;
+  if (out_dir.Length()     == 0) out_dir     = OUT_DIR;
+  if (max_evt              == 0) max_evt     = MAX_EVT;
+  if (prt_evt              == 0) prt_evt     = PRT_EVT;
+  if (samp_weight          == 0) samp_weight = SAMP_WGT;
+    if (hist_tree.Length() == 0) hist_tree   = HIST_TREE;
 
   // Initialize empty file to access each file in the list
   TFile *file_tmp(0);
@@ -151,6 +153,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   float 	dimu_dEta;   // Keep this for convenience of producing data/MC from miniNTuple  -- XWZ 19.11.2019
   float		dimu_dPhi;
   float		dimu_dR;
+  int 		dimu_gen_ID;
   float 	mu1_pt;
   float		mu1_eta;
   float		mu1_lepMVA;
@@ -179,6 +182,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   float 	dilep_dEta;
   float		dilep_dPhi;
   float		dilep_dR;
+  int		dilep_gen_ID;
 
   float		cts_lep1;
   float		cts_lep_pos;
@@ -286,7 +290,8 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   Out_Tree->Branch("dimu_dEta",		& dimu_dEta,		"dimu_dEta/F");
   Out_Tree->Branch("dimu_dPhi",		& dimu_dPhi,		"dimu_dPhi/F");
   Out_Tree->Branch("dimu_dR",		& dimu_dR,		"dimu_dR/F");
-  
+  Out_Tree->Branch("dimu_gen_ID",       & dimu_gen_ID,          "dimu_gen_ID/I");  
+
   Out_Tree->Branch("cts_mu1",           & cts_mu1,              "cts_mu1/F"  );
   Out_Tree->Branch("cts_mu_pos",        & cts_mu_pos,           "cts_mu_pos/F"  );
 
@@ -307,7 +312,8 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   Out_Tree->Branch("dilep_dEta",        & dilep_dEta,           "dilep_dEta/F");
   Out_Tree->Branch("dilep_dPhi",        & dilep_dPhi,           "dilep_dPhi/F");
   Out_Tree->Branch("dilep_dR",          & dilep_dR,             "dilep_dR/F");
- 
+  Out_Tree->Branch("dilep_gen_ID",      & dilep_gen_ID,         "dilep_gen_ID/I"); 
+
   Out_Tree->Branch("cts_lep1",          & cts_lep1,             "cts_lep1/F"  );
   Out_Tree->Branch("cts_lep_pos",       & cts_lep_pos,          "cts_lep_pos/F"  );
 
@@ -393,8 +399,14 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   ConfigureEventSelection (evt_sel, YEAR);
   ConfigureEventWeight    (evt_wgt, YEAR);
 
-  evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
+//  evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
+// use default for ZZ validation
   obj_sel.mu_pt_min       =  10; // Lower muon pT threshold for muons not from Higgs, default 20
+  obj_sel.mu_mIso_max      = 0.4;
+
+  //obj_sel.ele_pt_min = 20;
+  obj_sel.ele_ID_cut = "loose";
+  obj_sel.ele_mIso_max = 0.4;
 
   if (verbose) obj_sel.Print();
   if (verbose) evt_sel.Print();
@@ -453,6 +465,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
     dimu_dEta		= -999;
     dimu_dPhi		= -999;
     dimu_dR		= -999;
+    dimu_gen_ID		= 0;
     cts_mu1             = -999;
     cts_mu_pos          = -999;
 
@@ -481,6 +494,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
     dilep_dEta		= -999; 
     dilep_dPhi		= -999; 
     dilep_dR		= -999; 
+    dilep_gen_ID	= 0;
                  
     cts_lep1	 	= -999; 
     cts_lep_pos		= -999; 
@@ -575,22 +589,19 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
         ///    ZH_4l_ele cat    ///
         /////////////////////////
 	if (OPT_CUT == "ZH_4l_ele") {
-          //obj_sel.ele_pt_min = 20;
-          obj_sel.ele_ID_cut = "loose";
-          obj_sel.ele_iso_max = 0.4;
 
 	  //obj_sel.muPair_Higgs == "sort_OS_dimuon_mass";
 	  EleInfos  eles  = SelectedEles(obj_sel, br);
-          if (muons.size() != 2 or SelectedMuPairs(obj_sel, br).size() != 1 or SelectedEles(obj_sel, br).size() < 2) continue;
+          if (muons.size() != 2 or SelectedMuPairs(obj_sel, br).size() != 1 or SelectedEles(obj_sel, br).size() != 2) continue;
 	  for (const auto & electron : SelectedEles(obj_sel, br)) {  // this is for if more than 2 electrons, select highest pt ones
-	     if (electron.lepMVA > 0.4) {
+	     if (electron.lepMVA > -1.0) { //-1.0 as a place holder
 		ele1 = electron;
 		break;
 	     }
 	  }
 	  //ele1 = eles.at(0);
 	  for (const auto & electron : SelectedEles(obj_sel, br)) {
-	     if (electron.charge + ele1.charge == 0 and electron.lepMVA > 0.4) { // this is for if more than 2 electrons, select highest pt ones
+	     if (electron.charge + ele1.charge == 0 and electron.lepMVA > -1.0) { // this is for if more than 2 electrons, select highest pt ones
 		ele2 = electron;
 		break;
 	     }
@@ -606,6 +617,11 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 	  dilep_vec = lep1_vec + lep2_vec;
 	  dimu = SelectedCandPair(obj_sel, br);
 	  
+	  if (not sample.Contains("SingleMu")) {
+	    if ( IsGenMatched(dimu, *br.muons, *br.genMuons, "H") ) dimu_gen_ID = 25;
+            else if ( IsGenMatched(dimu, *br.muons, *br.genMuons, "Z") ) dimu_gen_ID = 23;
+	  }
+
 	  if ( SelectedJets(obj_sel, br, "BTagMedium").size() == 0 ) lep_is_ele = true;
 	  else continue;
 	} // end if (OPT_CUT == "ZH_4l_ele")
@@ -642,6 +658,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
             }
           } // finish getting muons
 	  if ( SelectedMuPairs(obj_sel, br).size() != 4 ) continue; //so we have two + and two - good muons
+	  //comment out if more than 4 muons
 	  MuPairInfo Z_cand, H_cand;
 	  Z_cand.init();
 	  H_cand.init();
@@ -653,23 +670,31 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 		break;
 	      }
 	    } // end for (const auto & muPair : SelectedMuPairs(obj_sel, br))
-	    if ( muPair1.mass > 81 and muPair1.mass < 101 and muPair2.mass > 105 and muPair2.mass < 160) {
-	    	Z_cand = muPair1;
-	    	H_cand = muPair2;   // with break, select highest dimu pt Z_cand; without break, select lowest dimu pt Z_cand
-	    	break;
-	    }
-	    else continue;
-	    //if ( muPair2.mass > 81 and muPair2.mass < 101 and muPair1.mass > 105 and muPair1.mass < 160) {
-            //    Z_cand = muPair2;
-            //    H_cand = muPair1;  // with break, select highest dimu pt H_cand; without break, select lowest dimu pt H_cand
-            //    break;		   // combination is selecting highest passing pair(Z and H)
-            //}
+	    //if ( muPair1.mass > 81 and muPair1.mass < 101 and muPair2.mass > 105 and muPair2.mass < 160) {
+	    //	Z_cand = muPair1;
+	    //	H_cand = muPair2;   // with break, select highest dimu pt Z_cand; without break, select lowest dimu pt Z_cand
+	    //	break;
+	    //}
+	    //else continue;
+	    if ( muPair2.mass > 81 and muPair2.mass < 101 and muPair1.mass > 70 and muPair1.mass < 110) {  // 70-110 for validation, 105-160 for signal window
+                Z_cand = muPair2;
+                H_cand = muPair1;  // with break, select highest dimu pt H_cand; without break, select lowest dimu pt H_cand
+                break;		   // combination is selecting highest passing pair(Z and H)
+            }
 	  } // end for (const auto & muPair : SelectedMuPairs(obj_sel, br))
 	  if (Z_cand.mass == -999) continue; // no Z pair found
 	  //if (Z_cand.mass < 86 or Z_cand.mass > 96) continue; //cut on Z mass
 	  mu_3 = br.muons->at(Z_cand.iMu1);
 	  mu_4 = br.muons->at(Z_cand.iMu2);
 
+	  if (not sample.Contains("SingleMu")) {
+            if ( IsGenMatched(H_cand, *br.muons, *br.genMuons, "H") ) dimu_gen_ID = 25;
+            else if ( IsGenMatched(H_cand, *br.muons, *br.genMuons, "Z") ) dimu_gen_ID = 23;
+
+	    if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, "H") ) dilep_gen_ID = 25;
+            else if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, "Z") ) dilep_gen_ID = 23;
+          }
+	
 	  dimu = H_cand;
 	  lep1_vec = FourVec(mu_3, PTC);
 	  lep1_lepMVA = mu_3.lepMVA;
@@ -685,8 +710,8 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 
 
         dimu_vec = FourVec( dimu, PTC);
-        if ( dimu_vec.M() < 105 ||
-             dimu_vec.M() > 160 ) continue;
+        if ( dimu_vec.M() < 70 ||        // 70-110 for ZZ validation, 105-160 for signal window
+             dimu_vec.M() > 110 ) continue;    
 
 	mu_1 = br.muons->at(dimu.iMu1);
         mu_2 = br.muons->at(dimu.iMu2);

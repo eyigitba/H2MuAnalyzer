@@ -37,20 +37,22 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 #MACRO = 'macros/MC_data_comparison.C'
 #MACRO = 'macros/ggH_VBF_2l.C'
 #MACRO = 'macros/WH_lep.C'
-MACRO = 'macros/ttH_3l.C'
-#MACRO = 'macros/MiniNTupliser.C'
+#MACRO = 'macros/ttH_3l.C'
+MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/MiniNTupliser_4l_cat.C'
+#MACRO = 'macros/MiniNTupliser_WH_all_comb.C'
 #MACRO = 'macros/lepMVA_SF_calc.C'
 #MACRO = 'macros/lepMVA_efficiency.C'
 #MACRO = 'macros/lepMVA_variables.C'
 
-LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
+#LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
 #LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
+LOC   = 'CERN_lepMVA_3l_test_v1'
 YEAR   = 2017    ## Dataset year (2016 or 2017)
 LUMI   = 41500   ## 36814 for 2016, 41500 for 2017
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
-IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1'
+IN_DIR = ''
 HADD_IN = True   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
 
 ## Directory for logs and output root files
@@ -59,10 +61,13 @@ if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%d/Histog
 
 #LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
 #LABEL = 'WH_lep_AWB_2019_04_24_v1'
-LABEL = 'ttH_3l_AWB_2019_05_01_v1'
+#LABEL = 'ttH_3l_AWB_2019_05_01_v1'
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'
+LABEL = 'VH_selection_2019april/pt10_iso04/WH_mu_test_run'
+#LABEL  = 'ttH_3l_AWB_2019_04_12_v1'
+#LABEL = 'data_MC_2018_M70_170_v1'
 #LABEL = 'WH_mu_med_ID_loose_iso_v1'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate

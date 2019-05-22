@@ -81,7 +81,7 @@ class DataLoader:
             in_file_name = self.in_dir+'/plots/'+self.cat_loc+'/'+self.in_file
         elif (self.source == 'abrinke1_TMVA'):
             in_file_name = self.in_dir+'/'+self.in_file
-        elif (self.source == 'xzuo_TMVA'):
+        elif (self.source == 'xzuo_mass' or self.source == 'xzuo_BDT' or self.source == 'xzuo_TMVA'):
             in_file_name = self.in_dir+'/'+self.in_file
         elif (self.source == 'XXX'):
             in_file_name = 'YYY'
@@ -126,7 +126,44 @@ class DataLoader:
             self.sig_hists[0].Scale(1.368 / self.sig_hists[0].Integral())
             self.bkg_hists[0].Scale(254.7 / self.bkg_hists[0].Integral())
 
-        ## End conditional: if (self.source == 'xzuo_TMVA'):
+        ## End conditional: if (self.source == 'abrinke1_TMVA'):
+
+	## Configuration from Xunwu's dimu mass stack files
+        elif (self.source == 'xzuo_mass'):
+	    print '  * Loading %s_Net_Data, %s_Net_Sig, and %s_Net_Bkg' % (self.dist, self.dist, self.dist)
+	    self.data_hist =      self.in_file.Get(self.dist+'_Net_Data').Clone('Net_Data')
+            self.sig_hists.append(self.in_file.Get(self.dist+'_Net_Sig').Clone('Net_Sig'))
+            self.bkg_hists.append(self.in_file.Get(self.dist+'_Net_Bkg').Clone('Net_Bkg'))
+            ## Loop over group histograms that went into the stack
+            for hist in R.gDirectory.GetListOfKeys():
+                hstr = hist.GetName()
+	 	if '_Data' in hstr or '_Sig' in hstr or '_Bkg' in hstr: continue # Data, Sig, Bkg already in the _hists list
+                if hstr.startswith(self.dist):
+                    print '    - Loading group %s' % hstr
+                    if ('H' in  hstr or 'VBF' in hstr):
+                        self.sig_hists.append(self.in_file.Get(hstr).Clone())
+                        self.sig_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
+                    else:
+                        self.bkg_hists.append(self.in_file.Get(hstr).Clone())
+                        self.bkg_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
+	## End conditional: if (self.source == 'xzuo_mass'):
+
+	## Configuration from Xunwu's BDT template stack files
+	elif (self.source == 'xzuo_BDT'):
+            print '  * Loading %s_Net_Data, %s_Net_Sig, and %s_Net_Bkg' % (self.dist, self.dist, self.dist)
+            self.data_hist =      self.in_file.Get(self.dist+'/'+self.dist+'_Net_Data').Clone('Net_Data')
+            self.sig_hists.append(self.in_file.Get(self.dist+'/'+self.dist+'_Net_Sig').Clone('Net_Sig'))
+            self.bkg_hists.append(self.in_file.Get(self.dist+'/'+self.dist+'_Net_Bkg').Clone('Net_Bkg'))
+            ## Loop over group histograms that went into the stack
+	    bkg_stack = self.in_file.Get(self.dist+'/bkg_stack_'+self.dist)
+	    sig_stack = self.in_file.Get(self.dist+'/sig_stack_'+self.dist)
+	    for hist in bkg_stack.GetHists():
+		self.bkg_hists.append(hist.Clone())
+		self.bkg_hists[-1].SetName(hist.GetName().replace(self.dist+'_',''))
+	    for hist in sig_stack.GetHists():
+                self.sig_hists.append(hist.Clone())
+                self.sig_hists[-1].SetName(hist.GetName().replace(self.dist+'_',''))
+        ## End conditional: if (self.source == 'xzuo_BDT'):
 
         ## Configuration from Xunwu's TMVA training output file
         elif (self.source == 'xzuo_TMVA'):
