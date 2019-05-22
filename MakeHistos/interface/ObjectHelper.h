@@ -15,14 +15,14 @@
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h"
 
-bool  MuonID        ( const MuonInfo & muon,     const std::string muon_ID ); // Return loose, medium, or tight muon ID
-bool  MuonTrig      ( const MuonInfo & muon,     const std::string year    ); // Return if muon fired HLT trigger
-float MuonPt        ( const MuonInfo & muon,     const std::string pt_corr ); // Return PF, Rochester, or Kalman corrected muon pT
+bool  MuonID        ( const MuonInfo & muon, const std::string muon_ID );     // Return loose, medium, or tight muon ID
+bool  MuonTrig      ( const MuonInfo & muon, const std::string year, const std::vector<std::string> trigNames ); // Return if muon fired HLT trigger
+float MuonPt        ( const MuonInfo & muon, const std::string pt_corr );     // Return PF, Rochester, or Kalman corrected muon pT
 float MuPairPt      ( const MuPairInfo & muPair, const std::string pt_corr ); // Return PF, Rochester, or Kalman corrected dimuon pT
 float MuPairMass    ( const MuPairInfo & muPair, const std::string pt_corr ); // Return PF, Rochester, or Kalman corrected dimuon invariant mass
 float MuPairMassErr ( const MuPairInfo & muPair, const std::string pt_corr ); // Return PF, Rochester, or Kalman corrected dimuon invariant mass uncertainty
 TH2F* LoadSFsLepMVA ( const std::string year, const std::string flavor, const std::string WP ); // Return a 2D histogram with LepMVA efficiency scale factors
-float LepMVASF      ( const TH2F * h_SF, const float pt, const float eta ); // Return the LepMVA efficiency scale factor for a single lepton
+float LepMVASF      ( const TH2F * h_SF, const float pt, const float eta );   // Return the LepMVA efficiency scale factor for a single lepton
 bool  IsGenMatched  ( const MuPairInfo & muPair, const MuonInfos & muons, const GenMuonInfos & genMuons, const std::string gen_ID ); // Match di-muon pairs to GEN Higgs or Z
 
 bool  EleID ( const EleInfo & ele, const std::string ele_ID ); // Return loose, medium, or tight electron ID

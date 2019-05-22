@@ -73,9 +73,9 @@ struct NTupleBranches {
   int nGenMuons = -99;
   int nGenMuPairs = -99;
   int nGenJets = -99;
-  
-  std::vector<std::string> hltPaths = {};
-  std::string btagName = "INVALID";
+
+  std::vector<std::string> * hltPaths = 0;
+  std::string * btagName = 0;
   
   int Flag_all = -99;
   int Flag_badMu = -99;

@@ -15,16 +15,30 @@ bool MuonID ( const MuonInfo & muon, const std::string muon_ID ) {
 }
 
 // Return if muon fired HLT trigger
-bool MuonTrig ( const MuonInfo & muon, const std::string year) {
+bool MuonTrig ( const MuonInfo & muon, const std::string year, const std::vector<std::string> trigNames ) {
   if        ( year == "2016" ) {
-    // [2] = HLT_IsoMu24, [3] = HLT_IsoTkMu24
-    return ( muon.isHltMatched[2] || muon.isHltMatched[3] );
+    for (uint i = 0; i < trigNames.size(); i++) {
+      // Unprescaled triggers in 2016 : https://cmswbm.web.cern.ch/cmswbm/cmsdb/servlet/TriggerMode?KEY=l1_hlt_collisions2016/v450
+      if ( trigNames.at(i) == "HLT_IsoMu22_eta2p1" || trigNames.at(i) == "HLT_IsoTkMu22_eta2p1" ||
+	   trigNames.at(i) == "HLT_IsoMu24"        || trigNames.at(i) == "HLT_IsoTkMu24" ||
+	   trigNames.at(i) == "HLT_Mu50"           || trigNames.at(i) ==  "HLT_TkMu50" ) {
+	if ( muon.isHltMatched[i] ) return true;
+      }
+    } return false;
   } else if ( year == "2017" ) {
-    // [2] = HLT_IsoMu27, [3] = HLT_IsoTkMu27
-    return ( muon.isHltMatched[2] || muon.isHltMatched[3] );
+    // Unprescaled triggers in 2017 : https://cmswbm.cern.ch/cmsdb/servlet/TriggerMode?KEY=l1_hlt_collisions2017/v320
+    for (uint i = 0; i < trigNames.size(); i++) {
+      if ( trigNames.at(i) == "HLT_IsoMu27" || trigNames.at(i) == "HLT_Mu50" || trigNames.at(i) ==  "HLT_TkMu100" ) {
+	if ( muon.isHltMatched[i] ) return true;
+      }
+    } return false;
   } else if ( year == "2018" ) {
-    // [2] = HLT_IsoMu24, [6] = HLT_Mu50, [8] = HLT_TkMu100
-    return ( muon.isHltMatched[2] || muon.isHltMatched[6] || muon.isHltMatched[8] );
+    // Unprescaled triggers in 2018 : https://vocms0186.cern.ch/cmsdb/servlet/TriggerMode?KEY=l1_hlt_collisions2018/v123
+    for (uint i = 0; i < trigNames.size(); i++) {
+      if ( trigNames.at(i) == "HLT_IsoMu24" || trigNames.at(i) == "HLT_Mu50"    || trigNames.at(i) == "HLT_TkMu100" ) {
+	if ( muon.isHltMatched[i] ) return true;
+      }
+    } return false;
   }
   std::cout << "\n\nInside ObjectHelper.cc, invalid option year = " << year << std::endl;
   assert(false);
