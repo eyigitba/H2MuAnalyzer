@@ -1,6 +1,14 @@
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h"
 
+// Manually force seg-fault because ROOT doesn't handle exceptions
+void ASSERT(bool condition, std::string message) {
+  if (!condition) {
+    std::cout << "\n\nASSERTION FAILED WITH MESSAGE: " << message << "\n" << std::endl;
+    assert(false);
+  }
+}
+
 void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::string> opts, bool verbose) {
 
   if (verbose) std::cout << "\nInside SetBranchAddress" << std::endl;
@@ -10,6 +18,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   // Configure special options
   bool is2016    = false;
   bool is2017    = false;
+  bool is2018    = false;
   bool isSlim    = false;
   bool notSlim   = false;
   bool loadGEN   = false;
@@ -22,6 +31,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     if (verbose) std::cout << "  * Using option " << opts.at(i) << std::endl;
     if (opts.at(i) == "2016")    is2016    = true;
     if (opts.at(i) == "2017")    is2017    = true;
+    if (opts.at(i) == "2018")    is2018    = true;
     if (opts.at(i) == "Slim")    isSlim    = true;
     if (opts.at(i) == "notSlim") notSlim   = true;
     if (opts.at(i) == "GEN")     loadGEN   = true;
@@ -31,11 +41,11 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     if (opts.at(i) == "Wgts")    loadWgts  = true;
   }
 
-  assert(is2016 || is2017);
+  assert(is2016 || is2017 || is2018);
   assert(isSlim || notSlim);
 
-  if (verbose) std::cout << "is2016 = " << is2016 << ", is2017 = " << is2017 << ", isSlim = " << isSlim
-			 << ", loadGen = " << loadGEN << ", loadJES = " << loadJES
+  if (verbose) std::cout << "is2016 = " << is2016 << ", is2017 = " << is2017 << ", is2018 = " << is2018
+		         << ", isSlim = " << isSlim << ", loadGen = " << loadGEN << ", loadJES = " << loadJES
 			 << ", loadFlags = " << loadFlags << ", loadEffs = " << loadEffs 
 			 << ", loadWgts = " << loadWgts << std::endl;
 
@@ -45,8 +55,8 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   ch->SetBranchAddress("muons", &(br.muons));
   ch->SetBranchAddress("muPairs", &(br.muPairs));
   ch->SetBranchAddress("eles", &(br.eles));
-  if (is2016 ||  isSlim) ch->SetBranchAddress("jets", &(br.slimJets));
-  if (is2017 && !isSlim) ch->SetBranchAddress("jets", &(br.jets));
+  if ( is2016            ||  isSlim) ch->SetBranchAddress("jets", &(br.slimJets));
+  if ((is2017 || is2018) && !isSlim) ch->SetBranchAddress("jets", &(br.jets));
   ch->SetBranchAddress("jetPairs", &(br.jetPairs));
   ch->SetBranchAddress("met", &(br.met));
   ch->SetBranchAddress("mht", &(br.mht));
@@ -69,12 +79,12 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("genParents", &(br.genParents));
     ch->SetBranchAddress("genMuons", &(br.genMuons));
     ch->SetBranchAddress("genMuPairs", &(br.genMuPairs));
-    if (is2017 && !isSlim) ch->SetBranchAddress("genJets", &(br.genJets));
+    if ((is2017 || is2018) && !isSlim) ch->SetBranchAddress("genJets", &(br.genJets));
 
     ch->SetBranchAddress("nGenParents", &(br.nGenParents));
     ch->SetBranchAddress("nGenMuons", &(br.nGenMuons));
     ch->SetBranchAddress("nGenMuPairs", &(br.nGenMuPairs));
-    if (is2017 && !isSlim) ch->SetBranchAddress("nGenJets", &(br.nGenJets));
+    if ((is2017 || is2018) && !isSlim) ch->SetBranchAddress("nGenJets", &(br.nGenJets));
   }
 
   // ch->SetBranchAddress("hltPaths", &(br.hltPaths));  // Causes error messages after exiting code, for some reason - AWB 15.08.2018

@@ -9,6 +9,8 @@
 
 #include "Ntupliser/DiMuons/interface/NTupleBranches.h"
 
+void ASSERT(bool condition, std::string message);
+
 struct NTupleBranches {
   EventInfo * event = 0;
   VertexInfos * vertices = 0;
