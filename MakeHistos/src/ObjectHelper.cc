@@ -10,7 +10,7 @@ bool MuonID ( const MuonInfo & muon, const std::string muon_ID ) {
   if ( muon_ID == "loose" ) return muon.isLooseID;
   if ( muon_ID == "medium") return muon.isMediumID;
   if ( muon_ID == "tight" ) return muon.isTightID;
-  std::cout << "\n\nInside ObjectSelections.cc, invalid option muon_ID = " << muon_ID << std::endl;
+  std::cout << "\n\nInside ObjectHelper.cc, invalid option muon_ID = " << muon_ID << std::endl;
   assert(false);
 }
 
@@ -22,8 +22,11 @@ bool MuonTrig ( const MuonInfo & muon, const std::string year) {
   } else if ( year == "2017" ) {
     // [2] = HLT_IsoMu27, [3] = HLT_IsoTkMu27
     return ( muon.isHltMatched[2] || muon.isHltMatched[3] );
+  } else if ( year == "2018" ) {
+    // [2] = HLT_IsoMu24, [6] = HLT_Mu50, [8] = HLT_TkMu100
+    return ( muon.isHltMatched[2] || muon.isHltMatched[6] || muon.isHltMatched[8] );
   }
-  std::cout << "\n\nInside ObjectSelections.cc, invalid option year = " << year << std::endl;
+  std::cout << "\n\nInside ObjectHelper.cc, invalid option year = " << year << std::endl;
   assert(false);
 }
 
@@ -32,7 +35,7 @@ float MuonPt ( const MuonInfo & muon, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muon.pt;
   if ( pt_corr == "Roch" ) return muon.pt_Roch;
   if ( pt_corr == "KaMu" ) return muon.pt_KaMu;
-  std::cout << "\n\nInside ObjectSelections.cc, invalid option pt_corr = " << pt_corr << std::endl;
+  std::cout << "\n\nInside ObjectHelper.cc, invalid option pt_corr = " << pt_corr << std::endl;
   assert(false);
 }
 
@@ -41,7 +44,7 @@ float MuPairPt ( const MuPairInfo & muPair, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muPair.pt;
   if ( pt_corr == "Roch" ) return muPair.pt_Roch;
   if ( pt_corr == "KaMu" ) return muPair.pt_KaMu;
-  std::cout << "\n\nInside ObjectSelections.cc, invalid option pt_corr = " << pt_corr << std::endl;
+  std::cout << "\n\nInside ObjectHelper.cc, invalid option pt_corr = " << pt_corr << std::endl;
   assert(false);
 }
 
@@ -50,7 +53,7 @@ float MuPairMass ( const MuPairInfo & muPair, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muPair.mass;
   if ( pt_corr == "Roch" ) return muPair.mass_Roch;
   if ( pt_corr == "KaMu" ) return muPair.mass_KaMu;
-  std::cout << "\n\nInside ObjectSelections.cc, invalid option pt_corr = " << pt_corr << std::endl;
+  std::cout << "\n\nInside ObjectHelper.cc, invalid option pt_corr = " << pt_corr << std::endl;
   assert(false);
 }
 
@@ -59,8 +62,49 @@ float MuPairMassErr ( const MuPairInfo & muPair, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muPair.massErr;
   if ( pt_corr == "Roch" ) return muPair.massErr_Roch;
   if ( pt_corr == "KaMu" ) return muPair.massErr_KaMu;
-  std::cout << "\n\nInside ObjectSelections.cc, invalid option pt_corr = " << pt_corr << std::endl;
+  std::cout << "\n\nInside ObjectHelper.cc, invalid option pt_corr = " << pt_corr << std::endl;
   assert(false);
+}
+
+// Load LepMVA scale factor histogram
+TH2F * LoadSFsLepMVA( const std::string year, const std::string flavor, const std::string WP ) {
+  assert(year == "2016" || year == "2017");
+  assert(flavor == "mu" || flavor == "ele");
+  assert(WP == "T" || WP == "M" || WP == "L");
+
+  TFile * SF_file(0);
+  if (year == "2016") {
+    if (flavor == "mu")  SF_file = TFile::Open("data/LepMVA/scaleFactors_2016_mu.root");
+    if (flavor == "ele") SF_file = TFile::Open("data/LepMVA/scaleFactors_2016_ele.root");
+  } else if (year == "2017") {
+    if (flavor == "mu")  SF_file = TFile::Open("data/LepMVA/scaleFactors_2017_mu.root");
+    if (flavor == "ele") SF_file = TFile::Open("data/LepMVA/scaleFactors_2017_ele.root");
+  }
+
+  if (flavor == "mu") {
+    if (WP == "T") return (TH2F*) SF_file->Get("MuonToTTVLeptonMvatZq")  ->Clone("h_LepMVA_SF_mu");
+    if (WP == "M") return (TH2F*) SF_file->Get("MuonToTTVLeptonMvattZ3l")->Clone("h_LepMVA_SF_mu");
+    if (WP == "L") return (TH2F*) SF_file->Get("MuonToTTVLeptonMvattZ4l")->Clone("h_LepMVA_SF_mu");
+  } else if (flavor == "ele") {
+    if (WP == "T") return (TH2F*) SF_file->Get("EleToTTVLeptonMvatZq")  ->Clone("h_LepMVA_SF_ele");
+    if (WP == "M") return (TH2F*) SF_file->Get("EleToTTVLeptonMvattZ3l")->Clone("h_LepMVA_SF_ele");
+    if (WP == "L") return (TH2F*) SF_file->Get("EleToTTVLeptonMvattZ4l")->Clone("h_LepMVA_SF_ele");
+  }
+  assert(false);
+}
+
+// Return lepton MVA scale factor for a single lepton
+float LepMVASF( const TH2F * h_SF, const float pt, const float eta ) {
+
+  float min_pt  = h_SF->GetXaxis()->GetBinLowEdge(0) + 0.01;
+  float max_pt  = h_SF->GetXaxis()->GetBinLowEdge( h_SF->GetNbinsX() + 1 ) - 0.01;
+  float min_eta = h_SF->GetYaxis()->GetBinLowEdge(0) + 0.01;
+  float max_eta = h_SF->GetYaxis()->GetBinLowEdge( h_SF->GetNbinsY() + 1 ) - 0.01;
+
+  int iPt  = h_SF->GetXaxis()->FindBin( std::min( std::max(pt , min_pt ), max_pt ) );
+  int iEta = h_SF->GetYaxis()->FindBin( std::min( std::max(eta, min_eta), max_eta) );
+
+  return h_SF->GetBinContent(iPt, iEta);
 }
 
 // Determine if dimuon pair is matched to GEN pair
@@ -68,20 +112,21 @@ bool IsGenMatched( const MuPairInfo & muPair, const MuonInfos & muons, const Gen
 
   TLorentzVector mu_vec1 = FourVec( muons.at(muPair.iMu1), "PF" );
   TLorentzVector mu_vec2 = FourVec( muons.at(muPair.iMu2), "PF" );
-  bool mu1_matched = false;
-  bool mu2_matched = false;
+  int  mu1_mother_ID = 0;
+  int  mu2_mother_ID = 0;
 
   for (const auto & genMu : genMuons) {
-    if      (gen_ID == "Z") { if (genMu.mother_ID != 23) continue; }
-    else if (gen_ID == "H") { if (genMu.mother_ID != 25) continue; }
+    if      (gen_ID == "Z") { if ( genMu.mother_ID != 23 && genMu.mother_ID != 22 &&
+				   genMu.mother_ID !=  1 && genMu.mother_ID !=  2 ) continue; }
+    else if (gen_ID == "H") { if ( genMu.mother_ID != 25 ) continue; }
     else assert(gen_ID == "Z" || gen_ID == "H");
 
     TLorentzVector gen_vec = FourVec( genMu );
-    if ( mu_vec1.DeltaR(gen_vec) < 0.05 ) mu1_matched = true;
-    if ( mu_vec2.DeltaR(gen_vec) < 0.05 ) mu2_matched = true;
+    if ( mu_vec1.DeltaR(gen_vec) < 0.05 ) mu1_mother_ID = genMu.mother_ID;
+    if ( mu_vec2.DeltaR(gen_vec) < 0.05 ) mu2_mother_ID = genMu.mother_ID;
   }
 
-  return (mu1_matched && mu2_matched);
+  return (mu1_mother_ID != 0 && mu1_mother_ID == mu2_mother_ID);
 } // End function: bool IsMatchedToGen()
 
 
@@ -94,7 +139,7 @@ bool EleID ( const EleInfo & ele, const std::string ele_ID ) {
   if ( ele_ID == "loose" ) return ele.isLooseID;
   if ( ele_ID == "medium") return ele.isMediumID;
   if ( ele_ID == "tight" ) return ele.isTightID;
-  std::cout << "\n\nInside ObjectSelections.cc, invalid option ele_ID = " << ele_ID << std::endl;
+  std::cout << "\n\nInside ObjectHelper.cc, invalid option ele_ID = " << ele_ID << std::endl;
   assert(false);
 }
 
@@ -103,14 +148,14 @@ bool EleID ( const EleInfo & ele, const std::string ele_ID ) {
 ///  Jet functions  ///
 ///////////////////////
 
- // Return loose, medium, or tight jet PU ID from 2016 or 2017
+ // Return loose, medium, or tight jet PU ID from 2016, 2017, or 2018
 bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string year ) {
 
   float puID_cut = 999;  // Minimum puID value to pass cut
 
   if (year == "2016") return true;
   
-  else if (year == "2017") {
+  else if (year == "2017" || year == "2018") { // What is the true PU ID for 2018? - AWB 03.05.2019
 
     if (jet.pt >= 50) return true;
 
@@ -159,14 +204,39 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
 } // End function: bool JetPUID ()
 
 
-/////////////////////////////
-///  Kinematic functions  ///
-/////////////////////////////
+// Return a new JetPair object, modeled on Ntupliser/DiMuons/src/JetPairHelper.cc
+JetPairInfo MakeJetPair( TLorentzVector jet1_vec, TLorentzVector jet2_vec ) {
+
+  JetPairInfo    jetPair;
+  TLorentzVector pair_vec;
+
+  jetPair.iJet1 = -99; // Unknown, doesn't matter
+  jetPair.iJet2 = -99; // Unknown, doesn't matter
+
+  pair_vec = jet1_vec + jet2_vec;
+
+  jetPair.mass    = pair_vec.M();
+  jetPair.pt      = pair_vec.Pt();
+  jetPair.eta     = pair_vec.PseudoRapidity();
+  jetPair.phi     = pair_vec.Phi();
+
+  jetPair.dR   = jet1_vec.DeltaR(jet2_vec);
+  jetPair.dEta = jet1_vec.PseudoRapidity() - jet2_vec.PseudoRapidity();
+  jetPair.dPhi = jet1_vec.DeltaPhi(jet2_vec);
+
+  return jetPair;
+
+} // End function: JetPairInfo MakeJetPair()
+
+
+///////////////////////////////
+///  Four-vector functions  ///
+///////////////////////////////
 
 TLorentzVector FourVec( const MuonInfo & muon, const std::string pt_corr, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(MuonPt(muon, pt_corr),        0, muon.phi, 0.105658367 );
+    vec.SetPtEtaPhiM(MuonPt(muon, pt_corr),        0, muon.phi, 0 );
   else
     vec.SetPtEtaPhiM(MuonPt(muon, pt_corr), muon.eta, muon.phi, 0.105658367 );
   return vec;
@@ -185,7 +255,7 @@ TLorentzVector FourVec( const MuPairInfo & muPair, const std::string pt_corr, co
 TLorentzVector FourVec( const EleInfo & ele, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(ele.pt,       0, ele.phi, 0.000511 );
+    vec.SetPtEtaPhiM(ele.pt,       0, ele.phi, 0 );
   else
     vec.SetPtEtaPhiM(ele.pt, ele.eta, ele.phi, 0.000511 );
   return vec;
@@ -193,7 +263,7 @@ TLorentzVector FourVec( const EleInfo & ele, const std::string opt ) {
 TLorentzVector FourVec( const JetInfo & jet, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(jet.pt,       0, jet.phi, jet.mass );
+    vec.SetPtEtaPhiM(jet.pt,       0, jet.phi, 0 );
   else
     vec.SetPtEtaPhiM(jet.pt, jet.eta, jet.phi, jet.mass );
   return vec;
@@ -211,7 +281,7 @@ TLorentzVector FourVec( const MhtInfo & mht, const std::string opt ) {
 TLorentzVector FourVec( const GenParentInfo & genPar, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(genPar.pt,          0, genPar.phi, genPar.mass );
+    vec.SetPtEtaPhiM(genPar.pt,          0, genPar.phi, 0 );
   else
     vec.SetPtEtaPhiM(genPar.pt, genPar.eta, genPar.phi, genPar.mass );
   return vec;
@@ -227,17 +297,32 @@ TLorentzVector FourVec( const GenMuonInfo & genMu, const std::string opt ) {
 TLorentzVector FourVec( const GenJetInfo & genJet, const std::string opt ) {
   TLorentzVector vec;
   if (opt == "T")
-    vec.SetPtEtaPhiM(genJet.pt,          0, genJet.phi, genJet.mass );
+    vec.SetPtEtaPhiM(genJet.pt,          0, genJet.phi, 0 );
   else
     vec.SetPtEtaPhiM(genJet.pt, genJet.eta, genJet.phi, genJet.mass );
   return vec;
 }
+TLorentzVector FourVec( const MuonInfos & muons, const std::string pt_corr, const EleInfos & eles,
+			const JetInfos & jets, const std::string opt ) {
+  // Useful for full event mass and MHT calculations
+  TLorentzVector vec;
+  for (const auto & mu : muons) vec += FourVec(mu, pt_corr, opt);
+  for (const auto & ele : eles) vec += FourVec(ele, opt);
+  for (const auto & jet : jets) vec += FourVec(jet, opt);
+  if (opt == "T") vec.SetPtEtaPhiM( vec.Pt(), 0, vec.Phi(), 0 );
+  return vec;
+}
 
 
+///////////////////////////////
+///  Correlation functions  ///
+///////////////////////////////
+
+// Should be called with positively-charged particle as "vec1", negative as "vec2"
 float CosThetaStar( TLorentzVector vec1, TLorentzVector vec2 ) {
   TLorentzVector parent_vec = vec1 + vec2;
   TVector3 parent_p = parent_vec.BoostVector(), p1, p2;
-  float cos_theta_star; // default to return the cos_theta_star of vec1, cannot tell charge from TLorentzVector.  - XWZ 23.10.2018
+  float cos_theta_star;
 
   vec1.Boost( -parent_p );
   p1 = vec1.BoostVector();
@@ -306,26 +391,10 @@ float Sin_CS_Phi( TLorentzVector vec1, TLorentzVector vec2 ) {
   return sin_cs_phi;
 }
 
-// Return a new JetPair object, modeled on Ntupliser/DiMuons/src/JetPairHelper.cc
-JetPairInfo MakeJetPair( TLorentzVector jet1_vec, TLorentzVector jet2_vec ) {
+// Returns positive value if |eta(1)| < |eta(2)|, otherwise negative
+float SignedDEta( TLorentzVector vec1, TLorentzVector vec2 ) {
 
-  JetPairInfo    jetPair;
-  TLorentzVector pair_vec;
-
-  jetPair.iJet1 = -99; // Unknown, doesn't matter
-  jetPair.iJet2 = -99; // Unknown, doesn't matter
-
-  pair_vec = jet1_vec + jet2_vec;
-
-  jetPair.mass    = pair_vec.M();
-  jetPair.pt      = pair_vec.Pt();
-  jetPair.eta     = pair_vec.PseudoRapidity();
-  jetPair.phi     = pair_vec.Phi();
-
-  jetPair.dR   = jet1_vec.DeltaR(jet2_vec);
-  jetPair.dEta = jet1_vec.PseudoRapidity() - jet2_vec.PseudoRapidity();
-  jetPair.dPhi = jet1_vec.DeltaPhi(jet2_vec);
-
-  return jetPair;
-
+  float dEta = abs(vec1.Eta() - vec2.Eta());
+  if ( abs(vec1.Eta()) < abs(vec2.Eta()) ) return    dEta;
+  else                                     return -1*dEta;
 }
