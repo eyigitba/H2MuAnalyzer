@@ -13,7 +13,7 @@ void ConfigureEventSelection( EventSelectionConfig & cfg, std::string _year ) {
     cfg.muPair_OS         = true;  // Require opposite-sign pair
   } // End if (_year == "2016")
 
-  else if (_year == "2017") {
+  else if (_year == "2017" || _year == "2018") {
     cfg.year = _year;
 
     // Muon selection requirements
@@ -21,7 +21,7 @@ void ConfigureEventSelection( EventSelectionConfig & cfg, std::string _year ) {
     cfg.mu_trig_HLT_match = true;  // Require muon to match HLT trigger
     cfg.muPair_mass_min   = 60.0;  // Minimum invariant mass
     cfg.muPair_OS         = true;  // Require opposite-sign pair
-  } // End if (_year == "2017")
+  } // End if (_year == "2017" || _year == "2018")
 
   else {
     std::cout << "Inside ConfigureEventSelection, invalid year = "<< _year << std::endl;
@@ -84,18 +84,19 @@ bool PassSelection( const NTupleBranches & br, const EventSelectionConfig & evt,
   } // End if (selection == "Presel2016")
 
 
-  ///////////////////////////////
-  ///  Pre-selection in 2017  ///
-  ///////////////////////////////
-  else if (selection == "Presel2017") {
-    if (verbose) std::cout << "\n  * Applying Presel2017 cuts" << std::endl;
+  ////////////////////////////////////////
+  ///  Pre-selection in 2017 and 2018  ///
+  ////////////////////////////////////////
+  else if (selection == "Presel2017" || selection == "Presel2018") {
+    if (verbose) std::cout << "\n  * Applying Presel2017/2018 cuts" << std::endl;
     if (verbose) std::cout << "    - Using " << obj.mu_pt_corr << " muon pT corrections"         << std::endl;
     if (verbose) std::cout << "    - Lead (triggering) muon pT > "      << evt.mu_trig_pt_min    << std::endl;
     if (verbose) std::cout << "    - Triggering muon must match HLT = " << evt.mu_trig_HLT_match << std::endl;
     if (verbose) std::cout << "    - Minimum dimuon invariant mass > "  << evt.muPair_mass_min   << std::endl;
     if (verbose) std::cout << "    - Dimuon require opposite sign = "   << evt.muPair_OS         << std::endl;
     
-    assert(evt.year == "2017" && obj.year == "2017");
+    assert((evt.year == "2017" && obj.year == "2017") ||
+	   (evt.year == "2018" && obj.year == "2018"));
 
     // Loop over all muon pairs
     for (int i = 0; i < br.nMuPairs; i++) {
@@ -120,7 +121,7 @@ bool PassSelection( const NTupleBranches & br, const EventSelectionConfig & evt,
       break;
     } // End loop: for (int i = 0; i < br.nMuPairs; i++)
 
-  } // End else if (selection == "Presel2017")
+  } // End else if (selection == "Presel2017" || selection == "Presel2018")
 
  
   else {
