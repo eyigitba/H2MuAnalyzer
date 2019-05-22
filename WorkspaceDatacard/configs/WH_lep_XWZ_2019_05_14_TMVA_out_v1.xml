@@ -1,8 +1,9 @@
 
 <root>
 
-  <source> xzuo_TMVA </source>
-  <in_dir> /afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_with_BDT/plots </in_dir>
+  <source>  xzuo_TMVA </source>
+  <in_dir>  /afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_with_BDT/plots </in_dir>
+  <in_file> 2017_WH_ele_against_inclu_lepMVA04.root </in_file>
   
   <categories>
     <cat name="e2mu" loc="2017_WH_ele_against_inclu_trimvar_with_mass_all_sig_all_bkg_ge0j"/>
@@ -24,7 +25,7 @@
       <dist>     BDTG_UF_v2 </dist>
       <min_max>  [-1, 1] </min_max>
       <blind>    [0, 1] </blind>
-      <rebin>    True </rebin>
+      <rebin>    [conserv, 0.5, 0.02] </rebin>
       <models>   [template_stack] </models>
     </BDT_mass_rebin>
     

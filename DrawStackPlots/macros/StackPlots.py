@@ -35,13 +35,13 @@ if USER == 'abrinke1':
     PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
     YEAR     = '2017'     ## Dataset year (2016 or 2017)
 
-    # CONFIG   = 'WH_lep'   ## Pre-defined stack configuration from python/StackPlotConfig.py
-    # LABEL    = 'WH_lep_AWB_2019_04_23_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORY = '3mu_medLepMVA_noZ_noBtag_mass12'  ## Category for which to draw plots
+    CONFIG   = 'WH_lep'   ## Pre-defined stack configuration from python/StackPlotConfig.py
+    LABEL    = 'WH_lep_AWB_2019_05_20_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    CATEGORY = 'e2mu_medLepMVA_noZ_noBtag_mass12'  ## Category for which to draw plots
 
-    CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
-    LABEL    = 'ttH_3l_AWB_2019_04_24_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    CATEGORY = 'e2mu_noZ_ge2j_btag_mass12'  ## Category for which to draw plots
+    # CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
+    # LABEL    = 'ttH_3l_AWB_2019_05_01_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = 'e2mu_medLepMVA_noZ_ge2j_btag_mass12'  ## Category for which to draw plots
 
     IN_FILE  = 'histos_Presel2017_%s.root' % CATEGORY  ## File with input histograms
     SCALE     = 'lin' ## 'log' or 'lin' scaling of y-axis
@@ -87,10 +87,17 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
     ## Draw the data histogram
     if h_data:
         ## Blind 120 - 130 GeV range of mass plots
-        if 'mass' in h_data.GetName():
+        if 'H_pair_mass' in h_data.GetName():
             for i in range(1, h_data.GetNbinsX()+1):
                 if h_data.GetXaxis().GetBinCenter(i) > 120 and h_data.GetXaxis().GetBinCenter(i) < 130:
                     h_data.SetBinContent(i, 0)
+                    h_data.SetBinError(i, 0)
+        ## Blind high-score part of BDT with mass
+        if 'BDT' in h_data.GetName() and not 'H_pair_mass_BDT' in h_data.GetName():
+            for i in range(1, h_data.GetNbinsX()+1):
+                if h_data.GetXaxis().GetBinCenter(i) > 0.4:
+                    h_data.SetBinContent(i, 0)
+                    h_data.SetBinError(i, 0)
         h_data.SetMarkerStyle(20)
         h_data.Draw('SAME')
 
@@ -100,10 +107,10 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
     h_sig.Draw('HISTSAME')
 
     ## Save the net signal, net background, and net data histograms
-    h_net_sig  = sig_stack.GetStack().Last().Clone('h_'+dist+'_Net_Sig')
-    h_net_bkg  = all_stack.GetStack().Last().Clone('h_'+dist+'_Net_Bkg')
+    h_net_sig  = sig_stack.GetStack().Last().Clone(dist+'_Net_Sig')
+    h_net_bkg  = all_stack.GetStack().Last().Clone(dist+'_Net_Bkg')
     h_net_bkg.Add(h_net_sig, -1)
-    if h_data: h_net_data = h_data.Clone('h_'+dist+'_Net_Data')
+    if h_data: h_net_data = h_data.Clone(dist+'_Net_Data')
 
     ## Draw the legend
     legend.Draw()
@@ -129,7 +136,8 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
         ratio_hist.Draw()
 
     canv.Update()
-    canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.png')
+    if not '_zoom' in dist:
+        canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.png')
 
     ## Open output root file and save canvas and net histograms
     out_file_loc = R.TFile.Open(out_file_name, 'UPDATE')
@@ -168,6 +176,7 @@ def main():
     if ( len(sys.argv) == 1 or int(sys.argv[1]) <= 1 ):
         print 'Creating output file %s' % out_file_name
         out_file = R.TFile.Open(out_file_name, 'RECREATE')
+        out_file.mkdir('groups')
     else:  ## If StackPlots.py crashed and you are finishing the plots, update existing file
         print 'Re-opening output file %s' % out_file_name
         out_file = R.TFile.Open(out_file_name, 'UPDATE')
@@ -202,6 +211,9 @@ def main():
         if    mass == '125' and ('120' in samp.name or '130' in samp.name): excl_samps.append(samp.name)
         elif (mass == '120' or mass == '130') and not mass in samp.name:    excl_samps.append(samp.name)
         elif mass != '120' and mass != '125' and mass != '130': print 'Invalid signal mass choice %s - quitting' % mass, sys.exit()
+    # ## Exclude extra Higgs signals
+    # for samp in [B for B in DB_samps if B.evt_type == 'Bkg']:
+    #     if ( samp.name.startswith('H2W_') or samp.name.startswith('H2Tau') or samp.name.startswith('H2Z_') ): excl_samps.append(samp.name)
 
 
     ##################################################################
@@ -294,6 +306,8 @@ def main():
     for group in groups['Sig'].keys(): print group+': '+', '.join(groups['Sig'][group])
     print '\nFinal list of background samples:'
     for group in groups['Bkg'].keys(): print group+': '+', '.join(groups['Bkg'][group])
+    print '\nFinal list of excluded samples:'
+    print ', '.join(excl_samps)
 
     ## Drop empty groups
     for kind in ['Data', 'Sig', 'Bkg']:
@@ -349,8 +363,10 @@ def main():
                     except:
                         print '  - Could not find histogram '+samp+'_'+dist
 
-        if 'Other' in groups['Bkg'].keys() and not 'Other' in group_hist.keys():
-            del groups['Bkg']['Other']
+            ## Remove any groups that have no histograms
+            for key in groups[evt_type].keys():
+                if not key in group_hist.keys():
+                    del groups[evt_type][key]
 
         ## Fill the signal stack
 	for group in groups['Sig'].keys():
@@ -358,11 +374,16 @@ def main():
             group_hist[group].SetLineWidth(2)
 	    stack_sig.Add(group_hist[group])
 	group_hist['Sig'] = stack_sig.GetStack().Last()
-        ## Fill the signal + background stack
+        ## Fill the signal + background stack, saving individual stack components
+        out_file_loc = R.TFile.Open(out_file_name, 'UPDATE')
+        out_file_loc.cd('groups')
         for group in (groups['Bkg'].keys() + groups['Sig'].keys()):
             group_hist[group].SetFillColor(colors[group])
             stack_all.Add(group_hist[group])
+            ## Write out the histogram into 'groups/', stripping 'hist_' from the name
+            group_hist[group].Write(group_hist[group].GetName().replace('hist_',''))
 	group_hist['MC'] = stack_all.GetStack().Last()
+        out_file_loc.Close()  ## Re-open later when saving stack
         ## Fill the data stack
         MC_only = True  ## If we don't find any data histograms, fill 'data' as sum of MC
         for group in groups['Data'].keys():

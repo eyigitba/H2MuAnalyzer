@@ -17,14 +17,14 @@ class DataLoader:
     ##  Initialize based on user and configuration  ##
     ## ============================================ ##
 
-    def __init__(self, _user, _source, _in_dir, _cat_loc, _dist, _min_max, _rebin):
+    def __init__(self, _user, _source, _in_dir, _in_file, _cat_loc, _dist, _min_max, _rebin):
 
         print '\nInstantiating DataLoader with user = %s and source = %s' % (_user, _source)
 
         self.user       = _user     ## Who is running the script: abrinke1, xzuo, pbortigno
         self.source     = _source   ## Data source: abrinke1, xzuo, pbortigno, acarnes
         self.in_dir     = _in_dir   ## Data input directory
-        self.in_file    = None      ## Data input file
+        self.in_file    = _in_file  ## Data input file (first initialized to the file name)
         self.cat_loc    = _cat_loc  ## Full category name from input file to run over
         self.dist       = _dist     ## Distribution to be used for signal extraction
         self.min_max    = _min_max  ## Minimum and maximum variable values considered
@@ -38,7 +38,7 @@ class DataLoader:
 
         self.LoadHistograms()
 
-    ## End function: def __init__(self, _user, _source, _in_dir, _cat_loc, _dist, _min_max, _rebin):
+    ## End function: def __init__(self, _user, _source, _in_dir, _in_file, _cat_loc, _dist, _min_max, _rebin):
 
 
     ## ============================== ##
@@ -65,7 +65,7 @@ class DataLoader:
         self.sig_hists  = []
         self.bkg_hists  = []
         self.data_hist  = 0
-        self.rebin      = 0
+        self.rebin      = []
         self.sig_rebin  = []
         self.bkg_rebin  = []
         self.data_rebin = 0
@@ -78,15 +78,11 @@ class DataLoader:
     def LoadHistograms(self):
 
         if   (self.source == 'abrinke1'):
-            in_file_name = self.in_dir+'/plots/'+self.cat_loc+'/StackPlots.root'
+            in_file_name = self.in_dir+'/plots/'+self.cat_loc+'/'+self.in_file
         elif (self.source == 'abrinke1_TMVA'):
-            in_file_name = self.in_dir+'/TMVA_retrain_WH_lep_e2mu_2019_05_15.root'
-	elif (self.source == 'xzuo_mass'):
-	    in_file_name = self.in_dir+'/'+'mass_hists_cut_444.root' 
-	elif (self.source == 'xzuo_BDT'):
-	    in_file_name = self.in_dir+'/'+'BDT_channels_lepMVA04_with_mass_min110_40bins.root'
-        elif (self.source == 'xzuo_TMVA'):
-            in_file_name = self.in_dir+'/2017_WH_ele_against_inclu_lepMVA04.root'
+            in_file_name = self.in_dir+'/'+self.in_file
+        elif (self.source == 'xzuo_mass' or self.source == 'xzuo_BDT' or self.source == 'xzuo_TMVA'):
+            in_file_name = self.in_dir+'/'+self.in_file
         elif (self.source == 'XXX'):
             in_file_name = 'YYY'
         else:
@@ -121,14 +117,14 @@ class DataLoader:
         elif (self.source == 'abrinke1_TMVA'):
             h_str = '%s/Method_%s/%s/MVA_%s' % (self.cat_loc, self.dist, self.dist, self.dist)
             print '  * Loading '+h_str+'_S and _B'
-            self.data_hist =      self.in_file.Get(h_str+'_B').Clone('Net_Data')
-            self.sig_hists.append(self.in_file.Get(h_str+'_S').Clone('Net_Sig'))
-            self.bkg_hists.append(self.in_file.Get(h_str+'_B').Clone('Net_Bkg'))
+            self.data_hist =      self.in_file.Get(h_str+'_B_high').Clone('Net_Data')
+            self.sig_hists.append(self.in_file.Get(h_str+'_S_high').Clone('Net_Sig'))
+            self.bkg_hists.append(self.in_file.Get(h_str+'_B_high').Clone('Net_Bkg'))
 
             ## Scale signal and background to expected yields
-            self.data_hist   .Scale(97.71 / self.data_hist.Integral())
-            self.sig_hists[0].Scale(0.643 / self.sig_hists[0].Integral())
-            self.bkg_hists[0].Scale(97.71 / self.bkg_hists[0].Integral())
+            self.data_hist   .Scale(254.7 / self.data_hist.Integral())
+            self.sig_hists[0].Scale(1.368 / self.sig_hists[0].Integral())
+            self.bkg_hists[0].Scale(254.7 / self.bkg_hists[0].Integral())
 
         ## End conditional: if (self.source == 'abrinke1_TMVA'):
 
@@ -210,8 +206,11 @@ class DataLoader:
                         hist.SetBinError  (iBin, 0)
         
         ## Rebin histograms for maximum S/sqrt(B) significance with a conservative estimate of uncertainties
-        if self.rebin == True:
-            new_bins = array.array('d', ACT.MergeBins(self.sig_hists[0], self.bkg_hists[0], 'conserv', 0.02, False) )
+        if self.rebin != False:
+            ## rebin[0] sets the significance calculation strategy: 'noSyst', 'nominal', or 'conserv'
+            ## rebin[1] sets the minimum allowed background in a single bin
+            ## rebin[2] sets the maximum allowed loss in total significance from rebinning
+            new_bins = array.array('d', ACT.MergeBins(self.sig_hists[0], self.bkg_hists[0],  self.rebin[0], self.rebin[1], self.rebin[2], False) )
             self.data_rebin = self.data_hist.Rebin( len(new_bins)-1, self.data_hist.GetName(), new_bins )
             for hist in self.sig_hists:
                 self.sig_rebin.append( hist.Rebin( len(new_bins)-1, hist.GetName(), new_bins ) )
