@@ -1,6 +1,14 @@
 
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h"
 
+// Manually force seg-fault because ROOT doesn't handle exceptions
+void ASSERT(bool condition, std::string message) {
+  if (!condition) {
+    std::cout << "\n\nASSERTION FAILED WITH MESSAGE: " << message << "\n" << std::endl;
+    assert(false);
+  }
+}
+
 void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::string> opts, bool verbose) {
 
   if (verbose) std::cout << "\nInside SetBranchAddress" << std::endl;
