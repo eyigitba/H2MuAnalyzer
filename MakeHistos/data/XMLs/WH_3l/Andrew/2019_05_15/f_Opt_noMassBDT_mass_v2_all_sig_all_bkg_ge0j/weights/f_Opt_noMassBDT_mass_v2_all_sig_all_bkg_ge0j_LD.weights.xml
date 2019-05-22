@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<MethodSetup Method="LD::LD">
+  <GeneralInfo>
+    <Info name="TMVA Release" value="4.2.1 [262657]"/>
+    <Info name="ROOT Release" value="6.10/09 [395785]"/>
+    <Info name="Creator" value="abrinke1"/>
+    <Info name="Date" value="Thu May 16 13:04:03 2019"/>
+    <Info name="Host" value="Linux cmsbuild76.cern.ch 2.6.32-696.30.1.el6.x86_64 #1 SMP Tue May 22 06:09:36 CEST 2018 x86_64 x86_64 x86_64 GNU/Linux"/>
+    <Info name="Dir" value="/afs/cern.ch/user/a/abrinke1/HiggsToMuMu/2017/CMSSW_9_4_10/src/H2MuAnalyzer/TrainMVA"/>
+    <Info name="Training events" value="108111"/>
+    <Info name="TrainingTime" value="4.96950150e-02"/>
+    <Info name="AnalysisType" value="Classification"/>
+  </GeneralInfo>
+  <Options>
+    <Option name="V" modified="Yes">False</Option>
+    <Option name="VerbosityLevel" modified="No">Default</Option>
+    <Option name="VarTransform" modified="Yes">None</Option>
+    <Option name="H" modified="Yes">False</Option>
+    <Option name="CreateMVAPdfs" modified="No">False</Option>
+    <Option name="IgnoreNegWeightsInTraining" modified="No">False</Option>
+  </Options>
+  <Variables NVar="2">
+    <Variable VarIndex="0" Expression="BDTG_UF_v1" Label="BDTG_UF_v1" Title="BDT output" Unit="" Internal="BDTG_UF_v1" Type="F" Min="-7.61055946e-01" Max="9.44391966e-01"/>
+    <Variable VarIndex="1" Expression="dimu_mass" Label="dimu_mass" Title="mass(#mu#mu)" Unit="" Internal="dimu_mass" Type="F" Min="1.05010910e+02" Max="1.59995438e+02"/>
+  </Variables>
+  <Spectators NSpec="4">
+    <Spectator SpecIndex="0" Expression="classID" Label="classID" Title="1 for Sig, 0 for Bkg" Unit="" Internal="classID" Type="F" Min="0.00000000e+00" Max="1.00000000e+00"/>
+    <Spectator SpecIndex="1" Expression="samp_ID" Label="samp_ID" Title="Sample ID" Unit="" Internal="samp_ID" Type="F" Min="-2.50000000e+01" Max="3.80000000e+01"/>
+    <Spectator SpecIndex="2" Expression="total_wgt" Label="total_wgt" Title="Overall weight" Unit="" Internal="total_wgt" Type="F" Min="-9.27989110e-02" Max="6.84560955e-01"/>
+    <Spectator SpecIndex="3" Expression="dimu_mass" Label="dimu_mass" Title="mass(#mu#mu)" Unit="GeV" Internal="dimu_mass" Type="F" Min="1.05010910e+02" Max="1.59995438e+02"/>
+  </Spectators>
+  <Classes NClass="2">
+    <Class Name="Background" Index="0"/>
+    <Class Name="Signal" Index="1"/>
+  </Classes>
+  <Transformations NTransformations="0"/>
+  <MVAPdfs/>
+  <Weights NOut="1" NCoeff="3">
+    <Coefficient IndexOut="0" IndexCoeff="0" Value="-5.2400881513465369e-01"/>
+    <Coefficient IndexOut="0" IndexCoeff="1" Value="-5.4651559953490936e-01"/>
+    <Coefficient IndexOut="0" IndexCoeff="2" Value="8.6879339863521476e-03"/>
+  </Weights>
+</MethodSetup>
