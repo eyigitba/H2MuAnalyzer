@@ -7,7 +7,14 @@ TH1 * BookHisto( const TString h_name, const int nBins, const float min, const f
   if      (opt1.CompareTo("TH1D") == 0) return new TH1D(h_name, h_name, nBins, min, max);
   else if (opt1.CompareTo("TH1F") == 0) return new TH1F(h_name, h_name, nBins, min, max);
   else { std::cout << "BookHisto option " << opt1 << " is neither TH1D nor TH1F - exiting" << std::endl; return 0; }
-  
+}
+// Book a 1D histogram with variable binning (defaults to TH1D)
+TH1 * BookHisto( const TString h_name, const int nBins, const std::vector<float> binning, const TString opt1 ) {
+  float edges[nBins+1];
+  for (int i = 0; i < nBins+1; i++) edges[i] = binning.at(i);
+  if      (opt1.CompareTo("TH1D") == 0) return new TH1D(h_name, h_name, nBins, edges);
+  else if (opt1.CompareTo("TH1F") == 0) return new TH1F(h_name, h_name, nBins, edges);
+  else { std::cout << "BookHisto option " << opt1 << " is neither TH1D nor TH1F - exiting" << std::endl; return 0; }
 }
 // Book a 2D histogram (defaults to TH2D)
 TH2 * BookHisto( const TString h_name, const int nBinsX, const float minX, const float maxX,
@@ -15,7 +22,6 @@ TH2 * BookHisto( const TString h_name, const int nBinsX, const float minX, const
   if      (opt1.CompareTo("TH2D") == 0) return new TH2D(h_name, h_name, nBinsX, minX, maxX, nBinsY, minY, maxY);
   else if (opt1.CompareTo("TH2F") == 0) return new TH2F(h_name, h_name, nBinsX, minX, maxX, nBinsY, minY, maxY);
   else { std::cout << "BookHisto option " << opt1 << " is neither TH2D nor TH2F - exiting" << std::endl; return 0; }
-
 }
 
 
@@ -59,6 +65,17 @@ void BookAndFill( std::map<TString, TH1*> & h1_map, const TString h_name,
 		  const double val, const float weight, const bool overflow ) {
   if (h1_map.find(h_name) == h1_map.end()) {
     TH1 * hist = BookHisto(h_name, nBins, min, max);
+    h1_map[h_name] = hist;
+  }
+  FillHisto(h1_map.find(h_name)->second, val, weight, overflow);
+  // for (const auto it : h_map_1D) std::cout << "Inside HistoHelper, map at " << it.first << " = " << it.second->Integral() << std::endl;
+}
+// Book a 1D histogram with variable binning (if it does not already exist), then fill it
+void BookAndFill( std::map<TString, TH1*> & h1_map, const TString h_name,
+		  const int nBins, const std::vector<float> binning,
+		  const double val, const float weight, const bool overflow ) {
+  if (h1_map.find(h_name) == h1_map.end()) {
+    TH1 * hist = BookHisto(h_name, nBins, binning);
     h1_map[h_name] = hist;
   }
   FillHisto(h1_map.find(h_name)->second, val, weight, overflow);
@@ -220,3 +237,11 @@ void BookForMCvsData(std::map<TString, TH1*> & h1_map, std::string sample, std::
 }
 
 
+// Test if a string starts or ends with a sub-string
+bool StartsWith(const std::string str, const std::string beg) {
+  return (str.rfind(beg, 0) == 0);
+}
+bool EndsWith(const std::string str, const std::string end) {
+  if (end.size() > str.size()) return false;
+  return std::equal(end.rbegin(), end.rend(), str.rbegin());
+}

@@ -13,6 +13,8 @@
 
 // Book a 1D histogram (defaults to TH1D)
 TH1 * BookHisto( const TString h_name, const int nBins, const float min, const float max, const TString opt1 = "TH1D");
+// Book a 1D histogram with variable binning (defaults to TH1D)
+TH1 * BookHisto( const TString h_name, const int nBins, const std::vector<float> binning, const TString opt1 = "TH1D" ); 
 // Book a 2D histogram (defaults to TH2D)
 TH2 * BookHisto( const TString h_name, const int nBinsX, const float minX, const float maxX,
 		 const int nBinsY, const float minY, const float maxY, const TString opt1 = "TH2D" );
@@ -26,6 +28,10 @@ void FillHisto( TH2 * hist, double valX, double valY, const float weight = 1.0, 
 void BookAndFill( std::map<TString, TH1*> & h1_map, const TString h_name,
 		  const int nBins, const float min, const float max,
 		  const double val, const float weight = 1.0, const bool overflow = true );
+// Book a 1D histogram with variable binning (if it does not already exist), then fill it, default weight 1.0
+void BookAndFill( std::map<TString, TH1*> & h1_map, const TString h_name,
+                  const int nBins, const std::vector<float> binning,
+                  const double val, const float weight, const bool overflow = true);
 // Book a 2D histogram (if it does not already exist), then fill it, default weight 1.0
 void BookAndFill( std::map<TString, TH2*> & h2_map, const TString h_name,
                   const int nBinsX, const float minX, const float maxX,
@@ -63,9 +69,12 @@ void BookAndFill( std::tuple< const TString, std::map<TString, int> &, TTree *, 
 		  const double val, const float weight = 1.0, const bool overflow = true );
 
 
-//Initialize a default set of histos for data/MC comparison
+// Initialize a default set of histos for data/MC comparison
 void BookForMCvsData(std::map<TString, TH1*> & h1_map, std::string sample, std::vector<std::string> OPT_CUTS, std::vector<std::string> CAT_CUTS);
 
+// Test if a string starts or ends with a sub-string
+bool StartsWith(const std::string str, const std::string beg);
+bool EndsWith(const std::string str, const std::string end);
 
 
 

@@ -14,6 +14,22 @@ bool MuonID ( const MuonInfo & muon, const std::string muon_ID ) {
   assert(false);
 }
 
+// Return loose, medium, or tight lepMVA
+bool LepMVA( const MuonInfo & muon, const std::string year, const std::string cut ) {
+  assert(year == "2016" || year == "2017" || year == "2018");
+  assert(cut == "T" || cut == "M" || cut == "L");
+  float MVA_cut = (cut == "T" ? 0.8 : (cut == "M" ? 0.4 : -0.4));
+  float CSV_cut = (cut == "T" ? (year == "2016" ? 0.8958 : 0.8001) : 999);
+  return (muon.lepMVA > MVA_cut && muon.jet_deepCSV < CSV_cut);
+}
+bool LepMVA( const EleInfo & ele, const std::string year, const std::string cut ) {
+  assert(year == "2016" || year == "2017" || year == "2018");
+  assert(cut == "T" || cut == "M" || cut == "L");
+  float MVA_cut = (cut == "T" ? 0.8 : (cut == "M" ? 0.4 : -0.4));
+  float CSV_cut = (cut == "T" ? (year == "2016" ? 0.8958 : 0.8001) : 999);
+  return (ele.lepMVA > MVA_cut && ele.jet_deepCSV < CSV_cut);
+}
+
 // Return if muon fired HLT trigger
 bool MuonTrig ( const MuonInfo & muon, const std::string year, const std::vector<std::string> trigNames ) {
   if        ( year == "2016" ) {

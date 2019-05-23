@@ -16,6 +16,8 @@
 #include "H2MuAnalyzer/MakeHistos/interface/LoadNTupleBranches.h"
 
 bool  MuonID        ( const MuonInfo & muon, const std::string muon_ID );     // Return loose, medium, or tight muon ID
+bool  LepMVA        ( const MuonInfo & muon, const std::string year, const std::string cut ); // Return if muon passes lepton MVA cut
+bool  LepMVA        ( const EleInfo  & ele,  const std::string year, const std::string cut ); // Return if electron passes lepton MVA cut
 bool  MuonTrig      ( const MuonInfo & muon, const std::string year, const std::vector<std::string> trigNames ); // Return if muon fired HLT trigger
 float MuonPt        ( const MuonInfo & muon, const std::string pt_corr );     // Return PF, Rochester, or Kalman corrected muon pT
 float MuPairPt      ( const MuPairInfo & muPair, const std::string pt_corr ); // Return PF, Rochester, or Kalman corrected dimuon pT
