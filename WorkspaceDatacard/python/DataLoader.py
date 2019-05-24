@@ -82,9 +82,9 @@ class DataLoader:
         elif (self.source == 'abrinke1_TMVA'):
             in_file_name = self.in_dir+'/TMVA_retrain_WH_lep_e2mu_2019_05_15.root'
 	elif (self.source == 'xzuo_mass'):
-	    in_file_name = self.in_dir+'/'+'mass_hists_cut_444.root' 
+	    in_file_name = self.in_dir+'/'+'mass_hists_cut_lepMVAp04.root' 
 	elif (self.source == 'xzuo_BDT'):
-	    in_file_name = self.in_dir+'/'+'BDT_channels_lepMVA04_with_mass_min110_40bins.root'
+	    in_file_name = self.in_dir+'/'+'BDT_channels_lepMVAp04_with_mass_min110_40bins.root'
         elif (self.source == 'xzuo_TMVA'):
             in_file_name = self.in_dir+'/2017_WH_ele_against_inclu_lepMVA04.root'
         elif (self.source == 'XXX'):

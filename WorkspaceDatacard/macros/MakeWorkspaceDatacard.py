@@ -49,8 +49,11 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 # CONFIGS = ['WH_lep_AWB_2019_05_01_v3']
 #CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
 #CONFIGS = ['WH_ele_XWZ_2019_05_15_v1_merge3']
-CONFIGS = ['WH_ele_XWZ_mass_05_16_v1']
+#CONFIGS = ['WH_ele_XWZ_mass_05_16_v1']
 #CONFIGS = ['WH_mu_XWZ_2019_05_15_v1']
+CONFIGS = ['ZH_lep_XWZ_mass_05_23_MVAp04_v1']
+#CONFIGS = ['ZH_mu_XWZ_mass_05_23_MVAp04_v1']
+
 # CONFIGS = ['WH_lep_AWB_2019_05_14_TMVA_retrain_v1']
 
 
