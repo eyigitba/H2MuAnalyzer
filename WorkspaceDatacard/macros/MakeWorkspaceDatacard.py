@@ -46,15 +46,15 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Configure the channels, distributions, and fits to use
 ## Chosen from XML files in configs/ directory
-# CONFIGS = ['WH_lep_AWB_2019_05_01_v3']
-#CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
-#CONFIGS = ['WH_ele_XWZ_2019_05_15_v1_merge3']
-#CONFIGS = ['WH_ele_XWZ_mass_05_16_v1']
-#CONFIGS = ['WH_mu_XWZ_2019_05_15_v1']
-CONFIGS = ['ZH_lep_XWZ_mass_05_23_MVAp04_v1']
-#CONFIGS = ['ZH_mu_XWZ_mass_05_23_MVAp04_v1']
 
-# CONFIGS = ['WH_lep_AWB_2019_05_14_TMVA_retrain_v1']
+#====== AWB CONFIG
+# CONFIGS = ['WH_lep_AWB_2019_05_15_TMVA_v3']
+#CONFIGS = ['WH_lep_AWB_2019_05_16_v1']
+
+#====== XWZ CONGIF
+CONFIGS = ['ZH_lep_XWZ_mass_05_23_MVAp04_v1']
+# CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
+
 
 
 #============================================
@@ -65,7 +65,7 @@ class WorkspaceAndDatacardMaker:
 # Class to make workspace, root files, and datacards needed for
 # analytic shape or template limit setting via Higgs Combine
 
-    def __init__(self, _source, _in_dir, _out_dir, _cat, _cat_loc, _dist, _min_max, _blind, _rebin, _models):
+    def __init__(self, _source, _in_dir, _in_file, _out_dir, _cat, _cat_loc, _dist, _min_max, _blind, _rebin, _models):
 
         self.out_dir = _out_dir ## Output directory for datacards, workspaces, plots, etc.
         self.cat     = _cat     ## Category name for this workspace
@@ -74,7 +74,7 @@ class WorkspaceAndDatacardMaker:
         self.rebin   = _rebin   ## Rebin input distribution for optimal S^2/
         self.models  = _models  ## Set of analytic or template models to use
 
-        self.in_data = DL.DataLoader(USER, _source, _in_dir, _cat_loc, _dist, _min_max, _rebin)
+        self.in_data = DL.DataLoader(USER, _source, _in_dir, _in_file, _cat_loc, _dist, _min_max, _rebin)
 
         self.h_sig_fit  = None  ## Histogram of analytic best-fit to signal shape
         self.h_bkg_fit  = None  ## Histogram of analytic best-fit to background shape
@@ -92,7 +92,7 @@ class WorkspaceAndDatacardMaker:
         self.cat        = ''
         self.dist       = ''
         self.blind      = []
-        self.rebin      = 0
+        self.rebin      = []
         self.models     = []
         self.in_data    = None
         self.h_sig_fit  = None
@@ -111,28 +111,28 @@ class WorkspaceAndDatacardMaker:
 	## Save histograms for template fit.  Two separate types of workspace:
         ##  * 'stack' for a single summed stack for signal and background,
         ##  * 'group' for independent signal and background groups by process
-        model_str = model.replace('template', 'rebin') if self.rebin else model
+        model_str = model.replace('template', 'rebin') if self.rebin != False else model
         WS = R.TFile.Open(self.out_dir+'/workspace/'+self.cat+'_'+self.dist+'_'+model_str+'.root', 'RECREATE')
         WS.cd()
 
-        if 'stack' in model and not self.rebin:
+        if 'stack' in model and self.rebin == False:
             self.in_data.sig_hists[0].Write()
             self.in_data.bkg_hists[0].Write()
             self.in_data.data_hist.Write('data_obs')
         ## End conditional: if 'stack' in model and not rebin:
-        elif 'group' in model and not self.rebin:
+        elif 'group' in model and self.rebin == False:
             for i in range(1, len(self.in_data.sig_hists)):
                 self.in_data.sig_hists[i].Write()
             for i in range(len(self.in_data.bkg_hists)):
                 self.in_data.bkg_hists[i].Write()
             self.in_data.data_hist.Write('data_obs')
         ## End conditional elif 'group' in model and not rebin:
-        elif 'stack' in model and self.rebin:
+        elif 'stack' in model and len(self.rebin) == 3:
             self.in_data.sig_rebin[0].Write()
             self.in_data.bkg_rebin[0].Write()
             self.in_data.data_rebin.Write('data_obs')
         ## End conditional: elif 'stack' in model and rebin:
-        elif 'group' in model and self.rebin:
+        elif 'group' in model and len(self.rebin) == 3:
             for i in range(1, len(self.in_data.sig_rebin)):
                 self.in_data.sig_rebin[i].Write()
             for i in range(len(self.in_data.bkg_rebin)):
@@ -169,7 +169,7 @@ class WorkspaceAndDatacardMaker:
         self.h_data_fit = data_fit.fit_hist
 
         ## Plot data and fits into a frame
-        PH.DrawFits(sig_fit, bkg_fit, data_fit, self.cat+'_'+sig_mod+str(sig_ord)+'_'+bkg_mod+str(bkg_ord), self.out_dir)
+        PH.DrawFits(sig_fit, bkg_fit, data_fit, self.cat+'_'+self.dist+'_'+sig_mod+str(sig_ord)+'_'+bkg_mod+str(bkg_ord), self.out_dir)
 
         ## After fitting, we freeze all parameters in the signal fit
         WH.FreezeParams(sig_fit, sig_frz)
@@ -297,11 +297,13 @@ def main():
 
         ## Parse the XML configuration
         XML = ET.parse('configs/'+config+'.xml').getroot()
-        source = (XML.find('source').text).replace(' ','')
-        in_dir = (XML.find('in_dir').text).replace(' ','')
+        source  = (XML.find('source') .text).replace(' ','')
+        in_dir  = (XML.find('in_dir') .text).replace(' ','')
+        in_file = (XML.find('in_file').text).replace(' ','')
         print '\nParsed XML from configs/'+config+'.xml specifying:'
-        print '  * source = %s' % source
-        print '  * in_dir = %s' % in_dir
+        print '  * source  = %s' % source
+        print '  * in_dir  = %s' % in_dir
+        print '  * in_file = %s' % in_file
 
         ## Loop over categories in XML
         for cat in XML.find('categories'):
@@ -331,10 +333,14 @@ def main():
                 elif blind == '[]': blind = []
                 else: blind = [float(blind.split(',')[0].replace('[','')), float(blind.split(',')[1].replace(']',''))]
 
-                if (rebin != 'True' and rebin != 'False'):
+                if (rebin != 'False' and not (rebin.startswith('[') and rebin.endswith(']'))):
                     print '\n\nInvalid option for rebin = %s' % rebin
                     sys.exit()
-                else: rebin = True if rebin == 'True' else False
+                elif rebin == 'False': rebin = False
+                else: rebin = [str(rebin.split(',')[0].replace('[','')), float(rebin.split(',')[1]), float(rebin.split(',')[2].replace(']',''))]
+                if rebin != False and len(rebin) != 3:
+                    print '\n\nInvalid option rebin with !=3 elements: ['+','.join(str(i) for i in rebin)+']'
+                    sys.exit()
 
                 if (not models.startswith('[') or not models.endswith(']')):
                     print '\n\nInvalid option for models = %s' % models
@@ -344,12 +350,12 @@ def main():
                 models = model_list
 
                 ## Create new instance of WorkspaceAndDatacardMaker
-                print '  * Using discriminant %s, rebin = %d' % (dist, rebin)
+                print '  * Using discriminant %s, rebin = %s' % (dist, ('False' if rebin == False else ', '.join(str(i) for i in rebin)))
                 print '    Bin range = %s, blinding data in %s' % (' to '.join(str(i) for i in min_max), ' to '.join(str(j) for j in blind))
                 print '    Models = %s' % ','.join(k for k in models)
 
                 ## Initialize using specified configuration
-                WDM = WorkspaceAndDatacardMaker(source, in_dir, out_dir, cat_name, cat_loc, dist, min_max, blind, rebin, models)
+                WDM = WorkspaceAndDatacardMaker(source, in_dir, in_file, out_dir, cat_name, cat_loc, dist, min_max, blind, rebin, models)
 
                 ## Create MC template-based workspaces with grouped processes
                 ##  or inclusive signal and background stacks

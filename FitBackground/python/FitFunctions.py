@@ -274,14 +274,24 @@ def InitBWZ(FF):
 ## Create a reduced Breit-Wigner model
 def InitBWZRed(FF):
 
-    FF.order = 3
+    if (FF.order < 2 or FF.order > 3):
+        print '\n\nMAJOR ERROR!!! Cannot initialize BWZRed with order %d' % FF.order
+        sys.exit()
+
     FF.params[0].append( R.RooRealVar('a1', 'a1', 1.4, -99.9, 99.9) )
     FF.params[0].append( R.RooRealVar('a2', 'a2', 7.5, -99.9, 99.9) )
-    FF.params[0].append( R.RooRealVar('a3', 'a3', 0.1, -99.9, 99.9) )
-    params_arg_list = R.RooArgList( R.RooArgSet(FF.var, FF.params[0][0], FF.params[0][1], FF.params[0][2]) )
+    if (FF.order >= 3):
+        FF.params[0].append( R.RooRealVar('a3', 'a3', 0.1, -99.9, 99.9) )
+        params_arg_list = R.RooArgList( R.RooArgSet(FF.var, FF.params[0][0], FF.params[0][1], FF.params[0][2]) )
+    else:
+        params_arg_list = R.RooArgList( R.RooArgSet(FF.var, FF.params[0][0], FF.params[0][1]) )
+
     x_str = FF.var_name
-    # FF.funcs    .append( R.RooGenericPdf('BWZRed', 'BWZRed', 'exp(a2*'+x_str+' + a3*'+x_str+'*'+x_str+')/(pow('+x_str+'-91.1876,a1) + pow(2.5/2,a1))', params_arg_list) )
-    FF.funcs    .append( R.RooGenericPdf('BWZRed', 'BWZRed', 'exp(pow(a2/100.0, 2)*'+x_str+' + pow(a3/100.0, 2)*pow('+x_str+', 2)) / (pow('+x_str+'-91.2, a1*a1) + pow(2.5/2, a1*a1))', params_arg_list) )
+    # FF.funcs.append( R.RooGenericPdf('BWZRed', 'BWZRed', 'exp(a2*'+x_str+' + a3*'+x_str+'*'+x_str+')/(pow('+x_str+'-91.1876,a1) + pow(2.5/2,a1))', params_arg_list) )
+    if (FF.order == 3):
+        FF.funcs.append( R.RooGenericPdf('BWZRed', 'BWZRed', 'exp(pow(a2/100.0, 2)*'+x_str+' + pow(a3/100.0, 2)*pow('+x_str+', 2)) / (pow('+x_str+'-91.2, a1*a1) + pow(2.5/2, a1*a1))', params_arg_list) )
+    if (FF.order == 2):
+        FF.funcs.append( R.RooGenericPdf('BWZRed', 'BWZRed', 'exp(pow(a2/100.0, 2)*'+x_str+' + pow(0.0/100.0, 2)*pow('+x_str+', 2)) / (pow('+x_str+'-91.2, a1*a1) + pow(2.5/2, a1*a1))', params_arg_list) )
     FF.arg_sets .append( R.RooArgSet(FF.funcs[0]) )
     FF.amp_vars .append( R.RooRealVar('BWZRed_amp', 'Amplitude of BWZRed', 1.0, 0.0, 1.0) )
 
