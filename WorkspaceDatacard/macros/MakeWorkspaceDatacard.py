@@ -46,10 +46,15 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Configure the channels, distributions, and fits to use
 ## Chosen from XML files in configs/ directory
-# CONFIGS = ['WH_ele_XWZ_mass_05_16_v1']
-# CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
+
+#====== AWB CONFIG
 # CONFIGS = ['WH_lep_AWB_2019_05_15_TMVA_v3']
-CONFIGS = ['WH_lep_AWB_2019_05_16_v1']
+#CONFIGS = ['WH_lep_AWB_2019_05_16_v1']
+
+#====== XWZ CONGIF
+CONFIGS = ['ZH_lep_XWZ_mass_05_23_MVAp04_v1']
+# CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
+
 
 
 #============================================

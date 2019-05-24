@@ -95,8 +95,9 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
   // Boosted Decision Trees                                                                                                                                                                                                                                         
   Use["BDT"]            = 0;
   Use["BDTG_default"]   = 0;
-  Use["BDTG_UF_v1"]     = 0;
+  Use["BDTG_UF_v1"]     = 1;
   Use["BDTG_UF_v2"]     = 1;
+  Use["BDTG_UF_v3"]     = 1;
   Use["BDTG_AWB"]       = 0;
   Use["BDTG_AWB_lite"]  = 0;
   Use["BDTG_Carnes"]    = 0;
@@ -126,15 +127,15 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
   
   // Here the preparation phase begins
   TString out_file_name;
-  out_file_name.Form( "%s/ZH_vs_ZZ_4l_2017_with_mass_v1.root", out_dir.Data() );
+  out_file_name.Form( "%s/2017_ZH_lep_against_inclu_with_mass.root", out_dir.Data() );
   TFile * out_file = TFile::Open( out_file_name, "RECREATE" );
 
   ///////////////////////////////////////////////////////
   ///  Input samples: MC signal, MC background, data  ///
   ///////////////////////////////////////////////////////
   std::map<TString, TString> MN_name; // <short_name, full path to miniNtuple>
-  MN_name["signal"] 	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/ZH_4l_ele_cut_flow_more_than_2_ele_v1/all_samples.root";
-  MN_name["bkg"]	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/ZH_4l_ele_cut_flow_more_than_2_ele_v1/all_samples.root";
+  MN_name["signal"] 	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/VH_selection_2019april/pt10_iso04/ZH_ele_BDT/sum_e_m_training.root";
+  MN_name["bkg"]	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/VH_selection_2019april/pt10_iso04/ZH_ele_BDT/sum_e_m_training.root";
  
   //////////////////////////////////////////////////////////////////
   ///  Factories: Use different sets of variables, weights, etc. ///
@@ -160,8 +161,45 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
 
 //  factories.push_back( std::make_tuple( nullF, nullL, "MNT_2017_inclusive", var_names, var_vals,
 //                                        0x0fef, 0xffff, 0xffff, 0xffff, 0xffff, 0x0017, "all", "all", "ge0j") );
-  factories.push_back( std::make_tuple( nullF, nullL, "ZH_vs_ZZ_4l_training_with_mass_v1", var_names, var_vals,
-                                        0x0050, 0x003e, 0x000d, 0x0001, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_vs_ZZ_4l_training_with_mass_v1", var_names, var_vals,
+//                                        0x0050, 0x003e, 0x000d, 0x0001, 0x0000, 0x0000, "all", "all", "ge0j") );
+
+
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_ZZ_all_without_mass", var_names, var_vals,
+//                                        0x0fef, 0xffff, 0xffff, 0x0fff, 0xffff, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_ZZ_test_without_mass", var_names, var_vals,
+//                                        0x0fe0, 0xfff0, 0xfffe, 0x0fff, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_ZZ_trim_without_mass", var_names, var_vals,
+//                                        0x0d60, 0xfd70, 0xffc8, 0x00d1, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_ZZ_sel_angle_without_mass", var_names, var_vals,
+//                                        0x0360, 0xf370, 0x00d8, 0x00d1, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_ZZ_skim_without_mass", var_names, var_vals,
+//                                        0x0360, 0xf370, 0x0058, 0x0010, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_ZZ_min_without_mass", var_names, var_vals,
+//                                        0x0220, 0xf330, 0x0048, 0x0010, 0x0000, 0x0000, "all", "all", "ge0j") );
+
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_all_without_mass", var_names, var_vals,
+//                                        0x0fef, 0xffff, 0xffff, 0x0fff, 0xffff, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_test_without_mass", var_names, var_vals,
+//                                        0x0fe0, 0xfff0, 0xfffe, 0x0fff, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_trim_without_mass", var_names, var_vals,
+//                                        0x0d60, 0xfd70, 0xffc8, 0x00d1, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_sel_angle_without_mass", var_names, var_vals,
+//                                        0x0360, 0xf370, 0x00d8, 0x00d1, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_skim_without_mass", var_names, var_vals,
+//                                        0x0360, 0xf370, 0x0058, 0x0010, 0x0000, 0x0000, "all", "all", "ge0j") );
+//  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_min_without_mass", var_names, var_vals,
+//                                        0x0220, 0xf330, 0x0048, 0x0010, 0x0000, 0x0000, "all", "all", "ge0j") );
+
+
+  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_sel_angle_with_mass", var_names, var_vals,
+                                        0x0370, 0xf370, 0x00d8, 0x00d1, 0x0000, 0x0000, "all", "all", "ge0j") );
+  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_skim_with_mass", var_names, var_vals,
+                                        0x0370, 0xf370, 0x0058, 0x0010, 0x0000, 0x0000, "all", "all", "ge0j") );
+  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_min_with_mass", var_names, var_vals,
+                                        0x0230, 0xf330, 0x0048, 0x0010, 0x0000, 0x0000, "all", "all", "ge0j") );
+  factories.push_back( std::make_tuple( nullF, nullL, "ZH_2017_lep_against_inclu_BDTv3_and_mass", var_names, var_vals,
+                                        0x1010, 0x1000, 0x0000, 0x0000, 0x0000, 0x0000, "all", "all", "ge0j") );
 
   // Initialize factories and dataloaders
   for (int iFact = 0; iFact < factories.size(); iFact++) {
@@ -205,39 +243,58 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
   mu_vars.push_back( TMVA_var( "cts_mu1",       "cos(#theta*)(#mu1#mu)", "", 'F', -88 ) ); // 0x0400
   mu_vars.push_back( TMVA_var( "cts_mu_pos",    "cos(#theta*)(#mu+#mu)", "", 'F', -88 ) ); // 0x0800
 
-  mu_vars.push_back( TMVA_var( "dimu_dMass",    "#sigma M(#mu#mu)",  "GeV", 'F', -88 ) ); // 0x1000  //not in use
-  mu_vars.push_back( TMVA_var( "dimu_rapid",    "rapid(#mu#mu)",        "", 'F', -88 ) ); // 0x2000  //not in use
+  mu_vars.push_back( TMVA_var( "BDT_noMass_v3", "BDT v3 score",         "", 'F', -88 ) ); // 0x1000
+  mu_vars.push_back( TMVA_var( "dimu_mass_err", "#sigma M(#mu#mu)",   "GeV", 'F', -88 ) ); // 0x2000  //not in use
 
   // lep variables
-  lep_vars.push_back( TMVA_var( "dilep_mass", 	     "M(ll)",		"GeV", 'F', -88) );
-  lep_vars.push_back( TMVA_var( "dilep_pt",	     "P_{T}(ll)",	"GeV", 'F', -88) );
-  lep_vars.push_back( TMVA_var( "dilep_abs_eta",     "#eta(ll)",	"",    'F', -88) );
-  lep_vars.push_back( TMVA_var( "dilep_abs_dEta",    "d#eta(ll)",   	"",    'F', -88) );
+  lep_vars.push_back( TMVA_var( "lep1_pt", 	"p_{T}(lep1)", 	     "GeV",  'F', -88 ) );// 0x0001
+  lep_vars.push_back( TMVA_var( "lep2_pt", 	"p_{T}(lep2)", 	     "GeV",  'F', -88 ) );// 0x0002
+  lep_vars.push_back( TMVA_var( "lep1_abs_eta", "|#eta(lep1)|", 	"",  'F', -88 ) );// 0x0004
+  lep_vars.push_back( TMVA_var( "lep2_abs_eta", "|#eta(lep2)|", 	"",  'F', -88 ) );// 0x0008
+  
+  lep_vars.push_back( TMVA_var( "dilep_mass", 	     "M(ll)",		"GeV", 'F', -88) );// 0x0010
+  lep_vars.push_back( TMVA_var( "dilep_pt",	     "P_{T}(ll)",	"GeV", 'F', -88) );// 0x0020
+  lep_vars.push_back( TMVA_var( "dilep_abs_eta",     "|#eta(ll)|",	"",    'F', -88) );// 0x0040
+  lep_vars.push_back( TMVA_var( "dilep_abs_dEta",    "|d#eta(ll)|",   	"",    'F', -88) );// 0x0080
 
-  lep_vars.push_back( TMVA_var( "dilep_abs_dPhi",    "d#phi(ll)",   	"",    'F', -88) );
-  lep_vars.push_back( TMVA_var( "dilep_dR",	     "dR(ll)",      	"",    'F', -88) );
-  lep_vars.push_back( TMVA_var( "cts_lep1",	     "cos(#theta*)(lep1)", "", 'F', -88) );
-  lep_vars.push_back( TMVA_var( "cts_lep_pos",	     "cos(#theta*)(lep+)", "", 'F', -88) );
+  lep_vars.push_back( TMVA_var( "dilep_abs_dPhi",    "|d#phi(ll)|",   	"",    'F', -88) );// 0x0100
+  lep_vars.push_back( TMVA_var( "dilep_dR",	     "dR(ll)",      	"",    'F', -88) );// 0x0200
+  lep_vars.push_back( TMVA_var( "cts_lep1",	     "cos(#theta*)(lep1)", "", 'F', -88) );// 0x0400
+  lep_vars.push_back( TMVA_var( "cts_lep_pos",	     "cos(#theta*)(lep+)", "", 'F', -88) );// 0x0800
+
+  lep_vars.push_back( TMVA_var( "lep_ID",       "lep_ID",       	"",    'I', -77 ) );// 0x1000
 
   // dipair variables
-  pair_vars.push_back( TMVA_var( "quadlep_mass",     "M((#mu#mu),(ll))", 	 "GeV", 'F', -88) );
-  pair_vars.push_back( TMVA_var( "quadlep_pt",	     "P_{T}((#mu#mu),(ll))",     "GeV", 'F', -88) );
-  pair_vars.push_back( TMVA_var( "dipair_dEta_H",    "d#eta((#mu#mu),(ll))",    "",    'F', -88) );
-  pair_vars.push_back( TMVA_var( "cts_dipair_H",     "cos(#theta*)((#mu#mu),(ll))", "", 'F', -88) );
+  pair_vars.push_back( TMVA_var( "quadlep_mass",     "M((#mu#mu),(ll))", 	 "GeV", 'F', -88) );// 0x0001
+  pair_vars.push_back( TMVA_var( "quadlep_pt",	     "P_{T}((#mu#mu),(ll))",     "GeV", 'F', -88) );// 0x0002
+  pair_vars.push_back( TMVA_var( "quadlep_abs_eta",  "|#eta((#mu#mu),(ll))|",  	 "", 	'F', -88) );// 0x0004
+  pair_vars.push_back( TMVA_var( "dipair_dEta_H",    "d#eta((#mu#mu),(ll))",     "",    'F', -88) );// 0x0008
+
+  pair_vars.push_back( TMVA_var( "dipair_dPhi_H",    "d#phi((#mu#mu),(ll))", 	 "", 	'F', -88) );// 0x0010
+  pair_vars.push_back( TMVA_var( "dipair_dR_H",      "dR((#mu#mu),(ll))", 	 "", 	'F', -88) );// 0x0020
+  pair_vars.push_back( TMVA_var( "cts_dipair_H",     "cos(#theta*)((#mu#mu),(ll))", "", 'F', -88) );// 0x0040
+  pair_vars.push_back( TMVA_var( "cs_costheta",      "cos(#theta_{CS})", 	 "", 	'F', -88) );// 0x0080
+
+  pair_vars.push_back( TMVA_var( "cs_cosphi", 	     "cos(#phi_{CS})", 	 	 "", 	'F', -88) );// 0x0100
+  pair_vars.push_back( TMVA_var( "cs_sinphi", 	     "sin(#phi_{CS})", 		 "", 	'F', -88) );// 0x0200
+  pair_vars.push_back( TMVA_var( "cos_theta1", 	     "cos(#theta_{1})", 	 "", 	'F', -88) );// 0x0400
+  pair_vars.push_back( TMVA_var( "cos_phiH", 	     "cos(#phi_{H})", 		 "", 	'F', -88) );// 0x0800
+
+  pair_vars.push_back( TMVA_var( "cos_phi1", 	     "cos(#phi_{1})", 		 "", 	'F', -88) );// 0x1000
 
    // met variables
-  met_vars.push_back( TMVA_var( "met_pt", 	"p_{T}(met)",	      "GeV", 'F', -88 ) ); // 0x0001
-  met_vars.push_back( TMVA_var( "mt_emet",	"MT(emet)",	      "GeV", 'F', -88 ) ); // 0x0002
-  met_vars.push_back( TMVA_var( "abs_dPhi_emet","d#phi(emet)",	  	 "", 'F', -88 ) ); // 0x0004
-  met_vars.push_back( TMVA_var( "mht_pt",	"p_{T}(mht)",	      "GeV", 'F', -88 ) ); // 0x0008
+  met_vars.push_back( TMVA_var( "met_pt", 		"p_{T}(met)",	      "GeV", 'F', -88 ) ); // 0x0001
+  met_vars.push_back( TMVA_var( "abs_dPhi_4lPt_met",	"|d#phi(4l,met)|",	 "", 'F', -88 ) ); // 0x0002
+  met_vars.push_back( TMVA_var( "met_Rtrans_4lPt", 	"(met/P_{T}(4l))_{T}",	 "", 'F', -88 ) ); // 0x0004
+  met_vars.push_back( TMVA_var( "met_Rlongi_4lPt", 	"(met/P_{T}(4l))_{L}",   "", 'F', -88 ) ); // 0x0008
 
-  met_vars.push_back( TMVA_var( "mht_mass",	"M(mht)",	      "GeV", 'F', -88 ) ); // 0x0010
-  met_vars.push_back( TMVA_var( "mt_emht",	"MT(emht)",	      "GeV", 'F', -88 ) ); // 0x0020
-  met_vars.push_back( TMVA_var( "abs_dPhi_emht","|d#phi(emht)|",      	 "", 'F', -88 ) ); // 0x0040
-  met_vars.push_back( TMVA_var( "mlt_pt",    	"p_{T}(mlt)",	      "GeV", 'F', -88 ) ); // 0x0080
-  
-  met_vars.push_back( TMVA_var( "mt_emlt",	"MT(emlt)",	      "GeV", 'F', -88 ) ); // 0x0100
-  met_vars.push_back( TMVA_var( "abs_dPhi_emlt","|d#phi(emlt)|",	 "", 'F', -88 ) ); // 0x0200
+  met_vars.push_back( TMVA_var( "mht_pt",		"p_{T}(mht)",	      "GeV", 'F', -88 ) ); // 0x0010
+  met_vars.push_back( TMVA_var( "abs_dPhi_4lPt_mht", 	"|d#phi(4l,mht)|", 	 "", 'F', -88 ) ); // 0x0020
+  met_vars.push_back( TMVA_var( "mht_Rtrans_4lPt", 	"(mht/P_{T}(4l))_{T}",   "", 'F', -88 ) ); // 0x0040
+  met_vars.push_back( TMVA_var( "mht_Rlongi_4lPt", 	"(mht/P_{T}(4l))_{L}", 	 "", 'F', -88 ) ); // 0x0080
+
+  met_vars.push_back( TMVA_var( "mht_mass",		"M(mht)",	      "GeV", 'F', -88 ) ); // 0x0100
+  met_vars.push_back( TMVA_var( "abs_dPhi_met_mht",	"|d#phi(met,mht)|",	 "", 'F', -88 ) ); // 0x0200
 
   // Jet variables
   jet_vars.push_back( TMVA_var( "dijet_mass",	 "M(jj)",	     "GeV", 'F', -88 ) ); // 0x0001
@@ -266,13 +323,6 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
   evt_vars.push_back( TMVA_var( "nMuons",	"# muons",	       "", 'I', -88 ) ); // 0x0040 // constant, not in use 
   evt_vars.push_back( TMVA_var( "nEles",	"# electrons",	       "", 'I', -88 ) ); // 0x0080 // constant, not in use 
 
-
-//  evt_vars.push_back( TMVA_var( "MET",         "MET",               "GeV", 'F', -88 ) ); // 0x0100 // not in use 
-//  evt_vars.push_back( TMVA_var( "MHT",         "MHT",               "GeV", 'F', -88 ) ); // 0x0200 // not in use
-//  evt_vars.push_back( TMVA_var( "MT_had",      "M_{T} of jets",     "GeV", 'F', -88 ) ); // 0x0400 // not in use
-//  evt_vars.push_back( TMVA_var( "mass_had",    "Mass of jets",      "GeV", 'F', -88 ) ); // 0x0800 // not in use
-
-
   /////////////////////////////////////////////////////////////////////////////
   ///  Spectator variables: not used in training, but saved in output tree  ///
   /////////////////////////////////////////////////////////////////////////////
@@ -280,7 +330,7 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
   spec_vars.push_back( TMVA_var( "event_wgt",   "event weight",        	"", 'F', -77 ) );
   spec_vars.push_back( TMVA_var( "xsec_norm",   "xsec normal",   	"", 'F', -77 ) );
   spec_vars.push_back( TMVA_var( "Sample_ID",   "Sample ID", 		"", 'I', -77 ) );
-  spec_vars.push_back( TMVA_var( "In_cat_WH",	"is in cat WH",		"", 'I', -77 ) );
+  spec_vars.push_back( TMVA_var( "lep_ID",	"the Z decays to",	"", 'I', -77 ) );
 //  spec_vars.push_back( TMVA_var( "res_wgt",   "Resolution weight",    "", 'F', -77 ) );
 //  spec_vars.push_back( TMVA_var( "LHE_HT",    "Sample weight",     "GeV", 'F', -77 ) );
   spec_vars.push_back( TMVA_var( "dimu_mass", "mass(#mu#mu)",      "GeV", 'F', -77 ) );
@@ -438,56 +488,86 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
     int           nBJets_Tight;
     int           nFwdJets;
     int           nCentJets;
+    float 	  BDT_noMass_v3;
 
+    int 	  dimu_gen_ID;
     float         dimu_mass;
+    float	  dimu_mass_err;
     float         dimu_pt;
-    float         dimu_eta;
-    float	  dimu_dEta;
-    float	  dimu_dPhi;
+    float         dimu_abs_eta;
+    float	  dimu_abs_dEta;
+    float	  dimu_abs_dPhi;
     float	  dimu_dR;
     float         mu1_pt;
-    float         mu1_eta;
+    float         mu1_abs_eta;
+    float	  mu1_lepMVA;
     float         mu2_pt;
-    float         mu2_eta;
+    float         mu2_abs_eta;
+    float	  mu2_lepMVA;
 
     float         cts_mu1;
     float         cts_mu_pos;
 
+    float         lep1_pt;
+    float         lep1_abs_eta;
+    float         lep1_lepMVA;
+    float         lep2_pt;
+    float         lep2_abs_eta;
+    float         lep2_lepMVA;
+
+    int 	  dilep_gen_ID;
     float  	  dilep_mass; 
     float         dilep_pt; 
-    float         dilep_eta;
-    float         dilep_dEta;
-    float         dilep_dPhi;
+    float         dilep_abs_eta;
+    float         dilep_abs_dEta;
+    float         dilep_abs_dPhi;
     float         dilep_dR;
     float         cts_lep1;	 
     float         cts_lep_pos;	 
                           
     float         quadlep_mass;
     float         quadlep_pt; 
-    float         dipair_dEta_H;
+    float	  quadlep_abs_eta;
+    float	  dipair_dEta_H;
+    float	  dipair_dPhi_H;
+    float	  dipair_dR_H;
     float         cts_dipair_H;
+
+    float	  cs_costheta;
+    float	  cs_cosphi;
+    float	  cs_sinphi;
+    float	  cos_theta1;
+    float	  cos_phiH;
+    float	  cos_phi1;
 
     float         dijet_mass;
     float         dijet_pt;
-    float         dijet_eta;
-    float         dijet_dEta;
-    float         dijet_dPhi;
+    float         dijet_abs_eta;
+    float         dijet_abs_dEta;
+    float         dijet_abs_dPhi;
     float         dijet_dR;
 
     float         jet1_pt;
-    float         jet1_eta;
+    float         jet1_abs_eta;
     float         jet2_pt;
-    float         jet2_eta;
+    float         jet2_abs_eta;
     float         jet0_pt;
-    float         jet0_eta;
+    float         jet0_abs_eta;
 
     float         met_pt;
+    float	  abs_dPhi_4lPt_met;
+    float	  met_Rtrans_4lPt;
+    float	  met_Rlongi_4lPt;
     float         mht_pt;
     float         mht_mass;
+    float	  abs_dPhi_4lPt_mht;
+    float	  mht_Rtrans_4lPt;
+    float	  mht_Rlongi_4lPt;
+    float	  abs_dPhi_met_mht;
 
     float	  event_wgt;
     float 	  xsec_norm;
-    int           In_cat_WH;  // need to change by hand based on what category is under study
+    int           lep_ID; 
     int           Sample_ID;
 
     in_chain->SetBranchAddress("nMuons",       	& nMuons     	);
@@ -498,56 +578,86 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
     in_chain->SetBranchAddress("nBJets_Tight", 	& nBJets_Tight	);
     in_chain->SetBranchAddress("nFwdJets",     	& nFwdJets   	);
     in_chain->SetBranchAddress("nCentJets",    	& nCentJets  	);
+    in_chain->SetBranchAddress("BDT_noMass_v3", & BDT_noMass_v3 );
 
+    in_chain->SetBranchAddress("dimu_gen_ID",   & dimu_gen_ID   );
     in_chain->SetBranchAddress("dimu_mass",	& dimu_mass	);
+    in_chain->SetBranchAddress("dimu_mass_err",	& dimu_mass_err );
     in_chain->SetBranchAddress("dimu_pt",    	& dimu_pt	);
-    in_chain->SetBranchAddress("dimu_eta",   	& dimu_eta	);
-    in_chain->SetBranchAddress("dimu_dEta",  	& dimu_dEta	);
-    in_chain->SetBranchAddress("dimu_dPhi",   	& dimu_dPhi	);
+    in_chain->SetBranchAddress("dimu_abs_eta",  & dimu_abs_eta	);
+    in_chain->SetBranchAddress("dimu_abs_dEta", & dimu_abs_dEta	);
+    in_chain->SetBranchAddress("dimu_abs_dPhi", & dimu_abs_dPhi	);
     in_chain->SetBranchAddress("dimu_dR",    	& dimu_dR	);
     in_chain->SetBranchAddress("mu1_pt",     	& mu1_pt	);
-    in_chain->SetBranchAddress("mu1_eta",    	& mu1_eta	);
+    in_chain->SetBranchAddress("mu1_abs_eta",   & mu1_abs_eta	);
+    in_chain->SetBranchAddress("mu1_lepMVA",	& mu1_lepMVA	);
     in_chain->SetBranchAddress("mu2_pt",     	& mu2_pt	);
-    in_chain->SetBranchAddress("mu2_eta",    	& mu2_eta	);
-                                                     
+    in_chain->SetBranchAddress("mu2_abs_eta",   & mu2_abs_eta	);
+    in_chain->SetBranchAddress("mu2_lepMVA",	& mu2_lepMVA	);
+                
     in_chain->SetBranchAddress("cts_mu1",   	& cts_mu1   	);
     in_chain->SetBranchAddress("cts_mu_pos",	& cts_mu_pos	);
 
+    in_chain->SetBranchAddress("dilep_gen_ID",		& dilep_gen_ID	);
     in_chain->SetBranchAddress("dilep_mass",		& dilep_mass	);
     in_chain->SetBranchAddress("dilep_pt",		& dilep_pt	);
-    in_chain->SetBranchAddress("dilep_eta",		& dilep_eta 	);
-    in_chain->SetBranchAddress("dilep_dEta",		& dilep_dEta	);
-    in_chain->SetBranchAddress("dilep_dPhi",	 	& dilep_dPhi	);
-    in_chain->SetBranchAddress("dilep_dR",		& dilep_dR	 );
-    in_chain->SetBranchAddress("cts_lep1",		& cts_lep1	 );
-    in_chain->SetBranchAddress("cts_lep_pos",		& cts_lep_pos	 );
+    in_chain->SetBranchAddress("dilep_abs_eta",		& dilep_abs_eta );
+    in_chain->SetBranchAddress("dilep_abs_dEta",	& dilep_abs_dEta);
+    in_chain->SetBranchAddress("dilep_abs_dPhi",	& dilep_abs_dPhi);
+    in_chain->SetBranchAddress("dilep_dR",		& dilep_dR	);
+
+    in_chain->SetBranchAddress("lep1_pt",		& lep1_pt	);
+    in_chain->SetBranchAddress("lep1_abs_eta",		& lep1_abs_eta	);
+    in_chain->SetBranchAddress("lep1_lepMVA",		& lep1_lepMVA	);
+    in_chain->SetBranchAddress("lep2_pt",		& lep2_pt	);
+    in_chain->SetBranchAddress("lep2_abs_eta",		& lep2_abs_eta	);
+    in_chain->SetBranchAddress("lep2_lepMVA",		& lep2_lepMVA	);
+    in_chain->SetBranchAddress("cts_lep1",		& cts_lep1	);
+    in_chain->SetBranchAddress("cts_lep_pos",		& cts_lep_pos	);
 
     in_chain->SetBranchAddress("quadlep_mass",		& quadlep_mass	 );
     in_chain->SetBranchAddress("quadlep_pt",		& quadlep_pt	 );
+    in_chain->SetBranchAddress("quadlep_abs_eta",	& quadlep_abs_eta);
     in_chain->SetBranchAddress("dipair_dEta_H",		& dipair_dEta_H	 );
+    in_chain->SetBranchAddress("dipair_dPhi_H",		& dipair_dPhi_H	 );
+    in_chain->SetBranchAddress("dipair_dR_H",		& dipair_dR_H	 );
     in_chain->SetBranchAddress("cts_dipair_H",		& cts_dipair_H	 );
-  
-    in_chain->SetBranchAddress("dijet_mass",	& dijet_mass	);
-    in_chain->SetBranchAddress("dijet_pt",  	& dijet_pt  	);
-    in_chain->SetBranchAddress("dijet_eta", 	& dijet_eta 	);
-    in_chain->SetBranchAddress("dijet_dEta",    & dijet_dEta    );
-    in_chain->SetBranchAddress("dijet_dPhi",    & dijet_dPhi    );
-    in_chain->SetBranchAddress("dijet_dR",      & dijet_dR      );
+ 
+    in_chain->SetBranchAddress("cs_costheta",		& cs_costheta	);
+    in_chain->SetBranchAddress("cs_cosphi",		& cs_cosphi	);
+    in_chain->SetBranchAddress("cs_sinphi",		& cs_sinphi	);
+    in_chain->SetBranchAddress("cos_theta1",		& cos_theta1	);
+    in_chain->SetBranchAddress("cos_phiH",		& cos_phiH	);
+    in_chain->SetBranchAddress("cos_phi1",		& cos_phi1	);
+ 
+    in_chain->SetBranchAddress("dijet_mass",		& dijet_mass	);
+    in_chain->SetBranchAddress("dijet_pt",  		& dijet_pt  	);
+    in_chain->SetBranchAddress("dijet_abs_eta", 	& dijet_abs_eta );
+    in_chain->SetBranchAddress("dijet_abs_dEta",	& dijet_abs_dEta);
+    in_chain->SetBranchAddress("dijet_abs_dPhi",    	& dijet_abs_dPhi);
+    in_chain->SetBranchAddress("dijet_dR",      	& dijet_dR      );
 
     in_chain->SetBranchAddress("jet1_pt",   	& jet1_pt   	);
-    in_chain->SetBranchAddress("jet1_eta",  	& jet1_eta  	);
+    in_chain->SetBranchAddress("jet1_abs_eta",  & jet1_abs_eta  );
     in_chain->SetBranchAddress("jet2_pt",   	& jet2_pt   	);
-    in_chain->SetBranchAddress("jet2_eta",  	& jet2_eta  	);
+    in_chain->SetBranchAddress("jet2_abs_eta",  & jet2_abs_eta  );
     in_chain->SetBranchAddress("jet0_pt",   	& jet0_pt   	);
-    in_chain->SetBranchAddress("jet0_eta",  	& jet0_eta  	);
+    in_chain->SetBranchAddress("jet0_abs_eta",  & jet0_abs_eta  );
 
-    in_chain->SetBranchAddress("met_pt",	& met_pt   	);
-    in_chain->SetBranchAddress("mht_pt",     	& mht_pt	);
-    in_chain->SetBranchAddress("mht_mass",   	& mht_mass	);
+    in_chain->SetBranchAddress("met_pt",		& met_pt   		);
+    in_chain->SetBranchAddress("abs_dPhi_4lPt_met", 	& abs_dPhi_4lPt_met	);
+    in_chain->SetBranchAddress("met_Rtrans_4lPt",	& met_Rtrans_4lPt	);
+    in_chain->SetBranchAddress("met_Rlongi_4lPt",	& met_Rlongi_4lPt	);
+    in_chain->SetBranchAddress("mht_pt",     		& mht_pt		);
+    in_chain->SetBranchAddress("mht_mass",   		& mht_mass		);
+    in_chain->SetBranchAddress("abs_dPhi_4lPt_mht",	& abs_dPhi_4lPt_mht	);
+    in_chain->SetBranchAddress("mht_Rtrans_4lPt",	& mht_Rtrans_4lPt	);
+    in_chain->SetBranchAddress("mht_Rlongi_4lPt",	& mht_Rlongi_4lPt	);
+    in_chain->SetBranchAddress("abs_dPhi_met_mht",	& abs_dPhi_met_mht	);
 
     in_chain->SetBranchAddress("event_wgt",     & event_wgt     );
     in_chain->SetBranchAddress("xsec_norm",     & xsec_norm     );
-    in_chain->SetBranchAddress("In_cat_WH", 	& In_cat_WH 	);
+    in_chain->SetBranchAddress("lep_ID", 	& lep_ID 	);
     in_chain->SetBranchAddress("Sample_ID",	& Sample_ID	);
 
 
@@ -567,7 +677,7 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
 	std::cout << "Looking at event " << iEvt << " / " << nEvents << " (" << nEvt_pass << " passed so far, " << nEvt_tot << " in all samples)" << std::endl;
       
       in_chain->GetEntry(iEvt);
-      if (iEvt % 1000 == 0)  std::cout << "Sample_ID   " << Sample_ID << "\nevent_wgt  " << event_wgt << std::endl; 
+      if (iEvt % 1000 == 0)  std::cout << "Sample_ID   " << Sample_ID << "\nevent_wgt  " << event_wgt << "\nBDT_noMass_v3" << BDT_noMass_v3 << std::endl; 
 
  
       /////////////////////////////////////////
@@ -607,9 +717,13 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
       //////////////////////////////
       
 //      if (verbose) std::cout << "Dimuon mass = " << H_pair_vec.M() << ", pT = " << H_pair_vec.Pt() << ", eta = " << H_pair.eta << std::endl;
-      if (verbose) std::cout << "Muon 1 pT = " << mu1_pt << ", eta = " << mu1_eta << std::endl;
-      if (verbose) std::cout << "Muon 2 pT = " << mu2_pt << ", eta = " << mu2_eta << std::endl;
-      
+      if (verbose) std::cout << "Muon 1 pT = " << mu1_pt << ", eta = " << mu1_abs_eta << std::endl;
+      if (verbose) std::cout << "Muon 2 pT = " << mu2_pt << ", eta = " << mu2_abs_eta << std::endl;
+  
+      //  for 120 and 130 samples, shift mass by 5 GeV
+      if (Sample_ID == 1202325) dimu_mass += 5.0;
+      if (Sample_ID == 1302325) dimu_mass -= 5.0;
+    
       /////////////////////////////////////////////////////
       ///  Loop over factories and set variable values  ///
       /////////////////////////////////////////////////////
@@ -630,26 +744,21 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
 	// Fill all variables
 	for (int iVar = 0; iVar < var_names.size(); iVar++) {
 	  TString vName = var_names.at(iVar);
-	  
+
 	  /////////////////////////////
 	  ///  Spectator variables  ///
 	  /////////////////////////////
 	  
 	  if      ( vName == "Sample_ID" )
 	    var_vals.at(iVar) = Sample_ID;
-//	    var_vals.at(iVar) = -888;
 	  else if ( vName == "event_wgt")
 	    var_vals.at(iVar) = event_wgt;
 	  else if ( vName == "xsec_norm")
 	    var_vals.at(iVar) = xsec_norm;
-//	  else if ( vName == "samp_wgt" )
-//	    var_vals.at(iVar) = samp_wgt;
-//	  else if ( vName == "res_wgt" )
-//	    var_vals.at(iVar) = res_wgt;
-//	  else if ( vName == "LHE_HT" )
-//	    var_vals.at(iVar) = LHE_HT;
-	  else if ( vName == "dimu_mass" )
-	    var_vals.at(iVar) = dimu_mass;
+	  else if ( vName == "lep_ID" )
+	    var_vals.at(iVar) = lep_ID;
+//	  else if ( vName == "dimu_mass" )
+//	    var_vals.at(iVar) = dimu_mass;
 	  
 	  /////////////////////////////////////////////////////
 	  ///  Variables automatically set in lib/VarSet.h  ///
@@ -660,40 +769,73 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
 	    // var_vals.at(iVar) = samp->vars.getValue(vName.Data());
 	    
 	    // Muon variables
-	    if      (vName == "mu1_pt")      var_vals.at(iVar) = mu1_pt;
-	    else if (vName == "mu2_pt")      var_vals.at(iVar) = mu2_pt;
-	    else if (vName == "mu1_abs_eta")     var_vals.at(iVar) = abs(mu1_eta);
-	    else if (vName == "mu2_abs_eta")     var_vals.at(iVar) = abs(mu2_eta);
-	    
-	    else if (vName == "dimu_pt")    var_vals.at(iVar) = dimu_pt;
-	    else if (vName == "dimu_abs_eta")   var_vals.at(iVar) = abs(dimu_eta);
-	    else if (vName == "dimu_abs_dEta") var_vals.at(iVar) = abs(dimu_dEta);
-	    else if (vName == "dimu_abs_dPhi") var_vals.at(iVar) = abs(dimu_dPhi);
-	    else if (vName == "dimu_dR")       var_vals.at(iVar) = dimu_dR;
+	    if      (vName == "mu1_pt")      	var_vals.at(iVar) = mu1_pt;
+	    else if (vName == "mu2_pt")      	var_vals.at(iVar) = mu2_pt;
+	    else if (vName == "mu1_abs_eta")    var_vals.at(iVar) = mu1_abs_eta;
+	    else if (vName == "mu2_abs_eta")    var_vals.at(iVar) = mu2_abs_eta;
+	    else if (vName == "mu1_lepMVA")     var_vals.at(iVar) = mu1_lepMVA;	    
+	    else if (vName == "mu2_lepMVA")     var_vals.at(iVar) = mu2_lepMVA;
+
+	    else if (vName == "dimu_mass")      var_vals.at(iVar) = dimu_mass;
+	    else if (vName == "dimu_pt")    	var_vals.at(iVar) = dimu_pt;
+	    else if (vName == "dimu_abs_eta")   var_vals.at(iVar) = dimu_abs_eta;
+	    else if (vName == "dimu_abs_dEta") 	var_vals.at(iVar) = dimu_abs_dEta;
+	    else if (vName == "dimu_abs_dPhi") 	var_vals.at(iVar) = dimu_abs_dPhi;
+	    else if (vName == "dimu_dR")       	var_vals.at(iVar) = dimu_dR;
+	    else if (vName == "dimu_mass_err")  var_vals.at(iVar) = dimu_mass_err;
+	    else if (vName == "dimu_gen_ID")    var_vals.at(iVar) = dimu_gen_ID;
 
 	    else if (vName == "cts_mu1")        var_vals.at(iVar) = cts_mu1;
             else if (vName == "cts_mu_pos")     var_vals.at(iVar) = cts_mu_pos;
 	    
 	    // lep variables
-	    else if (vName == "dilep_mass")		var_vals.at(iVar) = dilep_mass;
-	    else if (vName == "dilep_pt")		var_vals.at(iVar) = dilep_pt;
-	    else if (vName == "dilep_abs_eta")		var_vals.at(iVar) = abs(dilep_eta);
-	    else if (vName == "dilep_abs_dEta")		var_vals.at(iVar) = abs(dilep_dEta);
-	    else if (vName == "dilep_abs_dPhi")		var_vals.at(iVar) = abs(dilep_dPhi);
-	    else if (vName == "dilep_dR")		var_vals.at(iVar) = dilep_dR;
-	    else if (vName == "cts_lep1")		var_vals.at(iVar) = cts_lep1;
-	    else if (vName == "cts_lep_pos")		var_vals.at(iVar) = cts_lep_pos;
+	    else if (vName == "lep1_pt")         var_vals.at(iVar) = lep1_pt;
+            else if (vName == "lep2_pt")         var_vals.at(iVar) = lep2_pt;
+            else if (vName == "lep1_abs_eta")    var_vals.at(iVar) = lep1_abs_eta;
+            else if (vName == "lep2_abs_eta")    var_vals.at(iVar) = lep2_abs_eta;
+            else if (vName == "lep1_lepMVA")     var_vals.at(iVar) = lep1_lepMVA;
+            else if (vName == "lep2_lepMVA")     var_vals.at(iVar) = lep2_lepMVA;
+
+	    else if (vName == "dilep_mass")	 var_vals.at(iVar) = dilep_mass;
+	    else if (vName == "dilep_pt")	 var_vals.at(iVar) = dilep_pt;
+	    else if (vName == "dilep_abs_eta")	 var_vals.at(iVar) = dilep_abs_eta;
+	    else if (vName == "dilep_abs_dEta")	 var_vals.at(iVar) = dilep_abs_dEta;
+	    else if (vName == "dilep_abs_dPhi")	 var_vals.at(iVar) = dilep_abs_dPhi;
+	    else if (vName == "dilep_dR")	 var_vals.at(iVar) = dilep_dR;
+	    else if (vName == "dilep_gen_ID")    var_vals.at(iVar) = dilep_gen_ID;
+
+	    else if (vName == "cts_lep1")	 var_vals.at(iVar) = cts_lep1;
+	    else if (vName == "cts_lep_pos")	 var_vals.at(iVar) = cts_lep_pos;
 
 	    // pair variables
-	    else if (vName == "quadlep_mass")		var_vals.at(iVar) = quadlep_mass;
-	    else if (vName == "quadlep_pt")		var_vals.at(iVar) = quadlep_pt;
-	    else if (vName == "dipair_dEta_H")		var_vals.at(iVar) = dipair_dEta_H;
-	    else if (vName == "cts_dipair_H")		var_vals.at(iVar) = cts_dipair_H;
+	    else if (vName == "quadlep_mass")	 var_vals.at(iVar) = quadlep_mass;
+	    else if (vName == "quadlep_pt")	 var_vals.at(iVar) = quadlep_pt;
+	    else if (vName == "quadlep_abs_eta") var_vals.at(iVar) = quadlep_abs_eta;
+	    else if (vName == "dipair_dEta_H")	 var_vals.at(iVar) = dipair_dEta_H;
+	    else if (vName == "dipair_dPhi_H")   var_vals.at(iVar) = dipair_dPhi_H;
+	    else if (vName == "dipair_dR_H")     var_vals.at(iVar) = dipair_dR_H;
+	    else if (vName == "cts_dipair_H")    var_vals.at(iVar) = cts_dipair_H;
+
+            else if (vName == "cs_costheta")     var_vals.at(iVar) = cs_costheta;
+	    else if (vName == "cs_cosphi")       var_vals.at(iVar) = cs_cosphi;
+            else if (vName == "cs_sinphi")       var_vals.at(iVar) = cs_sinphi;
+	    else if (vName == "cos_theta1")      var_vals.at(iVar) = cos_theta1;
+            else if (vName == "cos_phiH")        var_vals.at(iVar) = cos_phiH;
+	    else if (vName == "cos_phi1")        var_vals.at(iVar) = cos_phi1;
 
 	    //met variables
-            else if (vName == "met_pt")       	var_vals.at(iVar) = met_pt;
-            else if (vName == "mht_pt")       	var_vals.at(iVar) = mht_pt;
-            else if (vName == "mht_mass")       var_vals.at(iVar) = mht_mass;
+            else if (vName == "met_pt")       		var_vals.at(iVar) = met_pt;
+	    else if (vName == "abs_dPhi_4lPt_met")      var_vals.at(iVar) = abs_dPhi_4lPt_met;
+            else if (vName == "met_Rtrans_4lPt")       	var_vals.at(iVar) = met_Rtrans_4lPt; 
+	    else if (vName == "met_Rlongi_4lPt")       	var_vals.at(iVar) = met_Rlongi_4lPt;
+
+            else if (vName == "mht_pt")       		var_vals.at(iVar) = mht_pt;
+	    else if (vName == "mht_mass")       	var_vals.at(iVar) = mht_mass;
+	    else if (vName == "abs_dPhi_4lPt_mht")      var_vals.at(iVar) = abs_dPhi_4lPt_mht;
+            else if (vName == "mht_Rtrans_4lPt")       	var_vals.at(iVar) = mht_Rtrans_4lPt; 
+	    else if (vName == "mht_Rlongi_4lPt")       	var_vals.at(iVar) = mht_Rlongi_4lPt;
+
+            else if (vName == "abs_dPhi_met_mht")       var_vals.at(iVar) = abs_dPhi_met_mht; 
 
 //            else if (vName == "")       var_vals.at(iVar) = ;
 //            else if (vName == "")       var_vals.at(iVar) = ;
@@ -703,18 +845,18 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
 	    //dijet variables
 	    else if (vName == "dijet_mass") 	var_vals.at(iVar) = dijet_mass;
 	    else if (vName == "dijet_pt") 	var_vals.at(iVar) = dijet_pt;
-	    else if (vName == "dijet_abs_eta") 	var_vals.at(iVar) = abs(dijet_eta);
-	    else if (vName == "dijet_abs_dEta") var_vals.at(iVar) = abs(dijet_dEta);
-            else if (vName == "dijet_abs_dPhi") var_vals.at(iVar) = abs(dijet_dPhi);
-            else if (vName == "dijet_dR")       var_vals.at(iVar) = abs(dijet_dR);
+	    else if (vName == "dijet_abs_eta") 	var_vals.at(iVar) = dijet_abs_eta;
+	    else if (vName == "dijet_abs_dEta") var_vals.at(iVar) = dijet_abs_dEta;
+            else if (vName == "dijet_abs_dPhi") var_vals.at(iVar) = dijet_abs_dPhi;
+            else if (vName == "dijet_dR")       var_vals.at(iVar) = dijet_dR;
 
 	    // Jet variables
 	    else if (vName == "jet1_pt")  	var_vals.at(iVar) = jet1_pt;
 	    else if (vName == "jet2_pt")  	var_vals.at(iVar) = jet2_pt;
-	    else if (vName == "jet1_abs_eta") 	var_vals.at(iVar) = abs(jet1_eta);
-	    else if (vName == "jet2_abs_eta") 	var_vals.at(iVar) = abs(jet2_eta);
+	    else if (vName == "jet1_abs_eta") 	var_vals.at(iVar) = jet1_abs_eta;
+	    else if (vName == "jet2_abs_eta") 	var_vals.at(iVar) = jet2_abs_eta;
 	    else if (vName == "jet0_pt")  	var_vals.at(iVar) = jet0_pt;
-	    else if (vName == "jet0_abs_eta") 	var_vals.at(iVar) = abs(jet0_eta);
+	    else if (vName == "jet0_abs_eta") 	var_vals.at(iVar) = jet0_abs_eta;
  
 	    // Global event variables
 	    else if (vName == "nMuons")     	var_vals.at(iVar) = nMuons;     	
@@ -725,15 +867,8 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
             else if (vName == "nBJets_Tight")   var_vals.at(iVar) = nBJets_Tight;	   
             else if (vName == "nFwdJets")     	var_vals.at(iVar) = nFwdJets;   	   
             else if (vName == "nCentJets")     	var_vals.at(iVar) = nCentJets;  	
-
-	    // evt_else if (vName == "nBLoose") var_vals.at(iVar) = nBLoose;
-	    
-//	    else if (vName == "MET")      var_vals.at(iVar) = MET;
-//	    else if (vName == "MHT")      var_vals.at(iVar) = br.mht->pt;
-//	    else if (vName == "MT_had")   var_vals.at(iVar) = br.mht->MT_had;
-//	    else if (vName == "mass_had") var_vals.at(iVar) = br.mht->mass_had;
-
-	    
+	    else if (vName == "BDT_noMass_v3")	var_vals.at(iVar) = BDT_noMass_v3;	   
+ 
 	    if (verbose) std::cout << "  * Filled variable " << vName << " with value " << var_vals.at(iVar) << std::endl;
 	  }
 	  
@@ -770,62 +905,68 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
 	// // Weight by expected sample normalization x signal resolution
 	// double sig_evt_weight = samp_wgt * res_wgt * 1000.;
 	// double bkg_evt_weight = samp_wgt;
+
+	double MVA_cut = 0.4;
+//	if (mu1_lepMVA < MVA_cut or mu2_lepMVA < MVA_cut or lep1_lepMVA < MVA_cut or lep2_lepMVA < MVA_cut) continue;
+
 	
 	// Load values into event
-	if ( Sample_ID == 2325 ) { // Signal MC    Sample_ID > 0 , 2325 is ZH
+	if ( MN.first == "signal" and (Sample_ID == 2325 or Sample_ID == 1202325 or Sample_ID == 1302325) ) { // Signal MC    Sample_ID > 0 , 2325 is ZH
+	  if ( abs(dilep_mass-91)>10 or dimu_gen_ID!=25 ) continue;  // Z-cand mass range, dimu from H
 	  if ( (iEvt % (2*presc)) != 1 ) {   // only iEvt % 2 == 1 is used for BDT (the other half for limits), now limited by stats.   -- XWZ 02.12.2018
 	    if (!MULTICLASS) {
-	      std::get<1>(factories.at(iFact))->AddSignalTrainingEvent( var_vals, event_wgt * 6.5); // 7 is for 2017 MC training, 03.11.2019
+	      std::get<1>(factories.at(iFact))->AddSignalTrainingEvent( var_vals, event_wgt * xsec_norm ); // signal and bkg are automatically reweighted by TMVA
 	      nTrain_sig.at(iFact) += 1;
 	    } else {
-	      std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, event_wgt * 6.5);
+	      std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, event_wgt * xsec_norm );
 	      if (multi_str == "nonVH") nTrain_nonVH.at(iFact) += 1;
 	      if (multi_str == "ZH")    nTrain_ZH.at(iFact)    += 1;
 	      if (multi_str == "WH")    nTrain_WH.at(iFact)    += 1;
 	    }
 	  } else {
 	    if (!MULTICLASS) {
-	      std::get<1>(factories.at(iFact))->AddSignalTestEvent( var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddSignalTestEvent( var_vals, event_wgt * xsec_norm );
 	      nTest_sig.at(iFact) += 1;
 	    } else {
-	      std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt * xsec_norm );
 	      if (multi_str == "nonVH") nTest_nonVH.at(iFact) += 1;
 	      if (multi_str == "ZH")    nTest_ZH.at(iFact)    += 1;
 	      if (multi_str == "WH")    nTest_WH.at(iFact)    += 1;
 	    }
 	  }
 	}
-	if ( Sample_ID == -2323 ) { // Background MC       Sample_ID < 0
+	if ( MN.first == "bkg" and Sample_ID < 0 and Sample_ID != -999 ) { // Background MC       Sample_ID < 0
+	  if ( abs(dilep_mass-91)>10 ) continue; // Z-cand mass range, dimu from Z
 	  if ( (iEvt % (2*presc)) != 0 ) {
 	    if (!MULTICLASS) {
-	      std::get<1>(factories.at(iFact))->AddBackgroundTrainingEvent( var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddBackgroundTrainingEvent( var_vals, event_wgt * xsec_norm );
 	      nTrain_bkg.at(iFact) += 1;
 	    } else {
-	      std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, event_wgt * xsec_norm );
 	      if (multi_str == "WZ")  nTrain_WZ.at(iFact)  += 1;
 	      if (multi_str == "ZZ")  nTrain_ZZ.at(iFact)  += 1;
 	      if (multi_str == "ttX") nTrain_ttX.at(iFact) += 1;
 	    }
 	  } else {
 	    if (!MULTICLASS) {
-	      std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, event_wgt * xsec_norm );
 	      nTest_bkg.at(iFact) += 1;
 	    } else {
-	      std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt );
+	      std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt * xsec_norm );
 	      if (multi_str == "WZ")  nTest_WZ.at(iFact)  += 1;
 	      if (multi_str == "ZZ")  nTest_ZZ.at(iFact)  += 1;
 	      if (multi_str == "ttX") nTest_ttX.at(iFact) += 1;
 	    }
 	  }
 	}
-	if (Sample_ID == 0) { // Data
-	  if (!MULTICLASS) {
-	    std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, event_wgt );
-	    nTest_bkg.at(iFact) += 1;
-	  } else {
-	    std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt );
-	  }
-	}
+//	if (Sample_ID == 0) { // Data
+//	  if (!MULTICLASS) {
+//	    std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, event_wgt );
+//	    nTest_bkg.at(iFact) += 1;
+//	  } else {
+//	    std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, event_wgt );
+//	  }
+//	}
 	
       } // End loop: for (int iFact = 0; iFact < factories.size(); iFact++)
       
@@ -1003,14 +1144,19 @@ void ZH_4l_miniNTuple( TString myMethodList = "",
     
     if (Use["BDTG_UF_v1"]) // Optimized settings - AWB 04.04.2017
       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_UF_v1", (std::string)
-			 "!H:!V:NTrees=500::BoostType=Grad:Shrinkage=0.1:UseBaggedBoost:"+
-			 "BaggedSampleFraction=0.5:nCuts=20:MaxDepth=5" );
+			 "!H:!V:NTrees=100::BoostType=Grad:Shrinkage=0.1:UseBaggedBoost:"+
+			 "BaggedSampleFraction=0.5:nCuts=10:MaxDepth=3" );
     
     if (Use["BDTG_UF_v2"]) // Test settings - AWB 29.10.2018
       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_UF_v2", (std::string)
 			 "!H:!V:NTrees=200::BoostType=Grad:Shrinkage=0.1:UseBaggedBoost:"+
 			 "BaggedSampleFraction=0.5:nCuts=10:MaxDepth=3" );
-    
+
+    if (Use["BDTG_UF_v3"]) // Test settings - AWB 29.10.2018
+      factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_UF_v3", (std::string)
+                         "!H:!V:NTrees=400::BoostType=Grad:Shrinkage=0.1:UseBaggedBoost:"+
+                         "BaggedSampleFraction=0.5:nCuts=10:MaxDepth=5" );   
+ 
     if (Use["BDTG_AWB"]) // Optimized settings from EMTF pT assignment
       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB", (std::string)
 			 "!H:!V:NTrees=400::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=5:MinNodeSize=0.000001" );

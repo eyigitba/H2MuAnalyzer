@@ -138,25 +138,43 @@ float LepMVASF( const TH2F * h_SF, const float pt, const float eta ) {
 }
 
 // Determine if dimuon pair is matched to GEN pair
-bool IsGenMatched( const MuPairInfo & muPair, const MuonInfos & muons, const GenMuonInfos & genMuons, const std::string gen_ID ) {
+bool IsGenMatched( const MuPairInfo & muPair, const MuonInfos & muons, const GenMuonInfos & genMuons, const GenParentInfos & genParents, const std::string gen_ID ) {
 
   TLorentzVector mu_vec1 = FourVec( muons.at(muPair.iMu1), "PF" );
   TLorentzVector mu_vec2 = FourVec( muons.at(muPair.iMu2), "PF" );
-  int  mu1_mother_ID = 0;
-  int  mu2_mother_ID = 0;
+  bool mu1_matched = false;
+  bool mu2_matched = false;
+  bool Pa_matched = false;
 
-  for (const auto & genMu : genMuons) {
-    if      (gen_ID == "Z") { if ( genMu.mother_ID != 23 && genMu.mother_ID != 22 &&
-				   genMu.mother_ID !=  1 && genMu.mother_ID !=  2 ) continue; }
-    else if (gen_ID == "H") { if ( genMu.mother_ID != 25 ) continue; }
-    else assert(gen_ID == "Z" || gen_ID == "H");
+  if (gen_ID == "Z" or gen_ID == "H") { // dimuon properly matched to a gen-Z or gen-H
+    int Pa_ID = 23;
+    if (gen_ID == "H") Pa_ID = 25;
+    for (const auto & genPa : genParents) {
+	if (genPa.ID != Pa_ID or genPa.daughter_1_ID + genPa.daughter_2_ID != 0) continue;  // legit Z or H 
+	if (genPa.daughter_1_ID != 13 and genPa.daughter_1_ID != -13) continue;		// decays to dimuon
+	if (genPa.daughter_1_idx < 0 or genPa.daughter_2_idx < 0) continue;		// present in genMuons collection
+	TLorentzVector gen_vec1 = FourVec( genMuons.at(genPa.daughter_1_idx) );
+	TLorentzVector gen_vec2 = FourVec( genMuons.at(genPa.daughter_2_idx) );
+	
+	if ( mu_vec1.DeltaR(gen_vec1)<0.05 and mu_vec2.DeltaR(gen_vec2)<0.05 ) Pa_matched = true;
+	if ( mu_vec1.DeltaR(gen_vec2)<0.05 and mu_vec2.DeltaR(gen_vec1)<0.05 ) Pa_matched = true;
+    }
+  } // end if (gen_ID == "Z" or gen_ID == "H")
 
-    TLorentzVector gen_vec = FourVec( genMu );
-    if ( mu_vec1.DeltaR(gen_vec) < 0.05 ) mu1_mother_ID = genMu.mother_ID;
-    if ( mu_vec2.DeltaR(gen_vec) < 0.05 ) mu2_mother_ID = genMu.mother_ID;
-  }
+  else if (gen_ID == "gamma" or gen_ID == "tau" or gen_ID == "light_quark") { // both muons from gamma or quarks or taus, no GenParent object
+    for (const auto & genMu : genMuons) {
+      if      (gen_ID == "gamma")         { if (genMu.mother_ID != 22) continue;}
+      else if (gen_ID == "tau") 	  { if (genMu.mother_ID != 15 and genMu.mother_ID != -15) continue; }
+      else if (gen_ID == "light_quark")   { if (genMu.mother_ID != 1 and genMu.mother_ID != 2 and genMu.mother_ID != -1 and genMu.mother_ID != -2 ) continue; }
 
-  return (mu1_mother_ID != 0 && mu1_mother_ID == mu2_mother_ID);
+      TLorentzVector gen_vec = FourVec( genMu );
+      if ( mu_vec1.DeltaR(gen_vec) < 0.05 ) mu1_matched = true;
+      if ( mu_vec2.DeltaR(gen_vec) < 0.05 ) mu2_matched = true;
+    }
+  } // end else if (gen_ID == "gamma" or gen_ID == "tau" or gen_ID == "light_quark")
+  else assert(gen_ID == "Z" || gen_ID == "H" || gen_ID == "tau" || gen_ID == "light_quark" || gen_ID == "gamma");
+
+  return ( (mu1_matched && mu2_matched) || Pa_matched );
 } // End function: bool IsMatchedToGen()
 
 
