@@ -4,6 +4,7 @@
 #####  functions for making plots from MNT   #####
 ##################################################
 import array
+import Plot_Configs as PC
 from ROOT import *
 
 def LoadColors(color, color_set):
@@ -53,6 +54,7 @@ def LoadSampleNames(signals, bkgs, data, sample_set):
     else:
 	return
 
+#####################################################################
 
 def LinearStack( name, all_stack, scaled_signal, h_data, legend, plot_dir):
     canv = TCanvas("Stack_" + name, "Stack_" + name, 600,600)
@@ -116,57 +118,108 @@ def RatioPlot( name, all_stack, scaled_signal, h_data, ratio_graph, legend, plot
     canv.Write()
 #    canv.SaveAs( plot_dir + "/linear_stack_" + name + ".png")
 
+###########################################################
 
-def PassLepMVA(lepMVA_cut, lep_value):
-    Pass = False
-    cut_value = float(lepMVA_cut)
-    if lep_value > cut_value:
-        Pass = True
-    return Pass
+def Sample_Name(Sample_ID):
+    if Sample_ID == 0:	return "Data"
+
+    elif Sample_ID > 0:
+      if Sample_ID == 25:	return "ggH"
+      elif Sample_ID == 10225: 	return "VBF"
+      elif Sample_ID == 2425: 	return "WH"
+      elif Sample_ID == 2325: 	return "ZH"
+      elif Sample_ID == 60625: 	return "ttH"
+      else: 	return "unknown_sig"
+
+    elif Sample_ID < 0:
+      # main
+      if Sample_ID == -23: 		return "DY"
+      elif Sample_ID == -606: 		return "ttbar"
+      # tX
+      elif Sample_ID == -624: 		return "tW"
+      elif Sample_ID == -62500: 	return "tHq"
+      elif Sample_ID == -62524: 	return "tHW"
+      elif Sample_ID == -62300: 	return "tZq"
+      elif Sample_ID == -62324: 	return "tZW"
+      # ttX
+      elif Sample_ID == -60623: 	return "ttZ"
+      elif Sample_ID == -60625: 	return "ttH_bkg"
+      elif Sample_ID == -60624:         return "ttW"
+      elif Sample_ID == -6062424: 	return "ttWW"
+      # multi boson
+      elif Sample_ID == -2323: 		return "ZZ"
+      elif Sample_ID == -23230000:      return "ggZZ"
+      elif Sample_ID == -2423:       	return "WZ"
+      elif Sample_ID == -2424:       	return "WW"
+      elif Sample_ID == -232323:       	return "ZZZ"
+      elif Sample_ID == -242323:       	return "WZZ"
+      elif Sample_ID == -242423:       	return "WWZ"
+      elif Sample_ID == -242424:        return "WWW"
+      else:	return "unknown_bkg"
+
+    else:
+	print "what happened"
+	return "unknown_samp"
+# end def Sample_Name(Sample_ID):
 
 
-def FillHistTerm(histos, term, signals, bkgs, value, Sample_ID, event_wgt):
+
+def FillHistTerm(histos, term, cfg, value, Sample_ID, event_wgt):
+    samp = Sample_Name(Sample_ID)
+
+    # unknown sample
+    if samp == "unknown_sig" or samp == "unknown_bkg": return
+
     #blind
-    if Sample_ID == 0 and term == "dimu_mass" and value > 120 and value < 130:
+    if samp == "Data" and term == "dimu_mass" and value > 120 and value < 130:
         return
-    #data
-    if Sample_ID == 0:
-        histos[term]["data"].Fill(value, 1)
-    #signal
-    elif Sample_ID == 25:
-        histos[term]["ggH"].Fill(value, event_wgt )
-    elif Sample_ID == 010225:
-        histos[term]["VBF"].Fill(value, event_wgt )
-    elif Sample_ID == 2425:
-        histos[term]["WH"].Fill(value, event_wgt )
-    elif Sample_ID == 2325:
-        histos[term]["ZH"].Fill(value, event_wgt )
-    elif Sample_ID == 060625:
-        histos[term]["ttH"].Fill(value, event_wgt )
+    if samp == "Data" and ("BDT_mass" in term) and value > 0.4:
+	return
 
-    #background
-    elif Sample_ID == -23:
-        histos[term]["DY"].Fill(value, event_wgt / 2)  # used two high mass DY samples
-#	histos[term]["DY"].Fill(value, event_wgt / 3)  # used three regular mass DY samples
-    elif Sample_ID == -0606:
-        histos[term]["ttbar"].Fill(value, event_wgt / 2)  # used two ttbar samples
-    elif Sample_ID == -2423:
-        histos[term]["WZ"].Fill(value, event_wgt)
-    elif Sample_ID == -2323:  #ZZ_4l and ZZ_2l
-        histos[term]["ZZ"].Fill(value, event_wgt)
-    elif Sample_ID == -2424: # WW
-	histos[term]["WW"].Fill(value, event_wgt)
-    elif Sample_ID == -242424 or Sample_ID == -242423 or Sample_ID == -242323 or Sample_ID == -232323:   # triboson
+    # fill data
+    if samp == "Data":
+        histos[term]["Data"].Fill(value, 1)
+    # fill signal
+    elif samp in cfg.signals:
+        histos[term][samp].Fill(value, event_wgt)
+
+    # fill background
+    elif samp in cfg.bkgs:
+      if samp == "DY":
+	histos[term][samp].Fill(value, event_wgt / 2)  # used two high mass DY samples
+#       histos[term][samp].Fill(value, event_wgt / 3)  # used three regular mass DY samples
+      elif samp == "ttbar":
+	histos[term][samp].Fill(value, event_wgt / 2)  # used two ttbar samples
+      else:
+	histos[term][samp].Fill(value, event_wgt)
+
+    # if ZZ and ggZZ are combined
+    elif (samp == "ZZ") and ("ZZ+ggZZ" in cfg.bkgs):
+        histos[term]["ZZ+ggZZ"].Fill(value, event_wgt)
+    elif (samp == "ggZZ") and ("ZZ+ggZZ" in cfg.bkgs):
+	histos[term]["ZZ+ggZZ"].Fill(value, event_wgt)
+
+    # if WZ and WW are combined
+    elif (samp == "WZ") and ("WZ+WW" in cfg.bkgs):
+	histos[term]["WZ+WW"].Fill(value, event_wgt)
+    elif (samp == "WW") and ("WZ+WW" in cfg.bkgs):
+        histos[term]["WZ+WW"].Fill(value, event_wgt)
+
+    # if tribosons are combined
+    elif (samp == "ZZZ") and ("triboson" in cfg.bkgs):
+	histos[term]["triboson"].Fill(value, event_wgt)
+    elif (samp == "ZZW") and ("triboson" in cfg.bkgs):
         histos[term]["triboson"].Fill(value, event_wgt)
-    elif Sample_ID == -062300:
-        histos[term]["tZq"].Fill(value, event_wgt)
-    elif Sample_ID == -060623:
-        histos[term]["ttZ"].Fill(value, event_wgt)
-    elif Sample_ID == -0624:
-	histos[term]["tW"].Fill(value, event_wgt) 
-    elif Sample_ID != -062500 and Sample_ID != -062524 and Sample_ID != -06062424 and Sample_ID != -999: #tHq, tHW, and ttWW (no proper xsec)
-        histos[term]["others"].Fill(value, event_wgt)
+    elif (samp == "ZWW") and ("triboson" in cfg.bkgs):
+        histos[term]["triboson"].Fill(value, event_wgt)
+    elif (samp == "WWW") and ("triboson" in cfg.bkgs):
+        histos[term]["triboson"].Fill(value, event_wgt)
 
+    else:
+	histos[term]["others"].Fill(value, event_wgt)
+    return
+# end def FillHistTerm(histos, term, cfg, value, Sample_ID, event_wgt):
+#############################################################
 
 def FindBinNum(binning, value):
     for i in range(1,len(binning)):
