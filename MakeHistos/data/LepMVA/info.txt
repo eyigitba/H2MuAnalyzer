@@ -1,0 +1,24 @@
+## From http://tomc.web.cern.ch/tomc/tagAndProbe/ttv-2018-08-17/
+## See email from Willem Verbeke, "Scale factors for lepton MVA efficiencies"
+
+The scale factors for muons (for three working points, including the 0.8 cut you are using) can be found on:
+
+http://tomc.web.cern.ch/tomc/tagAndProbe/ttv-2018-08-17/muons/output_2016/
+http://tomc.web.cern.ch/tomc/tagAndProbe/ttv-2018-08-17/muons/output_2017/
+
+and for the record for electrons on:
+
+http://tomc.web.cern.ch/tomc/tagAndProbe/ttv-2018-08-17/electrons/output_2016/
+http://tomc.web.cern.ch/tomc/tagAndProbe/ttv-2018-08-17/electrons/output_2017/
+
+We defined four working points optimized for different analyses:
+
+- tZq : lepton MVA > 0.8
+- ttW : lepton MVA > 0.6 + charge consistency cuts ( I would not use this one because the charge consistency cuts are rather
+                                                     inefficient and only needed if you do an analysis with same-sign leptons )
+- ttZ 3l : lepton MVA > 0.4
+- ttZ 4l : lepton MVA > -0.4
+
+The "MuonToTTVLoose" scale factor is a scale factor for the Loose selection specified in table 5 of AN-18-100 + medium muon, you
+probably don't need it. The other scale factors are scale factors for the full lepton selection we used, which always includes
+the medium muon requirement, the 'Loose' cuts from table 5 in AN-18-100, and one of the lepton MVA cuts I mentioned above.
