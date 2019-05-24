@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, '%s/lib' % os.getcwd() )
 from ROOT import *
-from MNT_Helper import LoadColors, LinearStack, RatioPlot, FillHistTerm, GetSF
+from MNT_Helper import LinearStack, RatioPlot, FillHistTerm, GetSF
 import Plot_Configs as PC
 #R.gROOT.SetBatch(True)
 
@@ -42,13 +42,6 @@ def main():
     file_chain.Add(file_dir + "all_samples.root")
 
     terms = ["dimu_mass"]
-
-#    signals = ["ttH", "ZH", "WH", "VBF", "ggH"]
-#    bkgs = ["others", "triboson", "tZq", "tW", "ttZ", "ttbar", "WW", "ZZ", "WZ", "DY"]
-#    data = ["data"]
-#
-#    color = {}
-#    LoadColors(color, "WH")
 
     cfg = PC.Plot_Config("ZH_4l")
 

@@ -7,53 +7,6 @@ import array
 import Plot_Configs as PC
 from ROOT import *
 
-def LoadColors(color, color_set):
-    if color_set == "WH":
-    	color["data"] = kBlack
-
-    	color["ggH"] = kRed
-    	color["VBF"] = kOrange + 7
-    	color["ZH"] =  kBlue + 1
-    	color["WH"] =  kGreen + 2
-#   	 color["WH_neg"] = kViolet + 1
-    	color["ttH"]  = kPink + 6
-
-    	color["DY"] =  kAzure + 7         # trying to use blue for Z, green for W, yellow for top, red for g/q
-    	color["ZZ"] =  kCyan - 7
-	color["WZ"] =  kGreen - 9
-    	color["WW"] =  kSpring -1
-    	color["ttbar"] = kYellow - 9
-    	color["ttZ"] = kOrange - 9
-    	color["tW"]  = kOrange + 6
-    	color["tZq"] = kRed - 7
-    	color["triboson"] = kViolet - 9 #
-    	color["others"] = kPink + 6 #
-    else:
-	return
-
-def LoadSampleNames(signals, bkgs, data, sample_set):
-    if sample_set == "lep_3l":
-	signals.append("ttH")
-	signals.append("ZH")
-	signals.append("WH")
-	signals.append("VBF")
-	signals.append("ggH")
-
-	bkgs.append("others")
-	bkgs.append("triboson")
-	bkgs.append("tZq")
-	bkgs.append("tW")
-	bkgs.append("ttZ")
-	bkgs.append("ttbar")
-	bkgs.append("WW")
-	bkgs.append("ZZ")
-	bkgs.append("WZ")
-	bkgs.append("DY")
-
-    	data.append("data")
-    else:
-	return
-
 #####################################################################
 
 def LinearStack( name, all_stack, scaled_signal, h_data, legend, plot_dir):

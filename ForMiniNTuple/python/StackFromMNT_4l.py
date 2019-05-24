@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, '%s/lib' % os.getcwd())
 from ROOT import *
-from MNT_Helper import LoadColors, LinearStack, RatioPlot, FillHistTerm, GetSF
+from MNT_Helper import LinearStack, RatioPlot, FillHistTerm, GetSF
 import Plot_Configs as PC
 
 gROOT.SetBatch(True)
@@ -165,13 +165,6 @@ def main():
 	    "nJets", "nCentJets", "nFwdJets", "nBJets_Med", "nBJets_Loose", "nBJets_Tight", "nMuons", "nEles", 	#evt vars
 	    "BDT_noMass_v3", "BDT_mass_more", "BDT_mass_min", "BDT_and_mass",
 	    ] #end
-
-#    signals = ["ttH", "ZH", "WH", "VBF", "ggH"]
-#    bkgs = ["others", "triboson", "tW", "ttZ", "tZq", "ttbar", "WW", "ZZ", "WZ", "DY"]
-#    data = ["data"]
-#
-#    color = {}
-#    LoadColors(color, "WH")
 
     cfg = PC.Plot_Config("ZH_4l")
     print cfg.signals
