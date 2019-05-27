@@ -26,6 +26,7 @@
 #include "H2MuAnalyzer/MakeHistos/interface/MiniNTupleHelper.h"
 #include "H2MuAnalyzer/MakeHistos/interface/SampleID.h"
 #include "H2MuAnalyzer/MakeHistos/interface/KinematicAngles.h"
+#include "H2MuAnalyzer/MakeHistos/interface/ReadMVA.h"            // Read and evaluate XMLs for MVA
 
 // #include "H2MuAnalyzer/MakeHistos/interface/SampleDatabase2016.h" // Input data and MC samples
 
@@ -42,11 +43,11 @@ const float SAMP_WGT = 1.0;
 const float LUMI = 41000; // pb-1   36814 for 2016, 41000 for 2017
 const bool verbose = false; // Print extra information
 
-//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZH_HToMuMu_ZToAll_M125_13TeV_powheg_pythia8/H2Mu_ZH_125";
-//const TString SAMPLE   = "H2Mu_ZH_125";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZH_HToMuMu_ZToAll_M125_13TeV_powheg_pythia8/H2Mu_ZH_125";
+const TString SAMPLE   = "H2Mu_ZH_125";
 
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZZTo4L_13TeV_powheg_pythia8/ZZ_4l";
-const TString SAMPLE   = "ZZ_4l";
+//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZZTo4L_13TeV_powheg_pythia8/ZZ_4l";
+//const TString SAMPLE   = "ZZ_4l";
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 //const TString SAMPLE   = "SingleMu";
 const std::string YEAR = "2017";
@@ -131,253 +132,6 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   // Initialize set of pointers to all branches in tree
   NTupleBranches br;
 
-  // Initialize empty map of histogram names to histograms
-  TFile * Out_File;
-  TTree * Out_Tree;
-  // declare variables that could be filled in tree. Not all of them are used.
-  // branches will be added in cat_sel
-
-  int		nMuons;
-  int		nEles;
-  int		nJets;
-  int		nBJets_Loose;
-  int           nBJets_Med;
-  int           nBJets_Tight;
-  int		nFwdJets;
-  int 		nCentJets;
-
-  float		dimu_mass;
-  float		dimu_mass_err;
-  float		dimu_pt;
-  float		dimu_eta;    // in BDT training, will use abs value.
-  float 	dimu_dEta;   // Keep this for convenience of producing data/MC from miniNTuple  -- XWZ 19.11.2019
-  float		dimu_dPhi;
-  float		dimu_dR;
-  int 		dimu_gen_ID;
-  float 	mu1_pt;
-  float		mu1_eta;
-  float		mu1_lepMVA;
-  int		mu1_charge;
-  float		mu2_pt;
-  float		mu2_eta;
-  float		mu2_lepMVA;
-  int		mu2_charge;
-
-  float		lep1_pt;
-  float		lep1_eta;
-  float		lep1_lepMVA;
-  int 		lep1_charge;
-  float         lep2_pt;
-  float         lep2_eta;
-  float         lep2_lepMVA;
-  int		lep2_charge;
-
-  float 	cts_mu1;
-  float		cts_mu_pos;
-
-  float		dilep_mass;
-  float		dilep_mass_err;
-  float		dilep_pt;
-  float		dilep_eta;
-  float 	dilep_dEta;
-  float		dilep_dPhi;
-  float		dilep_dR;
-  int		dilep_gen_ID;
-
-  float		cts_lep1;
-  float		cts_lep_pos;
-
-  float		quadlep_mass;
-  float		quadlep_pt;
-  float		quadlep_eta;
-  float		dipair_dEta_H;
-  float		dipair_dPhi_H;
-  float		dipair_dR_H;
-  float         dipair_dEta_pt;
-  float         dipair_dPhi_pt;
-  float         dipair_dR_pt;
-
-  float		cts_dipair_H;
-  float		cts_dipair_pt;
-
-  float 	cs_costheta;
-  float 	cs_cosphi;
-  float		cs_sinphi;
-
-  float 	cos_theta1;
-  float		cos_phi1;
-  float		cos_phiH;
-
-  float		dijet_mass;
-  float		dijet_pt;
-  float		dijet_eta;
-  float		dijet_dEta;
-  float		dijet_dPhi;
-  float		dijet_dR;
-
-  float		jet1_pt;
-  float		jet1_eta;
-  float		jet2_pt;
-  float 	jet2_eta;
-  float		jet0_pt;
-  float		jet0_eta;
-
-  float		met_pt;
-  float		mht_pt;
-  float		mht_mass;
-
-  float		event_wgt;
-  float		xsec_norm;
-  bool 		lep_is_ele;
-  bool		lep_is_mu;
-  int 		Sample_ID;
-  TString 	Sample_name = "";// for identifying sample in minintuple
-
-  MuPairInfo 	dimu;
-  MuonInfo 	mu_1;
-  MuonInfo	mu_2;
-  MuonInfo	mu_3;
-  MuonInfo      mu_4;
-  EleInfo 	ele1;
-  EleInfo       ele2;
-  JetPairInfo	dijet;
-  JetInfo	jet1;
-  JetInfo	jet2;
-  JetInfo	jet0;
-  MhtInfo	mht_info;
-
-  TLorentzVector dimu_vec;  
-  TLorentzVector mu1_vec;
-  TLorentzVector mu2_vec;
-  TLorentzVector mu3_vec;
-  TLorentzVector mu4_vec;
-  TLorentzVector lep1_vec;
-  TLorentzVector lep2_vec;
-  TLorentzVector dilep_vec;
-  TLorentzVector quadlep_vec;
-  TLorentzVector dijet_vec;
-  TLorentzVector jet1_vec;
-  TLorentzVector jet2_vec;
-  TLorentzVector met_vec;
-  TLorentzVector mht_vec;
-
-  // declaration end.
-  // creating output file
-
-  TString out_file_name;
-  if (out_file_str.Length() > 0) out_file_name.Form( "%s/histos_%s_%s.root",    out_dir.Data(), sample.Data(), out_file_str.Data() );
-  else                           out_file_name.Form( "%s/histos_%s_%d_%d.root", out_dir.Data(), sample.Data(), MIN_FILE, MAX_FILE );
-  std::cout << "\nCreating output file " << out_file_name.Data() << std::endl;
-  Out_File = TFile::Open( out_file_name, "RECREATE" );
-
-  // plant TTree and add branches
-  Out_Tree = PlantTree("tree", "flat_tree_minintuple");    
-
-  //muon var
-  Out_Tree->Branch("mu1_pt", 		& mu1_pt, 		"mu1_pt/F");
-  Out_Tree->Branch("mu1_eta", 		& mu1_eta,		"mu1_eta/F");	
-  Out_Tree->Branch("mu1_lepMVA",	& mu1_lepMVA,		"mu1_lepMVA/F");
-  Out_Tree->Branch("mu1_charge",	& mu1_charge,		"mu1_charge/I");
-  Out_Tree->Branch("mu2_pt",    	& mu2_pt,       	"mu2_pt/F");
-  Out_Tree->Branch("mu2_eta",   	& mu2_eta,      	"mu2_eta/F");
-  Out_Tree->Branch("mu2_lepMVA",	& mu2_lepMVA,		"mu2_lepMVA/F");
-  Out_Tree->Branch("mu2_charge",	& mu2_charge,		"mu2_charge/I");
-
-  Out_Tree->Branch("dimu_mass",		& dimu_mass,		"dimu_mass/F");
-  Out_Tree->Branch("dimu_mass_err",	& dimu_mass_err,	"dimu_mass_err/F");
-  Out_Tree->Branch("dimu_pt", 		& dimu_pt, 		"dimu_pt/F");
-  Out_Tree->Branch("dimu_eta", 		& dimu_eta, 		"dimu_eta/F");
-  Out_Tree->Branch("dimu_dEta",		& dimu_dEta,		"dimu_dEta/F");
-  Out_Tree->Branch("dimu_dPhi",		& dimu_dPhi,		"dimu_dPhi/F");
-  Out_Tree->Branch("dimu_dR",		& dimu_dR,		"dimu_dR/F");
-  Out_Tree->Branch("dimu_gen_ID",       & dimu_gen_ID,          "dimu_gen_ID/I");  
-
-  Out_Tree->Branch("cts_mu1",           & cts_mu1,              "cts_mu1/F"  );
-  Out_Tree->Branch("cts_mu_pos",        & cts_mu_pos,           "cts_mu_pos/F"  );
-
-  //lep var
-  Out_Tree->Branch("lep1_pt", 		& lep1_pt,		"lep1_pt/F");
-  Out_Tree->Branch("lep1_eta", 		& lep1_eta, 		"lep1_eta/F");
-  Out_Tree->Branch("lep1_lepMVA",	& lep1_lepMVA,		"lep1_lepMVA/F");
-  Out_Tree->Branch("lep1_charge",	& lep1_charge,		"lep1_charge/I");
-  Out_Tree->Branch("lep2_pt",           & lep2_pt,              "lep2_pt/F");
-  Out_Tree->Branch("lep2_eta",          & lep2_eta,             "lep2_eta/F");
-  Out_Tree->Branch("lep2_lepMVA",       & lep2_lepMVA,          "lep2_lepMVA/F");
-  Out_Tree->Branch("lep2_charge",	& lep2_charge,		"lep2_charge/I");
-
-  Out_Tree->Branch("dilep_mass",        & dilep_mass,           "dilep_mass/F");
-  Out_Tree->Branch("dilep_mass_err",    & dilep_mass_err,       "dilep_mass_err/F");
-  Out_Tree->Branch("dilep_pt",          & dilep_pt,             "dilep_pt/F");
-  Out_Tree->Branch("dilep_eta",         & dilep_eta,            "dilep_eta/F");
-  Out_Tree->Branch("dilep_dEta",        & dilep_dEta,           "dilep_dEta/F");
-  Out_Tree->Branch("dilep_dPhi",        & dilep_dPhi,           "dilep_dPhi/F");
-  Out_Tree->Branch("dilep_dR",          & dilep_dR,             "dilep_dR/F");
-  Out_Tree->Branch("dilep_gen_ID",      & dilep_gen_ID,         "dilep_gen_ID/I"); 
-
-  Out_Tree->Branch("cts_lep1",          & cts_lep1,             "cts_lep1/F"  );
-  Out_Tree->Branch("cts_lep_pos",       & cts_lep_pos,          "cts_lep_pos/F"  );
-
-  //quadlep var
-  Out_Tree->Branch("quadlep_mass",	& quadlep_mass,		"quadlep_mass/F");
-  Out_Tree->Branch("quadlep_pt",	& quadlep_pt,   	"quadlep_pt/F");
-  Out_Tree->Branch("quadlep_eta",	& quadlep_eta,  	"quadlep_eta/F");
-  Out_Tree->Branch("dipair_dEta_H",	& dipair_dEta_H,  	"dipair_dEta_H/F");
-  Out_Tree->Branch("dipair_dPhi_H",	& dipair_dPhi_H,  	"dipair_dPhi_H/F");
-  Out_Tree->Branch("dipair_dR_H",	& dipair_dR_H,    	"dipair_dR_H/F");
-  Out_Tree->Branch("dipair_dEta_pt",    & dipair_dEta_pt,       "dipair_dEta_pt/F");
-  Out_Tree->Branch("dipair_dPhi_pt",    & dipair_dPhi_pt,       "dipair_dPhi_pt/F");
-  Out_Tree->Branch("dipair_dR_pt",      & dipair_dR_pt,         "dipair_dR_pt/F");
-
-  Out_Tree->Branch("cts_dipair_H",	& cts_dipair_H,   	"cts_dipair_H/F");
-  Out_Tree->Branch("cts_dipair_pt",     & cts_dipair_pt,        "cts_dipair_pt/F");
-
-  Out_Tree->Branch("cs_costheta",	& cs_costheta,		"cs_costheta/F");
-  Out_Tree->Branch("cs_cosphi",		& cs_cosphi,		"cs_cosphi/F");
-  Out_Tree->Branch("cs_sinphi",         & cs_sinphi,            "cs_sinphi/F");
-
-  Out_Tree->Branch("cos_theta1",	& cos_theta1,		"cos_theta1/F");
-  Out_Tree->Branch("cos_phi1",		& cos_phi1,		"cos_phi1/F");
-  Out_Tree->Branch("cos_phiH",		& cos_phiH,		"cos_phiH/F");
-
-  //jet var
-  Out_Tree->Branch("dijet_mass",	& dijet_mass,		"dijet_mass/F");
-  Out_Tree->Branch("dijet_pt",		& dijet_pt,		"dijet_pt/F");
-  Out_Tree->Branch("dijet_eta",		& dijet_eta,		"dijet_eta/F");
-  Out_Tree->Branch("dijet_dEta",	& dijet_dEta,		"dijet_dEta/F");
-  Out_Tree->Branch("dijet_dPhi",	& dijet_dPhi,		"dijet_dPhi/F");
-  Out_Tree->Branch("dijet_dR",		& dijet_dR,		"dijet_dR/F");
-
-  Out_Tree->Branch("jet1_pt",		& jet1_pt,		"jet1_pt/F");
-  Out_Tree->Branch("jet1_eta",		& jet1_eta,		"jet1_eta/F");
-  Out_Tree->Branch("jet2_pt",		& jet2_pt,		"jet2_pt/F");
-  Out_Tree->Branch("jet2_eta",		& jet2_eta,		"jet2_eta/F");
-  Out_Tree->Branch("jet0_pt",           & jet0_pt,              "jet0_pt/F");
-  Out_Tree->Branch("jet0_eta",      	& jet0_eta,         	"jet0_eta/F");
-
-  //met var
-  Out_Tree->Branch("met_pt",		& met_pt,       	"met_pt/F");
-  Out_Tree->Branch("mht_pt",            & mht_pt,               "mht_pt/F");
-  Out_Tree->Branch("mht_mass",          & mht_mass,             "mht_mass/F");
-
-  //event var
-  Out_Tree->Branch("nJets",		& nJets,		"nJets/I");
-  Out_Tree->Branch("nBJets_Loose",	& nBJets_Loose,		"nBJets_Loose/I");
-  Out_Tree->Branch("nBJets_Med",        & nBJets_Med,           "nBJets_Med/I");
-  Out_Tree->Branch("nBJets_Tight",      & nBJets_Tight,         "nBJets_Tight/I");
-  Out_Tree->Branch("nFwdJets",		& nFwdJets,		"nFwdJets/I");
-  Out_Tree->Branch("nCentJets",		& nCentJets,		"nCentJets/I");
-  Out_Tree->Branch("nMuons",		& nMuons,		"nMuons/I");
-  Out_Tree->Branch("nEles",		& nEles,		"nEles/I");  
-  Out_Tree->Branch("lep_is_ele",	& lep_is_ele,		"lep_is_ele/O");
-  Out_Tree->Branch("lep_is_mu",         & lep_is_mu,            "lep_is_mu/O");
-
-  //weights and spectator 
-  Out_Tree->Branch("event_wgt", 	& event_wgt, 		"event_wgt/F");
-  Out_Tree->Branch("xsec_norm",		& xsec_norm,		"xsec_norm/F");
-  Out_Tree->Branch("Sample_ID",		& Sample_ID,		"Sample_ID/I");
-  Out_Tree->Branch("Sample_name",	& Sample_name,		"Sample_name/C");
-//      Out_Tree->Branch();
-
   // Add trees from the input files to the TChain
   TChain * in_chain = new TChain("dimuons/tree");
   for (int i = 0; i < in_file_names.size(); i++) {
@@ -391,6 +145,24 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
       SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
+  // creating output file
+
+  TString out_file_name;
+  if (out_file_str.Length() > 0) out_file_name.Form( "%s/histos_%s_%s.root",    out_dir.Data(), sample.Data(), out_file_str.Data() );
+  else                           out_file_name.Form( "%s/histos_%s_%d_%d.root", out_dir.Data(), sample.Data(), MIN_FILE, MAX_FILE );
+  std::cout << "\nCreating output file " << out_file_name.Data() << std::endl;
+  TFile * Out_File = TFile::Open( out_file_name, "RECREATE" );
+
+  // plant TTree and add branches
+  TTree * Out_Tree = PlantTree("tree", "flat_tree_minintuple");
+
+  // Initialize empty map of branch names to ouput branches
+  std::map<TString, float>       b_map_flt;
+  std::map<TString, int>         b_map_int;
+  std::map<TString, std::string> b_map_str;
+
+  gROOT->cd(); // Navigate to "local" memory, so all histograms are not saved in out_tuple
+
   // Configuration for object selection, event selection, and object weighting
   ObjectSelectionConfig obj_sel;
   EventSelectionConfig  evt_sel;
@@ -399,7 +171,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   ConfigureEventSelection (evt_sel, YEAR);
   ConfigureEventWeight    (evt_wgt, YEAR);
 
-//  evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
+  evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
 // use default for ZZ validation
   obj_sel.mu_pt_min       =  10; // Lower muon pT threshold for muons not from Higgs, default 20
   obj_sel.mu_mIso_max      = 0.4;
@@ -413,6 +185,21 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   if (verbose) evt_wgt.Print();
 
   std::string PTC = obj_sel.mu_pt_corr; // Store muon pT correction in a shorter string; not changed later
+
+  std::cout << "\n******* About to load XML files for signal-background BDTs *******" << std::endl;
+  MVA::MVA BDT_noMass_v3( "data/XMLs/ZH_4l/Xunwu/2019_05_22/ZH_2017_lep_against_inclu_sel_angle_without_mass_all_sig_all_bkg_ge0j/",
+                       "weights/ZH_2017_lep_against_inclu_sel_angle_without_mass_all_sig_all_bkg_ge0j_BDTG_UF_v3.weights.xml",
+                       "BDTG_UF_v3" );
+  MVA::MVA BDT_mass_more( "data/XMLs/ZH_4l/Xunwu/2019_05_22/ZH_2017_lep_against_inclu_sel_angle_with_mass_all_sig_all_bkg_ge0j/",
+                           "weights/ZH_2017_lep_against_inclu_sel_angle_with_mass_all_sig_all_bkg_ge0j_BDTG_UF_v3.weights.xml",
+                           "BDTG_UF_v3" );
+  MVA::MVA BDT_mass_min( "data/XMLs/ZH_4l/Xunwu/2019_05_22/ZH_2017_lep_against_inclu_min_with_mass_all_sig_all_bkg_ge0j/",
+                           "weights/ZH_2017_lep_against_inclu_min_with_mass_all_sig_all_bkg_ge0j_BDTG_UF_v3.weights.xml",
+                           "BDTG_UF_v3" );
+  MVA::MVA BDT_and_mass( "data/XMLs/ZH_4l/Xunwu/2019_05_22/ZH_2017_lep_against_inclu_BDTv3_and_mass_all_sig_all_bkg_ge0j/",
+                           "weights/ZH_2017_lep_against_inclu_BDTv3_and_mass_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
+                           "BDTG_UF_v2" );
+
 
 
   std::cout << "\n******* About to enter the event loop *******" << std::endl;
@@ -438,119 +225,6 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
       br.jets  = &jets_tmp;
     }
 
-
-    /////////////////////////////////
-    ///  initialize all branches  ///
-    /////////////////////////////////
-    event_wgt		= 0;
-    xsec_norm		= 0;
-    Sample_ID		= -999;
-    Sample_name 	= "none";
-    lep_is_ele		= false;
-    lep_is_mu		= false;
-
-    nMuons		= -999;
-    nEles		= -999;
-    nJets		= -999;
-    nBJets_Loose	= -999;
-    nBJets_Med  	= -999;
-    nBJets_Tight	= -999;
-    nFwdJets		= -999;
-    nCentJets		= -999;
-
-    dimu_mass		= -999;
-    dimu_mass_err	= -999;
-    dimu_pt		= -999;
-    dimu_eta		= -999;
-    dimu_dEta		= -999;
-    dimu_dPhi		= -999;
-    dimu_dR		= -999;
-    dimu_gen_ID		= 0;
-    cts_mu1             = -999;
-    cts_mu_pos          = -999;
-
-    mu1_pt		= -999;
-    mu1_eta		= -999;
-    mu1_lepMVA		= -999;
-    mu1_charge		= -999;
-    mu2_pt		= -999;
-    mu2_eta		= -999;
-    mu2_lepMVA		= -999;
-    mu2_charge		= -999;
-
-    lep1_pt             = -999;
-    lep1_eta         	= -999;
-    lep1_lepMVA		= -999;
-    lep1_charge		= -999;
-    lep2_pt             = -999;
-    lep2_eta            = -999;
-    lep2_lepMVA         = -999;
-    lep2_charge		= -999;
-
-    dilep_mass		= -999;
-    dilep_mass_err	= -999; 
-    dilep_pt		= -999; 
-    dilep_eta		= -999; 
-    dilep_dEta		= -999; 
-    dilep_dPhi		= -999; 
-    dilep_dR		= -999; 
-    dilep_gen_ID	= 0;
-                 
-    cts_lep1	 	= -999; 
-    cts_lep_pos		= -999; 
-                 
-    quadlep_mass	= -999; 
-    quadlep_pt		= -999; 
-    quadlep_eta		= -999; 
-    dipair_dEta_H	= -999; 
-    dipair_dPhi_H	= -999; 
-    dipair_dR_H		= -999; 
-    dipair_dEta_pt      = -999;
-    dipair_dPhi_pt      = -999;
-    dipair_dR_pt        = -999;
-                 
-    cts_dipair_H	= -999;
-    cts_dipair_pt	= -999; 
- 
-    cs_costheta		= -999;
-    cs_cosphi		= -999;
-    cs_sinphi		= -999;
-
-    cos_theta1		= -999;
-    cos_phi1		= -999;
-    cos_phiH		= -999;
-
-    dijet_mass		= -999;
-    dijet_pt		= -999;
-    dijet_eta		= -999;
-    dijet_dEta		= -999;
-    dijet_dPhi		= -999;
-    dijet_dR		= -999;
-
-    jet1_pt		= -999;
-    jet1_eta		= -999;
-    jet2_pt		= -999;
-    jet2_eta		= -999;
-    jet0_pt		= -999;
-    jet0_eta		= -999;
-
-    met_pt		= -999;
-    mht_pt		= -999;
-    mht_mass		= -999;
-
-    dimu	.init();
-    mu_1	.init();
-    mu_2	.init();
-    mu_3	.init();
-    mu_4	.init();
-    ele1	.init();
-    ele2	.init();
-    dijet	.init();
-    jet1	.init();
-    jet2	.init();
-    jet0	.init();
-    mht_info	.init();
-
     ///////////////////////////////////////////
     ///  Apply selection and category cuts  ///
     ///////////////////////////////////////////
@@ -564,10 +238,9 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
     if (pass_sel_cuts) {
       
       // Get event weight for MC, defined in src/EventWeight.cc
-      event_wgt = ( sample.Contains("SingleMu") ? 1.0 : EventWeight(br, evt_wgt, verbose) );
-      Sample_name = sample;
-      xsec_norm = samp_weight;
-      Sample_ID = getSampleID(sample);
+      float event_wgt = ( sample.Contains("SingleMu") ? 1.0 : EventWeight(br, evt_wgt, verbose) );
+      float xsec_norm = samp_weight;
+      int Sample_ID = getSampleID(sample);
 
       /////////////////////////////////////////////////////////////////////////////////////////
       ///  Loop through alternate, optional selection cuts defined in src/SelectionCuts.cc  ///
@@ -576,23 +249,64 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 
       for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++) {
 	std::string OPT_CUT = OPT_CUTS.at(iOpt);
-	
+	std::string h_pre = (std::string) sample + "_"+OPT_CUT;	
 	///////////////////////////////////////////////////////////////
 	///  select objects and get variables to be filled in tree  ///
 	///////////////////////////////////////////////////////////////
 
+	for (std::map<TString, float>::iterator       it = b_map_flt.begin(); it != b_map_flt.end(); ++it) b_map_flt[it->first] = -99.0;
+        for (std::map<TString, int>::iterator         it = b_map_int.begin(); it != b_map_int.end(); ++it) b_map_int[it->first] = -99;
+        for (std::map<TString, std::string>::iterator it = b_map_str.begin(); it != b_map_str.end(); ++it) b_map_str[it->first] = "-99";
+        // To make sure that all branches in the tree are filled in the first event, 
+        // it is safer to make all the BookAndFill method have the same indentation.
+        // If some of them are in a condition block, make sure that condition(s) covers all possibilities
+        // All variables to be filled needs to be properly initiated  - XWZ 14.05.2019
+
+	MuPairInfo    dimu;         // object initial values are all -999
+  	MuonInfo      mu_1;
+  	MuonInfo      mu_2;
+  	MuonInfo      mu_3;
+  	MuonInfo      mu_4;
+  	EleInfo       ele1;
+  	EleInfo       ele2;
+  	JetPairInfo   dijet;
+  	JetInfo       jet1;
+  	JetInfo       jet2;
+  	JetInfo       jet0;
+  	MhtInfo       mht_info;
+
+  	TLorentzVector dimu_vec;    // vector default initial is (0,0,0,0)
+  	TLorentzVector mu1_vec;
+  	TLorentzVector mu2_vec;
+  	TLorentzVector mu3_vec;
+  	TLorentzVector mu4_vec;
+  	TLorentzVector lep1_vec;
+  	TLorentzVector lep2_vec;
+  	TLorentzVector dilep_vec;
+  	TLorentzVector quadlep_vec;
+  	TLorentzVector dijet_vec;
+  	TLorentzVector jet1_vec;
+  	TLorentzVector jet2_vec;
+  	TLorentzVector met_vec;
+  	TLorentzVector mht_vec;
+
+
+	// ************ category cuts and fill lepton variables ***************
 	MuonInfos muons = SelectedMuons(obj_sel, br);
         EleInfos  eles  = SelectedEles(obj_sel, br);
         JetInfos  jets  = SelectedJets(obj_sel, br);
 
+	int lep_ID = 0;  // default value is 0
+	int lep1_charge = 0;
+	int lep2_charge = 0;
+	int dilep_gen_ID = 0;
 	/////////////////////////
         ///    ZH_4l_ele cat    ///
         /////////////////////////
 	if (OPT_CUT == "ZH_4l_ele") {
-
-	  //obj_sel.muPair_Higgs == "sort_OS_dimuon_mass";
-	  EleInfos  eles  = SelectedEles(obj_sel, br);
           if (muons.size() != 2 or SelectedMuPairs(obj_sel, br).size() != 1 or SelectedEles(obj_sel, br).size() != 2) continue;
+	  if ( not (SelectedJets(obj_sel, br, "BTagMedium").size() == 0) ) continue;
+
 	  for (const auto & electron : SelectedEles(obj_sel, br)) {  // this is for if more than 2 electrons, select highest pt ones
 	     if (electron.lepMVA > -1.0) { //-1.0 as a place holder
 		ele1 = electron;
@@ -607,23 +321,22 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 	     }
 	  }
 	  //ele2 = eles.at(1);
-	  if (ele1.charge + ele2.charge != 0) continue;
-	  lep1_vec = FourVec(ele1);
-	  lep1_lepMVA = ele1.lepMVA;
+	  if (ele1.charge + ele2.charge != 0) continue; //make sure ele1 and ele2 are filled.
+
+	  lep_ID = 11;
 	  lep1_charge = ele1.charge;
-	  lep2_vec = FourVec(ele2);
-	  lep2_lepMVA = ele2.lepMVA;
 	  lep2_charge = ele2.charge;
+	  lep1_vec = FourVec(ele1);
+	  lep2_vec = FourVec(ele2);
 	  dilep_vec = lep1_vec + lep2_vec;
+	  dilep_gen_ID = 0;
 	  dimu = SelectedCandPair(obj_sel, br);
 	  
-	  if (not sample.Contains("SingleMu")) {
-	    if ( IsGenMatched(dimu, *br.muons, *br.genMuons, "H") ) dimu_gen_ID = 25;
-            else if ( IsGenMatched(dimu, *br.muons, *br.genMuons, "Z") ) dimu_gen_ID = 23;
-	  }
-
-	  if ( SelectedJets(obj_sel, br, "BTagMedium").size() == 0 ) lep_is_ele = true;
-	  else continue;
+	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_lepMVA", ele1.lepMVA);
+	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_charge", ele1.charge);
+	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_lepMVA", ele2.lepMVA);
+	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_charge", ele2.charge);
+	  BookAndFill( b_map_int, Out_Tree, h_pre, "lep_ID", 	  lep_ID);
 	} // end if (OPT_CUT == "ZH_4l_ele")
 
 
@@ -632,200 +345,214 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
         /////////////////////////
         if (OPT_CUT == "ZH_4l_mu") {
 	  if ( muons.size() != 4 or eles.size() != 0 ) continue;
-	  int mu1_id = -999, mu2_id = -999, mu3_id = -999, mu4_id = -999;
-	  for (int imu = 0; imu < int((br.muons)->size()) ; imu++) {
-	    if ( MuonPass(obj_sel, br.muons->at(imu)) ) {
-		mu1_id = imu;
-		break;
-	    }
-	  } 
-	  for (int imu = mu1_id+1 ; imu < int((br.muons)->size()) ; imu++) {
-	    if ( MuonPass(obj_sel, br.muons->at(imu)) ) {
-                mu2_id = imu;
-                break;
-	    }
-          }
-	  for (int imu = mu2_id+1 ; imu < int((br.muons)->size()) ; imu++) {
-	    if ( MuonPass(obj_sel, br.muons->at(imu)) ) {
-                mu3_id = imu;
-                break;
-            }
-          }
-	  for (int imu = mu3_id+1 ; imu < int((br.muons)->size()) ; imu++) {
-	    if ( MuonPass(obj_sel, br.muons->at(imu)) ) {
-                mu4_id = imu;
-                break;
-            }
-          } // finish getting muons
-	  if ( SelectedMuPairs(obj_sel, br).size() != 4 ) continue; //so we have two + and two - good muons
-	  //comment out if more than 4 muons
+	  if ( SelectedMuPairs(obj_sel, br).size() != 4 ) continue; //two + and two -, comment out if more than 4 muons
+	  if ( not (SelectedJets(obj_sel, br, "BTagMedium").size() == 0) ) continue;
+
 	  MuPairInfo Z_cand, H_cand;
 	  Z_cand.init();
 	  H_cand.init();
-	  for (const auto & muPair1 : SelectedMuPairs(obj_sel, br)) {
-	    MuPairInfo muPair2;
+	  float Z_off = 10.0;  // allow Z candidate to be off shell by maximum 10 GeV
+
+	  for (const auto & muPair1 : SelectedMuPairs(obj_sel, br)) { // loops through 4 pairs (2 combos X which is H)
+	    MuPairInfo muPair2;  
 	    for (const auto & muPair : SelectedMuPairs(obj_sel, br)) {
 	      if (muPair.iMu1 != muPair1.iMu1 and muPair.iMu1 != muPair1.iMu2 and muPair.iMu2 != muPair1.iMu1 and muPair.iMu2 != muPair1.iMu2) {
 		muPair2 = muPair;
 		break;
 	      }
-	    } // end for (const auto & muPair : SelectedMuPairs(obj_sel, br))
-	    //if ( muPair1.mass > 81 and muPair1.mass < 101 and muPair2.mass > 105 and muPair2.mass < 160) {
-	    //	Z_cand = muPair1;
-	    //	H_cand = muPair2;   // with break, select highest dimu pt Z_cand; without break, select lowest dimu pt Z_cand
-	    //	break;
-	    //}
-	    //else continue;
-	    if ( muPair2.mass > 81 and muPair2.mass < 101 and muPair1.mass > 70 and muPair1.mass < 110) {  // 70-110 for validation, 105-160 for signal window
-                Z_cand = muPair2;
-                H_cand = muPair1;  // with break, select highest dimu pt H_cand; without break, select lowest dimu pt H_cand
-                break;		   // combination is selecting highest passing pair(Z and H)
-            }
+	    } // found the other pair
+	    if ( abs(muPair1.mass-91)<10 and abs(muPair2.mass-91)<10 ) {
+		Z_cand.init();
+		break;    // veto events with two Z-mass pairs
+	    }
+	    if ( muPair1.mass > 105 and muPair1.mass < 160 and abs(muPair2.mass - 91)<Z_off) { 
+		H_cand = muPair1;   // muPair1 as H_cand, 70-110 for validation, 105-160 for signal window
+                Z_cand = muPair2;   // muPair2 as Z_cand, closest to 91 GeV 
+		Z_off = abs(Z_cand.mass - 91);
+            } // if muPair1 fits for H, and muPair2 fits for Z
 	  } // end for (const auto & muPair : SelectedMuPairs(obj_sel, br))
 	  if (Z_cand.mass == -999) continue; // no Z pair found
-	  //if (Z_cand.mass < 86 or Z_cand.mass > 96) continue; //cut on Z mass
+
 	  mu_3 = br.muons->at(Z_cand.iMu1);
 	  mu_4 = br.muons->at(Z_cand.iMu2);
+	  lep_ID = 13;
+	  lep1_charge = mu_3.charge;
+	  lep2_charge = mu_4.charge;
+	  lep1_vec = FourVec(mu_3, PTC);
+	  lep2_vec = FourVec(mu_4, PTC);
+	  dilep_vec = lep1_vec + lep2_vec;
+	  dimu = H_cand;
 
 	  if (not sample.Contains("SingleMu")) {
-            if ( IsGenMatched(H_cand, *br.muons, *br.genMuons, "H") ) dimu_gen_ID = 25;
-            else if ( IsGenMatched(H_cand, *br.muons, *br.genMuons, "Z") ) dimu_gen_ID = 23;
-
-	    if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, "H") ) dilep_gen_ID = 25;
-            else if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, "Z") ) dilep_gen_ID = 23;
+            if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, *br.genParents, "H") ) dilep_gen_ID = 25;
+            else if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, *br.genParents, "Z") ) dilep_gen_ID = 23;
+	    else if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, *br.genParents, "gamma") ) dilep_gen_ID = 22;
+	    else if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, *br.genParents, "tau") ) dilep_gen_ID = 15;
+	    else if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, *br.genParents, "light_quark") ) dilep_gen_ID = 1;
           }
-	
-	  dimu = H_cand;
-	  lep1_vec = FourVec(mu_3, PTC);
-	  lep1_lepMVA = mu_3.lepMVA;
-	  lep1_charge = mu_3.charge;
-	  lep2_vec = FourVec(mu_4, PTC);
-          lep2_lepMVA = mu_4.lepMVA;
-          lep2_charge = mu_4.charge;
-	  dilep_vec = lep1_vec + lep2_vec;
 
-	  if ( SelectedJets(obj_sel, br, "BTagMedium").size() == 0 ) lep_is_mu = true;
-          else continue;
+	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_lepMVA", mu_3.lepMVA);
+	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_charge", mu_3.charge);
+	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_lepMVA", mu_4.lepMVA);
+	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_charge", mu_4.charge);
+	  BookAndFill( b_map_int, Out_Tree, h_pre, "lep_ID", 	  lep_ID);
 	} // end if (OPT_CUT == "ZH_4l_mu")
 
+	if ( lep1_charge == 0 or lep1_charge + lep2_charge != 0) {
+	    std::cout << "weird case: no proper lepton found" << std::endl;
+	    continue;
+	}
 
+	// ********* categories done, lep variables filled *********
+	// now must already be in one of the categories
+
+	// **************** remaining lepton variables ******************
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_pt", 		lep1_vec.Pt()		);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_abs_eta", 	abs(lep1_vec.Eta())	);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_pt", 		lep2_vec.Pt() 		);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_abs_eta", 	abs(lep2_vec.Eta())	);
+ 
+	// ***************** auxiliary variables *****************
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "event_wgt",   event_wgt);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "xsec_norm",   xsec_norm);
+        BookAndFill( b_map_int, Out_Tree, h_pre, "Sample_ID",   Sample_ID);
+        BookAndFill( b_map_str, Out_Tree, h_pre, "Sample_name",    sample);
+
+	// ***************** muon variables ********************
         dimu_vec = FourVec( dimu, PTC);
-        if ( dimu_vec.M() < 70 ||        // 70-110 for ZZ validation, 105-160 for signal window
-             dimu_vec.M() > 110 ) continue;    
+        if ( dimu_vec.M() < 105 ||        // 70-110 for ZZ validation, 105-160 for signal window
+             dimu_vec.M() > 160 ) continue;    
+
+	int dimu_gen_ID = 0;
+        if (not sample.Contains("SingleMu")) {
+          if ( IsGenMatched(dimu, *br.muons, *br.genMuons, *br.genParents, "H") ) dimu_gen_ID = 25;
+          else if ( IsGenMatched(dimu, *br.muons, *br.genMuons, *br.genParents, "Z") ) dimu_gen_ID = 23;
+	  else if ( IsGenMatched(dimu, *br.muons, *br.genMuons, *br.genParents, "gamma") ) dimu_gen_ID = 22;
+	  else if ( IsGenMatched(dimu, *br.muons, *br.genMuons, *br.genParents, "tau") ) dimu_gen_ID = 15;
+	  else if ( IsGenMatched(dimu, *br.muons, *br.genMuons, *br.genParents, "light_quark") ) dimu_gen_ID = 1;
+        }
 
 	mu_1 = br.muons->at(dimu.iMu1);
         mu_2 = br.muons->at(dimu.iMu2);
         mu1_vec = FourVec(br.muons->at(dimu.iMu1), PTC);
         mu2_vec = FourVec(br.muons->at(dimu.iMu2), PTC);
 
-	//muon vars
-	mu1_pt = mu1_vec.Pt();
-        mu1_eta = mu1_vec.Eta();
-	mu1_lepMVA = mu_1.lepMVA;
-	mu1_charge = mu_1.charge;
-        mu2_pt = mu2_vec.Pt();
-        mu2_eta = mu2_vec.Eta();
-  	mu2_lepMVA = mu_2.lepMVA;
-	mu2_charge = mu_2.charge;
+	BookAndFill( b_map_int, Out_Tree, h_pre, "dimu_gen_ID", 	dimu_gen_ID				);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dimu_mass", 		dimu_vec.M()				);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dimu_mass_err", 	dimu.massErr				);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "dimu_pt", 		dimu_vec.Pt()				);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "dimu_abs_eta",        abs(dimu_vec.Eta())                     );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dimu_abs_dEta",       abs(mu1_vec.Eta() - mu2_vec.Eta())      );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dimu_abs_dPhi",       abs(mu1_vec.DeltaPhi(mu2_vec))          );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dimu_dR",             mu1_vec.DeltaR(mu2_vec)                 );
 
-	dimu_mass 	= dimu_vec.M();                	// all variables filled with vec in order to  
-	dimu_mass_err 	= dimu.massErr;
-        dimu_pt 	= dimu_vec.Pt();		// work with different PTC
-        dimu_eta 	= dimu_vec.Eta();
-	dimu_dEta	= mu1_vec.Eta() - mu2_vec.Eta();   
-	dimu_dPhi	= mu1_vec.DeltaPhi(mu2_vec);  
-	dimu_dR		= mu1_vec.DeltaR(mu2_vec);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "mu1_pt",              mu1_vec.Pt()            );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "mu1_abs_eta",         abs(mu1_vec.Eta())      );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "mu1_lepMVA",          mu_1.lepMVA             );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "mu1_charge",          mu_1.charge             );
 
-	cts_mu1 = CosThetaStar(mu1_vec, mu2_vec);
-        cts_mu_pos = mu_1.charge == 1 ? CosThetaStar(mu1_vec, mu2_vec) : CosThetaStar(mu2_vec, mu1_vec);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "mu2_pt",              mu2_vec.Pt()            );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "mu2_abs_eta",         abs(mu2_vec.Eta())      );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "mu2_lepMVA",          mu_2.lepMVA             );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "mu2_charge",          mu_2.charge             );
 
-	//lep vars
-	lep1_pt = lep1_vec.Pt();
-	lep1_eta = lep1_vec.Eta();
-	lep2_pt = lep2_vec.Pt();
-        lep2_eta = lep2_vec.Eta();
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "cts_mu1",             CosThetaStar(mu1_vec, mu2_vec)  );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "cts_mu_pos",          mu_1.charge == 1 ? CosThetaStar(mu1_vec, mu2_vec) : CosThetaStar(mu2_vec, mu1_vec)  );
 
-	dilep_mass	= dilep_vec.M();
-	dilep_pt	= dilep_vec.Pt();
-	dilep_eta       = dilep_vec.Eta();
-        dilep_dEta      = lep1_vec.Eta() - lep2_vec.Eta();
-        dilep_dPhi      = lep1_vec.DeltaPhi(lep2_vec);
-        dilep_dR        = lep1_vec.DeltaR(lep2_vec);
-	
-	cts_lep1 = CosThetaStar(lep1_vec, lep2_vec);
-        cts_lep_pos = lep1_charge == 1 ? CosThetaStar(lep1_vec, lep2_vec) : CosThetaStar(lep2_vec, lep1_vec);
+	// ******************* dilep variables ************************
+	BookAndFill( b_map_int, Out_Tree, h_pre, "dilep_gen_ID",	dilep_gen_ID				);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dilep_mass", 		dilep_vec.M()				);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dilep_pt", 		dilep_vec.Pt()				);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "dilep_abs_eta", 	abs(dilep_vec.Eta())			);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dilep_abs_dEta", 	abs(lep1_vec.Eta() - lep2_vec.Eta())	);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dilep_abs_dPhi", 	abs(lep1_vec.DeltaPhi(lep2_vec))	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "dilep_dR", 		lep1_vec.DeltaR(lep2_vec)		);
 
-	//quadlep vars
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "cts_lep1", 		CosThetaStar(lep1_vec, lep2_vec)	);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "cts_lep_pos", 	lep1_charge == 1 ? CosThetaStar(lep1_vec, lep2_vec) : CosThetaStar(lep2_vec, lep1_vec));
+
+	// ******************** quadlep variables *********************
 	quadlep_vec = dimu_vec + dilep_vec;
-	quadlep_mass    = quadlep_vec.M();
-        quadlep_pt      = quadlep_vec.Pt();
-        quadlep_eta     = quadlep_vec.Eta();
+	KinAngles  kinematic_4l(mu1_vec, mu2_vec, lep1_vec, lep2_vec);
 
-        dipair_dEta_H   = dimu_vec.Eta() - dilep_vec.Eta();
-        dipair_dPhi_H   = dimu_vec.DeltaPhi(dilep_vec);
-        dipair_dR_H     = dimu_vec.DeltaR(dilep_vec);
-	dipair_dEta_pt  = (dimu_vec.Pt() > dilep_vec.Pt()) ? (dimu_vec.Eta() - dilep_vec.Eta()) : (dilep_vec.Eta() - dimu_vec.Eta());
-        dipair_dPhi_pt  = (dimu_vec.Pt() > dilep_vec.Pt()) ? dimu_vec.DeltaPhi(dilep_vec) : dilep_vec.DeltaPhi(dimu_vec);
-        dipair_dR_pt    = (dimu_vec.Pt() > dilep_vec.Pt()) ? dimu_vec.DeltaR(dilep_vec) : dilep_vec.DeltaR(dimu_vec);
-	
-	cts_dipair_H	= CosThetaStar(dimu_vec, dilep_vec);
-	cts_dipair_pt	= (dimu_vec.Pt() > dilep_vec.Pt()) ? CosThetaStar(dimu_vec, dilep_vec) : CosThetaStar(dilep_vec, dimu_vec);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "quadlep_mass", 	quadlep_vec.M()		);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "quadlep_pt", 		quadlep_vec.Pt()	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "quadlep_abs_eta", 	abs(quadlep_vec.Eta()) 	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "dipair_dEta_H", 	dimu_vec.Eta() - dilep_vec.Eta()	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "dipair_dPhi_H", 	dimu_vec.DeltaPhi(dilep_vec)		);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "dipair_dR_H", 	dimu_vec.DeltaR(dilep_vec)		);
 
-	cs_costheta     = Cos_CS_Theta(dimu_vec, dilep_vec);
-  	cs_cosphi	= Cos_CS_Phi(dimu_vec, dilep_vec);
-	cs_sinphi	= Sin_CS_Phi(dimu_vec, dilep_vec);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "cts_dipair_H", 	CosThetaStar(dimu_vec, dilep_vec)	);
 
-  	KinAngles  kinematic_4l(mu1_vec, mu2_vec, lep1_vec, lep2_vec);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "cs_costheta", 	Cos_CS_Theta(dimu_vec, dilep_vec)	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "cs_cosphi", 		Cos_CS_Phi(dimu_vec, dilep_vec)		);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "cs_sinphi", 		Sin_CS_Phi(dimu_vec, dilep_vec)		);
 
-	cos_theta1	= kinematic_4l.MELA_Cos_Theta1();
-	cos_phiH        = kinematic_4l.MELA_Cos_PhiH();
-	cos_phi1        = kinematic_4l.MELA_Cos_Phi1();
-//	cos_theta1	= MELA_Cos_Theta1( mu1_vec, mu2_vec, lep1_vec, lep2_vec );
-//	cos_phiH	= MELA_Cos_PhiH( mu1_vec, mu2_vec, lep1_vec, lep2_vec );
-// 	cos_phi1	= MELA_Cos_Phi1( mu1_vec, mu2_vec, lep1_vec, lep2_vec );
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "cos_theta1", 		kinematic_4l.MELA_Cos_Theta1()		);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "cos_phiH", 		kinematic_4l.MELA_Cos_PhiH()		);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "cos_phi1", 		kinematic_4l.MELA_Cos_Phi1()		);
 
-	//event vars and jet vars
-	nMuons = muons.size();
-        nEles = eles.size();
-        nJets = jets.size();
-        nFwdJets     = SelectedJets(obj_sel, br, "Forward").size();
-        nCentJets    = SelectedJets(obj_sel, br, "Central").size();
-        nBJets_Loose = SelectedJets(obj_sel, br, "BTagLoose").size();
-        nBJets_Med   = SelectedJets(obj_sel, br, "BTagMedium").size();
-        nBJets_Tight = SelectedJets(obj_sel, br, "BTagTight").size();
+	// ********************* event variables *********************
+	BookAndFill( b_map_int, Out_Tree, h_pre, "nMuons",              muons.size()            );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "nEles",               eles.size()             );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "nJets",               jets.size()             );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "nFwdJets",            SelectedJets(obj_sel, br, "Forward").size()     );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "nCentJets",           SelectedJets(obj_sel, br, "Central").size()     );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "nBJets_Loose",        SelectedJets(obj_sel, br, "BTagLoose").size()   );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "nBJets_Med",          SelectedJets(obj_sel, br, "BTagMedium").size()  );
+        BookAndFill( b_map_int, Out_Tree, h_pre, "nBJets_Tight",        SelectedJets(obj_sel, br, "BTagTight").size()   );
+
+	// ******************** met variables ************************
         met_vec  = FourVec(*br.met);
         mht_info = *br.mht;
         mht_vec  = FourVec(mht_info);
-	met_pt	 = met_vec.Pt();
-	mht_pt	 = mht_vec.Pt();
-	mht_mass = mht_vec.M();
+	float R_met_4l = met_vec.Pt() / quadlep_vec.Pt();
+	float R_mht_4l = mht_vec.Pt() / quadlep_vec.Pt();
 
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "met_pt",              met_vec.Pt()                    );
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "abs_dPhi_4lPt_met", 	abs(quadlep_vec.DeltaPhi(met_vec))	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "met_Rtrans_4lPt", 	max(min(R_met_4l * cos(quadlep_vec.DeltaPhi(met_vec)),1.5),-1.5) 	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "met_Rlongi_4lPt",    	max(min(R_met_4l * sin(quadlep_vec.DeltaPhi(met_vec)),1.5),-1.5)	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "mht_pt",              mht_vec.Pt()                    );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "mht_mass",            mht_info.mass                   );
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "abs_dPhi_4lPt_mht",   abs(quadlep_vec.DeltaPhi(mht_vec))	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "mht_Rtrans_4lPt",    	max(min(R_mht_4l * cos(quadlep_vec.DeltaPhi(mht_vec)),2.5),-1.5)	);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "mht_Rlongi_4lPt",    	max(min(R_mht_4l * sin(quadlep_vec.DeltaPhi(mht_vec)),1.5),-1.5)	);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "abs_dPhi_met_mht",	abs(met_vec.DeltaPhi(mht_vec))		);
+	// ratio of transverse met to quadlep_pt?
+
+	// ******************* jet variables ************************
 	if (SelectedJetPairs(obj_sel, br).size() > 0) {
-	  dijet = SelectedJetPairs(obj_sel, br).at(0);      // no need for jet vector since no PTC
-	  jet1  = br.jets->at(dijet.iJet1);
-	  jet2  = br.jets->at(dijet.iJet2);
+          dijet = SelectedJetPairs(obj_sel, br).at(0);      // no need for jet vector since no PTC
+          jet1  = br.jets->at(dijet.iJet1);
+          jet2  = br.jets->at(dijet.iJet2);
+        }
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dijet_mass",          dijet.mass      );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dijet_pt",            dijet.pt        );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dijet_abs_eta",       abs(dijet.eta)  );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dijet_abs_dEta",      abs(dijet.dEta) );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dijet_abs_dPhi",      abs(dijet.dPhi) );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "dijet_dR",            dijet.dR);
 
-	  dijet_mass = dijet.mass;
-	  dijet_pt   = dijet.pt;
-	  dijet_eta  = dijet.eta;
-	  dijet_dEta = dijet.dEta;
-	  dijet_dPhi = dijet.dPhi;
-	  dijet_dR   = dijet.dR;
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "jet1_pt",             jet1.pt         );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "jet1_abs_eta",        abs(jet1.eta)   );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "jet2_pt",             jet2.pt         );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "jet2_abs_eta",        abs(jet2.eta)   );
 
-	  jet1_pt  = jet1.pt;
-	  jet1_eta = jet1.eta;
-	  jet2_pt  = jet2.pt;
-	  jet2_eta = jet2.eta;
-	}
         if (SelectedJets(obj_sel, br).size() > 0) {
-	  jet0 = SelectedJets(obj_sel, br).at(0);
-	  jet0_pt  = jet0.pt;
-	  jet0_eta = jet0.eta;
-	}
-	Out_Tree->Fill(); 
+          jet0 = SelectedJets(obj_sel, br).at(0);
+        }
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "jet0_pt",             jet0.pt         );
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "jet0_abs_eta",        abs(jet0.eta)   );
+
+	// ****************** BDT score **************************
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "BDT_noMass_v3",      BDT_noMass_v3.Evaluate(b_map_flt, b_map_int) );
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "BDT_mass_more",      BDT_mass_more.Evaluate(b_map_flt, b_map_int) );
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "BDT_mass_min",       BDT_mass_min.Evaluate(b_map_flt, b_map_int) );
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "BDT_and_mass",       BDT_and_mass.Evaluate(b_map_flt, b_map_int) );
+
 
 	//} // end for (const auto & muPair : SelectedMuPairs(obj_sel, br))
-	//} // end if (OPT_CUT == "ZH_4l_mu")
 
 
 	//////////////////////////////////////////////////////////////////
@@ -848,7 +575,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 
 	  
 	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
-	//Out_Tree->Fill();  // again, only one opt sel
+	Out_Tree->Fill();  // again, only one opt sel
       } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
     } // End conditional: if (pass_sel_cuts)
 

@@ -129,15 +129,15 @@ void WH_BDT_for_template( TString myMethodList = "",
   
   // Here the preparation phase begins
   TString out_file_name;
-  out_file_name.Form( "%s/2017_WH_ele_against_WZ_lepMVA04.root", out_dir.Data() );
+  out_file_name.Form( "%s/2017_WH_ele_against_inclu_lepMVA04.root", out_dir.Data() );
   TFile * out_file = TFile::Open( out_file_name, "RECREATE" );
 
   ///////////////////////////////////////////////////////
   ///  Input samples: MC signal, MC background, data  ///
   ///////////////////////////////////////////////////////
   std::map<TString, TString> MN_name; // <short_name, full path to miniNtuple>
-  MN_name["signal"] 	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt_ID_fix/all_samples.root";
-  MN_name["bkg"]	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt_ID_fix/all_samples.root";
+  MN_name["signal"] 	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt_ID_fix/all_samples.root";
+  MN_name["bkg"]	= "/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms/VH_selection_2019april/pt10_iso04/WH_ele_high_dimu_pt_ID_fix/all_samples.root";
  
 
   //////////////////////////////////////////////////////////////////
