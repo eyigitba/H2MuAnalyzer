@@ -31,10 +31,12 @@ class DataLoader:
         self.sig_hists  = []        ## Signal histograms, including total stack in [0]
         self.bkg_hists  = []        ## Background histograms, including total stack in [0]
         self.data_hist  = 0         ## Rebinned data histogram
+        self.hists_sys  = []        ## Systematic-shifted versions of all histograms
         self.rebin      = _rebin    ## Whether to rebin maximizing S^2/B
         self.sig_rebin  = []        ## Rebinned signal histograms, including total stack in [0]
         self.bkg_rebin  = []        ## Rebinned background histograms, including total stack in [0]
         self.data_rebin = 0         ## Rebinned data histogram
+        self.rebin_sys  = []        ## Systematic-shifted versions of all rebinned histograms
 
         self.LoadHistograms()
 
@@ -99,16 +101,35 @@ class DataLoader:
             self.data_hist =      self.in_file.Get(self.dist+'_Net_Data').Clone('Net_Data')
             self.sig_hists.append(self.in_file.Get(self.dist+'_Net_Sig').Clone('Net_Sig'))
             self.bkg_hists.append(self.in_file.Get(self.dist+'_Net_Bkg').Clone('Net_Bkg'))
+            ## Load systematic-shifted version of plots
+            if (self.in_file.Get(self.dist+'_UP_Net_Sig')):
+                self.hists_sys.append(self.in_file.Get(self.dist+'_UP_Net_Sig')  .Clone('Net_Sig_BDT_shapeUp'))
+                self.hists_sys.append(self.in_file.Get(self.dist+'_DOWN_Net_Sig').Clone('Net_Sig_BDT_shapeDown'))
+                self.hists_sys.append(self.in_file.Get(self.dist+'_UP_Net_Bkg')  .Clone('Net_Bkg_BDT_shapeUp'))
+                self.hists_sys.append(self.in_file.Get(self.dist+'_DOWN_Net_Bkg').Clone('Net_Bkg_BDT_shapeDown'))
+
             self.in_file.cd('groups')
             ## Loop over group histograms that went into the stack
             for hist in R.gDirectory.GetListOfKeys():
                 hstr = hist.GetName()
-                if hstr.startswith(self.dist):
-                    print '    - Loading group %s' % hstr
-                    if ('H2Mu' in hstr or 'Signal' in hstr):
+                if hstr.startswith(self.dist) and not hstr.startswith(self.dist+'_zoom'):
+                    if ('_UP' in hstr or '_DOWN' in hstr):
+                        print '    - Loading systematic %s' % hstr
+                        self.hists_sys.append(self.in_file.Get('groups/'+hstr).Clone())
+                        hstr = hstr.replace(self.dist+'_', '').replace(' ', '_')
+                        if ('UP_' in hstr):   hstrsys = hstr.replace('UP_','')  +'_BDT_shapeUp'
+                        if ('DOWN_' in hstr): hstrsys = hstr.replace('DOWN_','')+'_BDT_shapeDown'
+                        hstr = hstr.replace('UP_','').replace('DOWN_','')
+                        self.hists_sys[-1].SetName(hstrsys)
+                        self.hists_sys.append( self.hists_sys[-1].Clone(hstrsys.replace('BDT_shape', 'fake_shape'))      )
+                        self.hists_sys.append( self.hists_sys[-1].Clone(hstrsys.replace('BDT_shape', 'prompt_shape'))    )
+                        self.hists_sys.append( self.hists_sys[-1].Clone(hstrsys.replace('BDT_shape', '%s_shape' % hstr)) )
+                    elif ('H2Mu' in hstr or 'Signal' in hstr):
+                        print '    - Loading signal group %s' % hstr
                         self.sig_hists.append(self.in_file.Get('groups/'+hstr).Clone())
                         self.sig_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
                     else:
+                        print '    - Loading background group %s' % hstr
                         self.bkg_hists.append(self.in_file.Get('groups/'+hstr).Clone())
                         self.bkg_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
         ## End conditional: if (self.source == 'abrinke1'):
@@ -210,11 +231,13 @@ class DataLoader:
             ## rebin[0] sets the significance calculation strategy: 'noSyst', 'nominal', or 'conserv'
             ## rebin[1] sets the minimum allowed background in a single bin
             ## rebin[2] sets the maximum allowed loss in total significance from rebinning
-            new_bins = array.array('d', ACT.MergeBins(self.sig_hists[0], self.bkg_hists[0],  self.rebin[0], self.rebin[1], self.rebin[2], False) )
+            new_bins = array.array('d', ACT.MergeBins(self.sig_hists[0], self.bkg_hists[0],  self.rebin[0], self.rebin[1], self.rebin[2], 0.2, False) )
             self.data_rebin = self.data_hist.Rebin( len(new_bins)-1, self.data_hist.GetName(), new_bins )
             for hist in self.sig_hists:
                 self.sig_rebin.append( hist.Rebin( len(new_bins)-1, hist.GetName(), new_bins ) )
             for hist in self.bkg_hists:
                 self.bkg_rebin.append( hist.Rebin( len(new_bins)-1, hist.GetName(), new_bins ) )
+            for hist in self.hists_sys:
+                self.rebin_sys.append( hist.Rebin( len(new_bins)-1, hist.GetName(), new_bins ) )
 
     ## End function: def LoadHistograms(self):
