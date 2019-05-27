@@ -79,7 +79,8 @@ def WriteSigBkgBody(card, cat, dist, fit, width, nSig, nBkg):
     card.write(('bkg_norm').ljust(width-5))
     card.write(('lnN  ').ljust(2))
     card.write(('-').ljust(width))
-    card.write(('9.99').ljust(width))
+#    card.write(('9.99').ljust(width))
+    card.write(('1.2').ljust(width))
     card.write('\n')
 
     ## Final line to add bin-by-bin MC stats uncertainties
@@ -136,7 +137,7 @@ def WriteGroupBody(card, cat, dist, fit, width, sig_hists, bkg_hists, doShapeSys
 	# card.write(('1.15').ljust(width))
 	card.write(('-').ljust(width))
     for i in range(1, len(bkg_hists)):
-	channel = bkg_hists[i].GetName()  ## .replace('Net_', '')
+      channel = bkg_hists[i].GetName()  ## .replace('Net_', '')
         if ( channel == 'ttbar' or channel == 'ZJets' ):
             card.write( ('-').ljust(width) )
         else:
@@ -305,7 +306,8 @@ def WriteCutAndCount(card, cat, out_dir, dist, width, MASS_WINDOW, sig_hists, bk
     for i in range(1, len(sig_hists)):
         card.write(('-').ljust(width))
     for i in range(1, len(bkg_hists)):
-        card.write(('9.99').ljust(width))
+#	card.write(('9.99').ljust(width))
+        card.write(('-').ljust(width))
     card.write('\n')
 
     ## Rate uncertainty by channel:
