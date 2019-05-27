@@ -115,10 +115,10 @@ def ComputeSignificance(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning =
 
 ## Rebin a histogram to maximize the significance
 ## Continue rebinning as long as the relative significance loss compared to the maximum significance is less than "loss"
-def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, verbose = False):
+def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, max_bin_width = -1, verbose = False):
 
     print '\nMerging %d bins for signal %s and background %s' % (h_sig.GetNbinsX(), h_sig.GetName(), h_bkg.GetName())
-    print '  * Options syst = %s, min_bkg = %.2f, max_loss = %f' % (syst, min_bkg, max_loss)
+    print '  * Options syst = %s, min_bkg = %.2f, max_loss = %.3f, max_bin_width = %.2f' % (syst, min_bkg, max_loss, max_bin_width)
 
     if (h_sig.GetNbinsX() != h_bkg.GetNbinsX()):
         print '\n\nnBinsSig = %d, nBinsBkg = %d! What are you, nuts!!!' % (h_sig.GetNbinsX(), h_bkg.GetNbinsX())
@@ -135,7 +135,15 @@ def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, ve
 
     ## First attempt to simply merge by a factor of 2, to speed things up
     while( (sigma_new / sigma_max) > (1 - max_loss/10.) ):
-        if h_sig.GetNbinsX() < 64: break
+        ## Don't rebin variable-bin histograms
+        var_bins = False
+        for i in range(2, h_sig.GetNbinsX()+1):
+            if h_sig.GetBinWidth(i) != h_sig.GetBinWidth(i-1):
+                var_bins = True
+                break
+        ## No need to rebin-by-2 for less than 64 bins: iterative procedure is plenty fast
+        if var_bins or h_sig.GetNbinsX() < 64: break
+        ## Compute significance with rebin-by-2 signal and background histograms
         h_sig_2 = (h_sig.Clone(h_sig.GetName())).Rebin(2)
         h_bkg_2 = (h_bkg.Clone(h_bkg.GetName())).Rebin(2)
         sigma_2 = ComputeSignificance(h_sig_2, h_bkg_2, 'nominal', 0.0, [], False)
@@ -173,9 +181,13 @@ def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, ve
         empty_bins = False
         ## Track the minimum loss [0], and the corresponding merged bins [1] and [2]
         min_loss = [99, -99, -99]
+
         for iBin in range(len(bins_old)-1):
             binA = list(bins_old[iBin])
             binB = list(bins_old[iBin+1])
+
+            ## Skip if new merged bin would be larger than the minimum bin size
+            if (h_sig.GetBinLowEdge(binB[1]+1) - h_sig.GetBinLowEdge(binA[0]) > max_bin_width): continue
 
             ## Automatically merge bins with low background stats
             if (h_bkg.Integral(binA[0], binA[1]) <= min_bkg and h_bkg.Integral(binB[0], binB[1]) <= min_bkg):
@@ -196,6 +208,10 @@ def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, ve
             ## If we actually gained by combining bins, simply merge these bins and continue
             if loss <= 0: break
         
+
+        ## If all bins were too wide to merge, quit
+        if min_loss == [99, -99, -99]: break
+
         if verbose:
             if (min_loss[0] >= 0): print '\nMerging bins %d:%d with %d:%d produces a minimum loss of %f' % (bins_old[min_loss[1]][0], bins_old[min_loss[1]][1],
                                                                                                             bins_old[min_loss[2]][0], bins_old[min_loss[2]][1], min_loss[0])
