@@ -255,6 +255,21 @@ bool InCategory( const ObjectSelectionConfig & cfg, const NTupleBranches & br,
   } // End if (sel == "ttbar_3l_val_mu")
 
 
+  else if (sel == "inclusive_01jet") {
+    if (verbose) std::cout << "  * Applying inclusive_01jet cuts" << std::endl;
+    
+    if (SelectedJets(cfg, br).size() >= 2) return false;
+    PASS = true;
+  } // End if (sel == "inclusive_01jet") 
+  
+  else if (sel == "inclusive_2jets") {
+    if (verbose) std::cout << "  * Applying inclusive_2jets cuts" << std::endl;
+    
+    if (SelectedJets(cfg, br).size() < 2) return false;
+    PASS = true;
+  } // End if (sel == "inclusive_2jets")
+
+
   else {
     std::cout << "\nInside CategoryCuts.cc, don't recognize category " << sel << std::endl;
     assert(false);

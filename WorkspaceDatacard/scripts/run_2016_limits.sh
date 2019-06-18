@@ -2,7 +2,7 @@
 ## Current directory
 HOMEDIR=$PWD
 ## CMSSW release containing Higgs Combine
-COMBINEDIR="/afs/cern.ch/user/a/abrinke1/HiggsToMuMu/Combine/CMSSW_8_1_0/src"
+COMBINEDIR="/afs/cern.ch/work/x/xzuo/combine/CMSSW_8_1_0/src"
 ## Directory containing workspace directory
 WSDIR="$HOMEDIR/hig-17-019/paper/13TeV"
 ## Datacard name

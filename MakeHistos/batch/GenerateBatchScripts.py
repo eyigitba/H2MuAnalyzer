@@ -38,22 +38,21 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 #MACRO = 'macros/ggH_VBF_2l.C'
 #MACRO = 'macros/WH_lep.C'
 #MACRO = 'macros/ttH_3l.C'
-MACRO = 'macros/MiniNTupliser.C'
+#MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/MiniNTupliser_4l_cat.C'
-#MACRO = 'macros/MiniNTupliser_WH_all_comb.C'
-#MACRO = 'macros/lepMVA_SF_calc.C'
-#MACRO = 'macros/lepMVA_efficiency.C'
-#MACRO = 'macros/lepMVA_variables.C'
+MACRO = 'macros/MassCalibration.C'
 
-#LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
+LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
 #LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
-LOC   = 'CERN_lepMVA_3l_test_v1'
-YEAR   = 2017    ## Dataset year (2016 or 2017)
-LUMI   = 41500   ## 36814 for 2016, 41500 for 2017
+#LOC   = 'CERN_lepMVA_3l_test_v1'
+YEAR   = 2018    ## Dataset year (2016 or 2017)
+LUMI   = 59900   ## 36814 for 2016, 41500 for 2017, 59900 for 2018
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
 IN_DIR = ''
-HADD_IN = True   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
+HADD_IN = False   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
+PROD   = '190521'  ## choose given product version instead of the latest one
+
 
 ## Directory for logs and output root files
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%d/Histograms' % YEAR
@@ -65,13 +64,13 @@ if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%d/Histog
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'
-LABEL = 'VH_selection_2019april/pt10_iso04/WH_mu_test_run'
+#LABEL = 'VH_selection_2019april/pt10_iso04/ZH_ele_massBDT'
 #LABEL  = 'ttH_3l_AWB_2019_04_12_v1'
 #LABEL = 'data_MC_2018_M70_170_v1'
-#LABEL = 'WH_mu_med_ID_loose_iso_v1'
+LABEL = 'MassCal/muN_d0'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
-JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
+JOBSIZE = 1500  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
 PRT_EVT = 10000  ## Print every Nth event in each job
@@ -81,8 +80,9 @@ HIST_TREE = '"HistTree"'  ## Ouptut histograms, trees, or both
 DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
-SAMP_LIST = []  ## Leave [] empty to process multiple samples
+#SAMP_LIST = []  ## Leave [] empty to process multiple samples
 
+SAMP_LIST = ['SingleMu_2018A', 'SingleMu_2018B', 'SingleMu_2018C', 'SingleMu_2018D', 'ZJets_MG_1']
 #SAMP_LIST = ['ZJets_AMC', 'tt',              # missing single top  --XWZ 28.09.2018
 #            'tZq', 'ttW','ttZ','ttH'        # tx and ttX, so far only tZq for tx, missing 'tW', 'tZW' -XWZ 27.09.2018
 #            'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # diboson samples, missing 'WZ_2l' and 'ZZ_2l_2q'  --XWZ 27.09.2018
@@ -308,6 +308,9 @@ def main():
             if len(versions) > 0:
                 if VERBOSE: print versions
                 if VERBOSE: print "\n"
+		if len(PROD) != 0:
+		  for i in reversed( range( len(versions) ) ):  ## loop from last to first so the index is not changed by pop()
+		    if versions[i][0] != int(PROD): versions.pop(i)
                 versions.sort(key = itemgetter(0, 1), reverse=True)  ## Choose the latest crab submission
             else:
                 print '\n\nWARNING!!!  No crab output found for sample %s, from DAS %s' % (samp.name, samp.DAS_name)
@@ -319,7 +322,9 @@ def main():
 #		in_dir_name += '/180802_164117'
 #	if samp.name is 'ZJets_AMC':        # temporary for 2017 WH
 #		in_dir_name += '/180802_165055'
-#	else:
+	if samp.name is "SingleMu_2018D":
+		in_dir_name += '/190522_140309'
+	else:
             in_dir_name += '/%d_%06d' % (versions[0][0], versions[0][1])
  
         in_files = [] ## List of input files with their size in MB

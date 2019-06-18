@@ -87,6 +87,7 @@ def GetSamples(location = 'CERN', year = '2017'):
 	samples.append( SampleInfo('SingleMu_2018A', 'SingleMuon', 1, year, in_dir, 'Data') )
 	samples.append( SampleInfo('SingleMu_2018B', 'SingleMuon', 1, year, in_dir, 'Data') )
 	samples.append( SampleInfo('SingleMu_2018C', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2018D', 'SingleMuon', 1, year, in_dir, 'Data') )
 
     ########################
     ###  Get MC samples  ###
