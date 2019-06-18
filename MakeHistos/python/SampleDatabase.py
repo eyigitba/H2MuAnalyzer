@@ -215,7 +215,7 @@ def GetSamples(location = 'CERN', year = '2017'):
     if (year == 2018):
 	samples.append( SampleInfo('tt_ll_AMC',  'TT_DiLept_TuneCP5_13TeV-amcatnlo-pythia8',              85.656, year, in_dir, 'Bkg') )
 	samples.append( SampleInfo('tt_ll_MG',   'TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8',       85.656, year, in_dir, 'Bkg') )
-	samples.append( SampleInfo('tt_ll_POW',  'TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8',		 85.656, year, in_dir, 'Bkg') )
+	samples.append( SampleInfo('tt_ll_POW',  'TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8',		  85.656, year, in_dir, 'Bkg') )
 
     ## Single top (+X)
     if (year == 2016):

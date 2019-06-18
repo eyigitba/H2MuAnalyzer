@@ -49,12 +49,11 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 #====== AWB CONFIG
 # CONFIGS = ['WH_lep_AWB_2019_05_15_TMVA_v3']
-#CONFIGS = ['WH_lep_AWB_2019_05_16_v1']
+# CONFIGS = ['WH_lep_AWB_2019_05_20_v1_shape']
 
 #====== XWZ CONGIF
 CONFIGS = ['ZH_lep_XWZ_mass_05_23_MVAp04_v1']
 # CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
-
 
 
 #============================================
@@ -116,28 +115,36 @@ class WorkspaceAndDatacardMaker:
         WS.cd()
 
         if 'stack' in model and self.rebin == False:
+            self.in_data.data_hist.Write('data_obs')
             self.in_data.sig_hists[0].Write()
             self.in_data.bkg_hists[0].Write()
-            self.in_data.data_hist.Write('data_obs')
+            for i in range( min(4, len(self.in_data.hists_sys)) ):
+                self.in_data.hists_sys[i].Write()
         ## End conditional: if 'stack' in model and not rebin:
         elif 'group' in model and self.rebin == False:
-            for i in range(1, len(self.in_data.sig_hists)):
+            self.in_data.data_hist.Write('data_obs')
+            for i in range(len(self.in_data.sig_hists)):
                 self.in_data.sig_hists[i].Write()
             for i in range(len(self.in_data.bkg_hists)):
                 self.in_data.bkg_hists[i].Write()
-            self.in_data.data_hist.Write('data_obs')
+            for i in range(len(self.in_data.hists_sys)):
+                self.in_data.hists_sys[i].Write()
         ## End conditional elif 'group' in model and not rebin:
         elif 'stack' in model and len(self.rebin) == 3:
+            self.in_data.data_rebin.Write('data_obs')
             self.in_data.sig_rebin[0].Write()
             self.in_data.bkg_rebin[0].Write()
-            self.in_data.data_rebin.Write('data_obs')
+            for i in range( min(4, len(self.in_data.rebin_sys)) ):
+                self.in_data.rebin_sys[i].Write()
         ## End conditional: elif 'stack' in model and rebin:
         elif 'group' in model and len(self.rebin) == 3:
-            for i in range(1, len(self.in_data.sig_rebin)):
+            self.in_data.data_rebin.Write('data_obs')
+            for i in range(len(self.in_data.sig_rebin)):
                 self.in_data.sig_rebin[i].Write()
             for i in range(len(self.in_data.bkg_rebin)):
                 self.in_data.bkg_rebin[i].Write()
-            self.in_data.data_rebin.Write('data_obs')
+            for i in range(len(self.in_data.rebin_sys)):
+                self.in_data.rebin_sys[i].Write()
         ## End conditional elif 'group' in model and rebin:
         else:
             print 'Model %s not valid!  Exiting.' % model
@@ -240,7 +247,7 @@ class WorkspaceAndDatacardMaker:
     def makeTemplateDatacards(self, model):
 
         ## Compute the size of the column
-        width = max(15, 3 + len(self.cat))
+        width = max(20, 8 + len(self.cat))
 
         model_str = model.replace('template', 'rebin') if self.rebin else model
 
@@ -250,11 +257,11 @@ class WorkspaceAndDatacardMaker:
         if model_str == 'template_stack':
             DH.WriteSigBkgBody(card, self.cat, self.dist, 'template_stack', width, self.in_data.sig_hists[0].Integral(), self.in_data.bkg_hists[0].Integral())
         elif model_str == 'template_group':
-            DH.WriteGroupBody(card, self.cat, self.dist, 'template_group', width, self.in_data.sig_hists, self.in_data.bkg_hists)
+            DH.WriteGroupBody(card, self.cat, self.dist, 'template_group', width, self.in_data.sig_hists, self.in_data.bkg_hists, len(self.in_data.hists_sys) > 0)
         elif model_str == 'rebin_stack':
             DH.WriteSigBkgBody(card, self.cat, self.dist, 'rebin_stack', width, self.in_data.sig_rebin[0].Integral(), self.in_data.bkg_rebin[0].Integral())
         elif model_str == 'rebin_group':
-            DH.WriteGroupBody(card, self.cat, self.dist, 'rebin_group', width, self.in_data.sig_rebin, self.in_data.bkg_rebin)
+            DH.WriteGroupBody(card, self.cat, self.dist, 'rebin_group', width, self.in_data.sig_rebin, self.in_data.bkg_rebin, len(self.in_data.rebin_sys) > 0)
         else:
             print 'Invalid model string %s!!!  Exiting.' % model_str
             sys.exit()

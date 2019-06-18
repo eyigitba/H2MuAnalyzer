@@ -37,7 +37,7 @@ if USER == 'abrinke1':
 
     CONFIG   = 'WH_lep'   ## Pre-defined stack configuration from python/StackPlotConfig.py
     LABEL    = 'WH_lep_AWB_2019_05_20_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    CATEGORY = 'e2mu_medLepMVA_noZ_noBtag_mass12'  ## Category for which to draw plots
+    CATEGORY = '3lep_medLepMVA_noZ_noBtag_mass12'  ## Category for which to draw plots
 
     # CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
     # LABEL    = 'ttH_3l_AWB_2019_05_01_v1'  ## Sub-folder within PLOT_DIR containing histograms
@@ -136,7 +136,7 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
         ratio_hist.Draw()
 
     canv.Update()
-    if not '_zoom' in dist:
+    if not '_zoom' in dist or 'combo_zoom' in dist:
         canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.png')
 
     ## Open output root file and save canvas and net histograms
