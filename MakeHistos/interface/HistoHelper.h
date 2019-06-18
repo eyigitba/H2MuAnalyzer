@@ -18,6 +18,9 @@ TH1 * BookHisto( const TString h_name, const int nBins, const std::vector<float>
 // Book a 2D histogram (defaults to TH2D)
 TH2 * BookHisto( const TString h_name, const int nBinsX, const float minX, const float maxX,
 		 const int nBinsY, const float minY, const float maxY, const TString opt1 = "TH2D" );
+// Book a 2D histogram with variable binning for both X and Y (default to TH2D)
+TH2 * BookHisto( const TString h_name, const int nBinsX, const std::vector<float> binningX,
+                 const int nBinsY, const std::vector<float> binningY, const TString opt1 = "TH2D" );
 
 // Fill a 1D histogram 
 void FillHisto( TH1 * hist, double val, const float weight = 1.0, const bool overflow = true );
@@ -36,6 +39,11 @@ void BookAndFill( std::map<TString, TH1*> & h1_map, const TString h_name,
 void BookAndFill( std::map<TString, TH2*> & h2_map, const TString h_name,
                   const int nBinsX, const float minX, const float maxX,
                   const int nBinsY, const float minY, const float maxY,
+                  const double valX, const double valY, const float weight = 1.0, const bool overflow = true );
+// Book a 2D histogram with variable binning (if it does not already exist), then fill it, default weight 1.0
+void BookAndFill( std::map<TString, TH2*> & h2_map, const TString h_name,
+                  const int nBinsX, const std::vector<float> binningX,
+                  const int nBinsY, const std::vector<float> binningY,
                   const double valX, const double valY, const float weight = 1.0, const bool overflow = true );
 
 // Book a floating point branch in a tree (if it does not already exist), then fill it

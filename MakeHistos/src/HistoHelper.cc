@@ -23,6 +23,17 @@ TH2 * BookHisto( const TString h_name, const int nBinsX, const float minX, const
   else if (opt1.CompareTo("TH2F") == 0) return new TH2F(h_name, h_name, nBinsX, minX, maxX, nBinsY, minY, maxY);
   else { std::cout << "BookHisto option " << opt1 << " is neither TH2D nor TH2F - exiting" << std::endl; return 0; }
 }
+// Book a 2D histogram with variable binning (defaults to TH2D)
+TH2 * BookHisto( const TString h_name, const int nBinsX, const std::vector<float> binningX,
+                 const int nBinsY, const std::vector<float> binningY, const TString opt1 ) {
+  float edgesX[nBinsX+1];
+  float edgesY[nBinsY+1];
+  for (int i = 0; i < nBinsX+1; i++) edgesX[i] = binningX.at(i);
+  for (int j = 0; j < nBinsY+1; j++) edgesX[j] = binningY.at(j);
+  if      (opt1.CompareTo("TH2D") == 0) return new TH2D(h_name, h_name, nBinsX, edgesX, nBinsY, edgesY);
+  else if (opt1.CompareTo("TH2F") == 0) return new TH2F(h_name, h_name, nBinsX, edgesX, nBinsY, edgesY);
+  else { std::cout << "BookHisto option " << opt1 << " is neither TH2D nor TH2F - exiting" << std::endl; return 0; }
+}
 
 
 // Fill a 1D histogram
@@ -88,6 +99,17 @@ void BookAndFill( std::map<TString, TH2*> & h2_map, const TString h_name,
 		  const double valX, const double valY, const float weight, const bool overflow ) {
   if (h2_map.find(h_name) == h2_map.end()) {
     TH2 * hist = BookHisto(h_name, nBinsX, minX, maxX, nBinsY, minY, maxY);
+    h2_map[h_name] = hist;
+  }
+  FillHisto(h2_map.find(h_name)->second, valX, valY, weight, overflow);
+}
+// Book a 1D histogram with variable binning (if it does not already exist), then fill it
+void BookAndFill( std::map<TString, TH2*> & h2_map, const TString h_name,
+                  const int nBinsX, const std::vector<float> binningX,
+                  const int nBinsY, const std::vector<float> binningY,
+                  const double valX, const double valY, const float weight, const bool overflow ) {
+  if (h2_map.find(h_name) == h2_map.end()) {
+    TH2 * hist = BookHisto(h_name, nBinsX, binningX, nBinsY, binningY);
     h2_map[h_name] = hist;
   }
   FillHisto(h2_map.find(h_name)->second, valX, valY, weight, overflow);
