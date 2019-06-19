@@ -444,11 +444,13 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  for (const auto & muPair : SelectedMuPairs(obj_sel, br)) {
 	    // Check if the pair matches a GEN muon pair from H
 	    if (not isData) {
-	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, "H") ) {
+	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, *br.genParents, "H") ) {
 		H_true     = muPair;
 		H_true_vec = FourVec(muPair, PTC);
 	      }
-	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, "Z") ) {
+	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, *br.genParents, "Z") ||
+		   IsGenMatched( muPair, *br.muons, *br.genMuons, *br.genParents, "gamma") ||
+		   IsGenMatched( muPair, *br.muons, *br.genMuons, *br.genParents, "light_quark") ) {
 		Z_true     = muPair;
 		Z_true_vec = FourVec(muPair, PTC);
 	      }
@@ -532,8 +534,8 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    CAT_UNCUT.erase( CAT_UNCUT.find("mass12"), std::string("mass12").length() );
 	  }
 	  if ( CAT_CUT.find("noZ") != std::string::npos ) {
-	    if ( (abs(OS_pair_vec.M() - 91) < 5 && MU) ||
-		  abs(H_pair_vec.M()  - 91) < 5        )             { pass_cat_cut = false; continue; }
+	    if ( (abs(OS_pair_vec.M() - 91) < 10 && MU) ||
+		  abs(H_pair_vec.M()  - 91) < 10        )             { pass_cat_cut = false; continue; }
 	    CAT_UNCUT.erase( CAT_UNCUT.find("noZ"), std::string("noZ").length() );
 	  }
 	  if ( CAT_CUT.find("onZ") != std::string::npos ) {
