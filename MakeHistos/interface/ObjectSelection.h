@@ -22,6 +22,8 @@ struct ObjectSelectionConfig {  // Default values taken from 2016
   float       mu_d0_max   =  -99.0;  // Maximum muon |dXY| from vertex
   float       mu_dZ_max   =  -99.0;  // Maximum muon |dZ| from vertex
   float       mu_SIP_max  =  -99.0;  // Maximum impact parameter significance
+  std::string mu_CSV_max  = "NONE";  // Veto muons with pT < 20 GeV with matching jet passing b-tag threshold
+  float       mu_MVA_min  =  -99.0;  // Minimum prompt muon lepton MVA (lepMVA) BDT score
   float       mu_seg_min  =  -99.0;  // Minimum muon segment compatibility
 
   // Electron selection
@@ -33,6 +35,8 @@ struct ObjectSelectionConfig {  // Default values taken from 2016
   float       ele_d0_max   =  -99.0;  // Maximum electron |dXY| from vertex
   float       ele_dZ_max   =  -99.0;  // Maximum electron |dZ| from vertex
   float       ele_SIP_max  =  -99.0;  // Maximum impact parameter significance
+  float       ele_MVA_min  =  -99.0;  // Minimum prompt electron lepton MVA (lepMVA) BDT score
+  std::string ele_CSV_max  = "NONE";  // Veto electrons with pT < 20 GeV with matching jet passing b-tag threshold
 
   // Jet selection
   float jet_pt_min       =      -99.0;  // Minimum jet pT
@@ -49,9 +53,11 @@ struct ObjectSelectionConfig {  // Default values taken from 2016
   void Print() {
     std::cout << "\n*** ObjectSelectionConfig for year = " << year << " ***" << std::endl;
     std::cout << "Muons: pt_corr = " << mu_pt_corr << ", pt_min = " << mu_pt_min << ", eta_max = " << mu_eta_max << ", ID_cut = " << mu_ID_cut
-	      << ", iso_max = " << mu_iso_max << ", SIP_max = " << mu_SIP_max << ", seg_min = " << mu_seg_min << std::endl;
+	      << ", iso_max = " << mu_iso_max << ", SIP_max = " << mu_SIP_max << ", seg_min = " << mu_seg_min
+	      << "MVA_min = " << mu_MVA_min << ", mu_CSV_max = " << mu_CSV_max << std::endl;
     std::cout << "Electrons: pt_min = " << ele_pt_min << ", eta_max = " << ele_eta_max << ", ID_cut = " << ele_ID_cut
-	      << ", iso_max = " << ele_iso_max << ", SIP_max = " << ele_SIP_max << std::endl;
+	      << ", iso_max = " << ele_iso_max << ", SIP_max = " << ele_SIP_max
+	      << ", MVA_min = " << ele_MVA_min << ", ele_CSV_max = " << ele_CSV_max << std::endl;
     std::cout << "Jets: pt_min = " << jet_pt_min << ", eta_max = " << jet_eta_max << ", jet_mu_dR_min = " << jet_mu_dR_min
 	      << ", jet_ele_dR_min = " << jet_ele_dR_min << ", PU_ID_cut = " << jet_PU_ID_cut << "\n" << std::endl;
   } // End function: void Print()
@@ -60,10 +66,12 @@ struct ObjectSelectionConfig {  // Default values taken from 2016
 
 void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _year, const std::string _opt = "" );
 
-bool MuonPass ( const ObjectSelectionConfig & cfg, const MuonInfo & muon, const bool verbose = false );
-bool ElePass  ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const bool verbose = false );
-bool JetPass  ( const ObjectSelectionConfig & cfg, const JetInfo & jet, const MuonInfos & muons,
-		const EleInfos & eles, const std::string sel = "", const bool verbose = false );
+bool MuonPass ( const ObjectSelectionConfig & cfg, const MuonInfo & muon, const NTupleBranches & br, const bool verbose = false );
+bool ElePass  ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const NTupleBranches & br, const bool verbose = false );
+bool JetPass  ( const ObjectSelectionConfig & cfg, const JetInfo & jet, const NTupleBranches & br, const std::string sel = "", const bool verbose = false );
+
+int JetMuonClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const MuonInfo & mu, const NTupleBranches & br, const bool verbose = false );
+int JetEleClean ( const ObjectSelectionConfig & cfg, const JetInfo & jet, const EleInfo & ele, const NTupleBranches & br, const bool verbose = false );
 
 MuonInfos    SelectedMuons    ( const ObjectSelectionConfig & cfg, const NTupleBranches & br, const bool verbose = false );  // Return selected muons in event
 MuPairInfos  SelectedMuPairs  ( const ObjectSelectionConfig & cfg, const NTupleBranches & br, const std::string sel = "OS", const bool verbose = false );  // Return selected dimuon pairs in event

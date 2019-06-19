@@ -44,6 +44,8 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     cfg.mu_dZ_max   =  0.1;     // Maximum muon |dZ| from vertex
     cfg.mu_SIP_max  =  8.0;     // Maximum muon impact parameter significance
     cfg.mu_seg_min  =  -99;     // Minimum muon segment compatibility
+    cfg.mu_MVA_min  =  -99;     // Minimum prompt muon lepton MVA (lepMVA) BDT score
+    cfg.mu_CSV_max  = "NONE";   // Veto muons with pT < 20 GeV with matching jet passing b-tag threshold
 
     // Electron selection
     cfg.ele_pt_min  = 10.0;     // Minimum electron pT
@@ -53,6 +55,8 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     cfg.ele_d0_max  =   0.05;   // Maximum electron |dXY| from vertex
     cfg.ele_dZ_max  =   0.1;    // Maximum electron |dZ| from vertex
     cfg.ele_SIP_max =   8.0;    // Maximum electron impact parameter significance
+    cfg.ele_MVA_min =   -99;    // Minimum prompt electron lepton MVA (lepMVA) BDT score
+    cfg.ele_CSV_max = "NONE";   // Veto electrons with pT < 20 GeV with matching jet passing b-tag threshold
 
     // Jet selection
     cfg.jet_pt_min     = 30.0;   // Minimum jet pT
@@ -65,11 +69,16 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     // Higgs candidate selection
     cfg.muPair_Higgs = "sort_OS_sum_muon_pt";
 
-    if (_opt == "lepMVA") {    // LepMVA pre-selection from TOP-18-008, for 3-lepton and 4-lepton channels
-      cfg.mu_pt_min   = 10.0;  // Lower minimum muon pT for higher acceptance
-      cfg.mu_seg_min  = 0.30;  // Minimum muon segment compatibility
+    if (_opt == "lepMVA") {       // LepMVA pre-selection from TOP-18-008, for 3-lepton and 4-lepton channels
+      cfg.mu_pt_min   = 10.0;     // Lower minimum muon pT for higher acceptance
+      cfg.mu_seg_min  = 0.30;     // Minimum muon segment compatibility
+      cfg.mu_MVA_min  = 0.4;      // Minimum prompt muon lepton MVA (lepMVA) BDT score
+      cfg.mu_CSV_max  = "loose";  // Veto muons with pT < 20 GeV with matching jet passing b-tag threshold
 
-      cfg.jet_pt_min  = 20.0;  // Lower minimum jet pT for higher acceptance
+      cfg.ele_MVA_min = 0.4;      // Minimum prompt electron lepton MVA (lepMVA) BDT score
+      cfg.ele_CSV_max = "loose";  // Veto electrons with pT < 20 GeV with matching jet passing b-tag threshold
+
+      cfg.jet_pt_min  = 20.0;     // Lower minimum jet pT for higher acceptance
     }
 
   } // End if (_year == "2017" || _year == "2018")
@@ -83,7 +92,7 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
 
 
 // Select muons passing ID and kinematic cuts
-bool MuonPass ( const ObjectSelectionConfig & cfg, const MuonInfo & muon, const bool verbose ) {
+bool MuonPass ( const ObjectSelectionConfig & cfg, const MuonInfo & muon, const NTupleBranches & br, const bool verbose ) {
 
   if ( cfg.mu_pt_min   != -99 )
     if ( MuonPt(muon, cfg.mu_pt_corr) < cfg.mu_pt_min   ) return false;
@@ -103,13 +112,21 @@ bool MuonPass ( const ObjectSelectionConfig & cfg, const MuonInfo & muon, const 
     if ( muon.SIP_3D                  > cfg.mu_SIP_max  ) return false;
   if ( cfg.mu_seg_min  != -99 )
     if ( muon.segCompat               < cfg.mu_seg_min  ) return false;
+  if ( cfg.mu_MVA_min  != -99 )
+    if ( muon.lepMVA                  < cfg.mu_MVA_min  ) return false;
+  if ( cfg.mu_CSV_max  != "NONE" ) {
+    // Drop low-pT muons which are too close to b-tagged jets
+    for ( const auto & jet : (*br.jets) ) {
+      if ( JetMuonClean(cfg, jet, muon, br) < 2 ) return false;
+    }
+  }
 
   return true;
 } // End function: bool MuonPass()
 
 
 // Select electrons passing ID and kinematic cuts
-bool ElePass ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const bool verbose ) {
+bool ElePass ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const NTupleBranches & br, const bool verbose ) {
 
   if ( cfg.ele_pt_min  != -99 )
     if ( ele.pt                      < cfg.ele_pt_min   ) return false;
@@ -127,14 +144,21 @@ bool ElePass ( const ObjectSelectionConfig & cfg, const EleInfo & ele, const boo
     if ( fabs(ele.dz_PV)             > cfg.ele_dZ_max   ) return false;
   if ( cfg.ele_SIP_max != -99 )
     if ( ele.SIP_3D                  > cfg.ele_SIP_max  ) return false;
+  if ( cfg.ele_MVA_min  != -99 )
+    if ( ele.lepMVA                  < cfg.ele_MVA_min  ) return false;
+  if ( cfg.ele_CSV_max  != "NONE" ) {
+    // Drop low-pT electrons which are too close to b-tagged jets
+    for ( const auto & jet : (*br.jets) ) {
+      if ( JetEleClean(cfg, jet, ele, br) < 2 ) return false;
+    }
+  }
 
   return true;
 } // End function: bool ElectronPass()
 
 
 // Select jets passing ID and kinematic cuts
-bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const MuonInfos & muons,
-	      const EleInfos & eles, const std::string sel, const bool verbose ) {
+bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const NTupleBranches & br, const std::string sel, const bool verbose ) {
 
   if (verbose) std::cout << "  * Inside JetPass, selection = " << sel << std::endl;
   if (verbose) std::cout << "  * Jet pT = " << jet.pt << ", eta = " << jet.eta << ", phi = " << jet.phi
@@ -142,24 +166,8 @@ bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const Muon
 
   float jet_CSV = (cfg.year == "2016" ? jet.CSV : jet.deepCSV);  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
 
-  // Find the jet closest to the muon
-  float jet_mu_dR_min  = 99.;
-  float jet_ele_dR_min = 99.;
-  for (const auto & mu : muons) {
-    float jet_mu_dR = FourVec(jet).DeltaR( FourVec(mu, cfg.mu_pt_corr) );
-    if ( MuonPass(cfg, mu) && jet_mu_dR < jet_mu_dR_min )
-      jet_mu_dR_min = jet_mu_dR;
-  }
-  for (const auto & ele : eles) {
-    float jet_ele_dR = FourVec(jet).DeltaR( FourVec(ele) );
-    if ( ElePass(cfg, ele) && jet_ele_dR < jet_ele_dR_min )
-      jet_ele_dR_min = jet_ele_dR;
-  }
-
   if ( jet.pt         < cfg.jet_pt_min     )         return false;
   if ( fabs(jet.eta)  > cfg.jet_eta_max    )         return false;
-  if ( jet_mu_dR_min  < cfg.jet_mu_dR_min  )         return false;
-  if ( jet_ele_dR_min < cfg.jet_ele_dR_min )         return false;
   if ( !JetPUID(jet, cfg.jet_PU_ID_cut, cfg.year ) ) return false;
 
   if (sel == "Central"    &&  abs(jet.eta) >  2.4) return false;
@@ -168,10 +176,97 @@ bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const Muon
   if (sel == "BTagMedium" && (abs(jet.eta) > 2.4 || jet_CSV < cfg.jet_btag_cuts.at(1))) return false;
   if (sel == "BTagTight"  && (abs(jet.eta) > 2.4 || jet_CSV < cfg.jet_btag_cuts.at(2))) return false;
 
+  // Clean jet against selected muons and electrons
+  if ( cfg.jet_mu_dR_min > 0 )
+    for ( const auto & mu : (*br.muons) )
+      if ( (JetMuonClean(cfg, jet, mu, br) % 2) != 1 ) return false;
+  if ( cfg.jet_ele_dR_min > 0 )
+    for ( const auto & ele : (*br.eles) )
+      if ( (JetEleClean(cfg, jet, ele, br) % 2) != 1 ) return false;
+
   if (verbose) std::cout << "    - PASSED selection!!!" << std::endl;
 
   return true;
 } // End function: bool JetPass()
+
+
+// Decide whether jet or lepton passes jet-lepton cleaning algorithm
+// Returns a bit mask: 0 for both fail, 1 for jet passes, 2 for lepton passes, 3 for both pass
+int JetMuonClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const MuonInfo & mu, const NTupleBranches & br, const bool verbose ) {
+
+  TLorentzVector vLep = FourVec(mu, cfg.mu_pt_corr);
+  TLorentzVector vJet = FourVec(jet);
+
+  // Don't clean if separation is large enough
+  if (vLep.DeltaR(vJet) > cfg.jet_mu_dR_min) return 3;
+
+  // Temporarily modify config to ignore jet-lepton cleaning
+  ObjectSelectionConfig cfg_mod = cfg;
+  cfg_mod.mu_CSV_max = "NONE";  // Don't drop low-pT leptons too close to b-tagged jets
+  cfg_mod.jet_mu_dR_min = -99;  // Don't drop jets too close to leptons
+
+  // No cleaning to do if either the lepton or the jet fail the basic cuts
+  bool lepPass = MuonPass(cfg_mod,  mu, br);
+  bool jetPass = JetPass (cfg_mod, jet, br);
+  if (!jetPass || !lepPass) return (1*jetPass + 2*lepPass);
+
+  if (cfg.mu_CSV_max == "NONE") {  // Always remove jet if it is too close to the lepton
+    jetPass = false;
+  } else {                         // Remove leptons with pT < 20 matched to b-tagged jets
+    assert(cfg.mu_CSV_max == "loose");
+    float jet_CSV = (cfg.year == "2016" ? jet.CSV : jet.deepCSV);  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+    if (vLep.Pt() > 20 || jet_CSV < cfg.jet_btag_cuts.at(0)) {
+      jetPass = false;
+    } else {
+      lepPass = false;
+      std::cout << "Jet with pT " << jet.pt << ", eta " << jet.eta << ", phi " << jet.phi << ", CSV " << jet_CSV
+		<< " has dR(mu) " << vLep.DeltaR(vJet)  << " where lepMVA(mu) = " << mu.lepMVA
+		<< " and muon pT = " << vLep.Pt() << ", eta = " << mu.eta << ", phi = " << mu.phi
+		<< ", matched jet-with-muon pT = " << mu.pt/mu.jet_ptRatio << ", CSV = " << mu.jet_deepCSV << std::endl;
+    }
+  }
+
+  return (1*jetPass + 2*lepPass);
+} // End function: int JetMuonClean()
+
+// Decide whether jet or lepton passes jet-lepton cleaning algorithm
+// Returns a bit mask: 0 for both fail, 1 for jet passes, 2 for lepton passes, 3 for both pass
+int JetEleClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const EleInfo & ele, const NTupleBranches & br, const bool verbose ) {
+
+  TLorentzVector vLep = FourVec(ele);
+  TLorentzVector vJet = FourVec(jet);
+
+  // Don't clean if separation is large enough
+  if (vLep.DeltaR(vJet) > cfg.jet_ele_dR_min) return 3;
+
+  // Temporarily modify config to ignore jet-lepton cleaning
+  ObjectSelectionConfig cfg_mod = cfg;
+  cfg_mod.ele_CSV_max = "NONE";  // Don't drop low-pT leptons too close to b-tagged jets
+  cfg_mod.jet_ele_dR_min = -99;  // Don't drop jets too close to leptons
+
+  // No cleaning to do if either the lepton or the jet fail the basic cuts
+  bool lepPass = ElePass(cfg_mod, ele, br);
+  bool jetPass = JetPass(cfg_mod, jet, br);
+  if (!jetPass || !lepPass) return (1*jetPass + 2*lepPass);
+
+  if (cfg.ele_CSV_max == "NONE") {  // Always remove jet if it is too close to the lepton
+    jetPass = false;
+  } else {                         // Remove leptons with pT < 20 matched to b-tagged jets
+    assert(cfg.ele_CSV_max == "loose");
+    float jet_CSV = (cfg.year == "2016" ? jet.CSV : jet.deepCSV);  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+    if (vLep.Pt() > 20 || jet_CSV < cfg.jet_btag_cuts.at(0)) {
+      jetPass = false;
+    } else {
+      lepPass = false;
+      if (verbose) std::cout << "Jet with pT " << jet.pt << ", eta " << jet.eta << ", phi " << jet.phi << ", CSV " << jet_CSV
+			     << " has dR(ele) " << vLep.DeltaR(vJet)  << " where lepMVA(ele) = " << ele.lepMVA
+			     << " and electron pT = " << vLep.Pt() << ", eta = " << ele.eta << ", phi = " << ele.phi
+			     << ", matched jet-with-ele pT = " << ele.pt/ele.jet_ptRatio << ", CSV = " << ele.jet_deepCSV << std::endl;
+    }
+  }
+
+  return (1*jetPass + 2*lepPass);
+} // End function: int JetEleClean()
 
 
 // Return selected muons in event
@@ -179,7 +274,7 @@ MuonInfos SelectedMuons ( const ObjectSelectionConfig & cfg, const NTupleBranche
 
   MuonInfos selMuons;
   for (const auto & muon : (*br.muons)) {
-    if ( MuonPass(cfg, muon) ) {
+    if ( MuonPass(cfg, muon, br) ) {
 	selMuons.push_back(muon);
     }
   }
@@ -194,8 +289,8 @@ MuPairInfos SelectedMuPairs ( const ObjectSelectionConfig & cfg, const NTupleBra
 
   MuPairInfos selMuPairs;
   for (const auto & muPair : (*br.muPairs)) {
-    if ( MuonPass(cfg, br.muons->at(muPair.iMu1)) &&
-	 MuonPass(cfg, br.muons->at(muPair.iMu2)) ) {
+    if ( MuonPass(cfg, br.muons->at(muPair.iMu1), br) &&
+	 MuonPass(cfg, br.muons->at(muPair.iMu2), br) ) {
       if (sel == "OS" && muPair.charge != 0) continue;
       if (sel == "SS" && muPair.charge == 0) continue;
       selMuPairs.push_back(muPair);
@@ -254,7 +349,7 @@ MuPairInfo SelectedCandPair ( const ObjectSelectionConfig & cfg, const NTupleBra
 	// Muon not in Higgs candidate pair presumably from W
 	for (int i = 0; i < int((br.muons)->size()); i++) {
 	  if ( i != candPair.iMu1 && i != candPair.iMu2 &&
-	       MuonPass(cfg, br.muons->at(i)) ) {
+	       MuonPass(cfg, br.muons->at(i), br) ) {
 	    assert(iMuW < 0); // There should be only one option
 	    iMuW = i;
 	  }
@@ -264,7 +359,7 @@ MuPairInfo SelectedCandPair ( const ObjectSelectionConfig & cfg, const NTupleBra
       // If we already have another candidate pair, find the W muon for this pair
       for (int j = 0; j < int((br.muons)->size()); j++) {
 	if ( j != muPair.iMu1 && j != muPair.iMu2 &&
-	     MuonPass(cfg, br.muons->at(j)) ) jMuW = j;
+	     MuonPass(cfg, br.muons->at(j), br) ) jMuW = j;
       }
       // Expect MT(W muon, MET) < 150 GeV for higher efficiency, large smeared tail
       if ( ( FourVec(br.muons->at(iMuW), cfg.mu_pt_corr, "T") + FourVec(*br.met) ).M() > 150 &&
@@ -303,7 +398,7 @@ EleInfos SelectedEles ( const ObjectSelectionConfig & cfg, const NTupleBranches 
 
   EleInfos selEles;
   for (const auto & ele : (*br.eles)) {
-    if ( ElePass(cfg, ele) ) {
+    if ( ElePass(cfg, ele, br) ) {
 	selEles.push_back(ele);
     }
   }
@@ -316,7 +411,7 @@ JetInfos SelectedJets ( const ObjectSelectionConfig & cfg, const NTupleBranches 
 
   JetInfos selJets;
   for (const auto & jet : (*br.jets)) {
-    if ( JetPass(cfg, jet, (*br.muons), (*br.eles), sel) ) {
+    if ( JetPass(cfg, jet, br, sel) ) {
       selJets.push_back(jet);
     }
   }
@@ -331,8 +426,8 @@ JetPairInfos SelectedJetPairs ( const ObjectSelectionConfig & cfg, const NTupleB
   for (const auto & jetPair : (*br.jetPairs)) {
     JetInfo jet1 = br.jets->at(jetPair.iJet1);
     JetInfo jet2 = br.jets->at(jetPair.iJet2);
-    if ( JetPass(cfg, jet1, (*br.muons), (*br.eles), sel) &&
-	 JetPass(cfg, jet2, (*br.muons), (*br.eles), sel) ) {
+    if ( JetPass(cfg, jet1, br, sel) &&
+	 JetPass(cfg, jet2, br, sel) ) {
       selJetPairs.push_back(jetPair);
     }
   }
