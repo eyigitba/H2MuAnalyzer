@@ -65,7 +65,7 @@ bool PassSelection( const NTupleBranches & br, const EventSelectionConfig & evt,
       MuonInfo   & Mu2  = br.muons->at(Pair.iMu2);
 
       // Require both muons to pass ID cuts
-      if ( !MuonPass(obj, Mu1) || !MuonPass(obj, Mu2) ) continue;
+      if ( !MuonPass(obj, Mu1, br) || !MuonPass(obj, Mu2, br) ) continue;
       // Require one muon to pass trigger cut
       if ( evt.mu_trig_HLT_match ) {
 	if ( !(MuonTrig(Mu1, obj.year, *br.hltPaths) && MuonPt(Mu1, obj.mu_pt_corr) > evt.mu_trig_pt_min) &&
@@ -105,7 +105,7 @@ bool PassSelection( const NTupleBranches & br, const EventSelectionConfig & evt,
       MuonInfo   & Mu2  = br.muons->at(Pair.iMu2);
 
       // Require both muons to pass ID cuts
-      if ( !MuonPass(obj, Mu1) || !MuonPass(obj, Mu2) ) continue;
+      if ( !MuonPass(obj, Mu1, br) || !MuonPass(obj, Mu2, br) ) continue;
       // Require one muon to pass trigger cut
       if ( evt.mu_trig_HLT_match ) {
 	if ( !(MuonTrig(Mu1, obj.year, *br.hltPaths) && MuonPt(Mu1, obj.mu_pt_corr) > evt.mu_trig_pt_min) &&

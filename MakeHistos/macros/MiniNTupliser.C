@@ -314,8 +314,8 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 	/////////////////////////
 	if (OPT_CUT == "WH_3l_ele") {
 	  if (muons.size() != 2 or eles.size() != 1) continue;
-	  if ( not (ElePass(obj_sel, eles.at(0)) && SelectedJets(obj_sel, br, "BTagMedium").size() == 0) ) continue;
-          //if ( not (ElePass(obj_sel, eles.at(0)) && nBJets_Med > 0) )  continue;   // for ttH 3l 
+	  if ( not (ElePass(obj_sel, eles.at(0), br) && SelectedJets(obj_sel, br, "BTagMedium").size() == 0) ) continue;
+          //if ( not (ElePass(obj_sel, eles.at(0), br) && nBJets_Med > 0) )  continue;   // for ttH 3l 
 
           ele  = eles.at(0);
 	  lep_ID = 11;
@@ -338,14 +338,14 @@ void MiniNTupliser( TString sample = "", TString in_dir = "", TString out_dir = 
 	  bool have_muon_cand = false;
 	  for (int imu = 0; imu < int((br.muons)->size()) ; imu++) {
 	    if (have_muon_cand) continue;
-	    if ( imu != dimu.iMu1 and imu != dimu.iMu2 and MuonPass(obj_sel, br.muons->at(imu)) ) {
+	    if ( imu != dimu.iMu1 and imu != dimu.iMu2 and MuonPass(obj_sel, br.muons->at(imu), br) ) {
 	      extra_mu = br.muons->at(imu);
 	      have_muon_cand = true;
 	    }
 	  } 
 	  if (not have_muon_cand) continue;
-	  if ( not (MuonPass(obj_sel, extra_mu) && SelectedJets(obj_sel, br, "BTagMedium").size() == 0) ) continue;
-	  //if ( not (MuonPass(obj_sel, extra_mu) && nBJets_Med > 0) )  continue; // for ttH 3l
+	  if ( not (MuonPass(obj_sel, extra_mu, br) && SelectedJets(obj_sel, br, "BTagMedium").size() == 0) ) continue;
+	  //if ( not (MuonPass(obj_sel, extra_mu, br) && nBJets_Med > 0) )  continue; // for ttH 3l
 
 	  lep_ID = 13;
 	  lep_charge = extra_mu.charge;
