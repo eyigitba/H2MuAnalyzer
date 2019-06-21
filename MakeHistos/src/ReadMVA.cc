@@ -4,6 +4,7 @@
 //            and https://github.com/acarnes/UFDimuAnalysis/blob/master/tools/TMVATools.cxx
 #include "H2MuAnalyzer/MakeHistos/interface/ReadMVA.h"
 
+bool VERBOSE = false;
 
 // MVA class constructor
 MVA::MVA() {
@@ -48,7 +49,7 @@ MVA::MVA(TString _dir, TString _xml, TString _method) {
   // Load training and spectator variables into the reader
   // Must have the same names as in the XML, and be booked in the same order
   for (auto & var: train_vars) {
-    std::cout << "    - Booking input variable " << var << std::endl;
+    if (VERBOSE) std::cout << "    - Booking input variable " << var << std::endl;
     train_vals[var] = -999;
     reader->AddVariable(var, &train_vals[var]);
   }
