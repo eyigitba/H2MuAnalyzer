@@ -72,10 +72,11 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     if (_opt == "lepMVA") {       // LepMVA pre-selection from TOP-18-008, for 3-lepton and 4-lepton channels
       cfg.mu_pt_min   = 10.0;     // Lower minimum muon pT for higher acceptance
       cfg.mu_seg_min  = 0.30;     // Minimum muon segment compatibility
-      cfg.mu_MVA_min  = 0.4;      // Minimum prompt muon lepton MVA (lepMVA) BDT score
+      cfg.mu_MVA_min  = -0.4;     // Minimum prompt muon lepton MVA (lepMVA) BDT score
       cfg.mu_CSV_max  = "loose";  // Veto muons with pT < 20 GeV with matching jet passing b-tag threshold
 
-      cfg.ele_MVA_min = 0.4;      // Minimum prompt electron lepton MVA (lepMVA) BDT score
+      cfg.ele_pt_min  = 10.0;     // Minimum electron pT
+      cfg.ele_MVA_min = -0.4;     // Minimum prompt electron lepton MVA (lepMVA) BDT score
       cfg.ele_CSV_max = "loose";  // Veto electrons with pT < 20 GeV with matching jet passing b-tag threshold
 
       cfg.jet_pt_min  = 20.0;     // Lower minimum jet pT for higher acceptance
