@@ -38,6 +38,8 @@ const bool verbose = false; // Print extra information
 
 const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8/H2Mu_ttH_125";
 const TString SAMPLE   = "H2Mu_ttH_125";
+// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/tt_ll_MG/";
+// const TString SAMPLE   = "tt_ll_MG";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/WZ_3l_AMC";
 // const TString SAMPLE   = "WZ_3l_AMC";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
@@ -51,14 +53,13 @@ const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output
 // Cuts which every event must pass, applied in sequence
 const std::vector<std::string> SEL_CUTS = {"Presel2017"};
 // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> OPT_CUTS = {"3mu", "3mu_allMass", "3mu_hiPt", "e2mu", "e2mu_allMass"};
+// const std::vector<std::string> OPT_CUTS = {"lep", "lep_allMass", "3mu", "3mu_allMass", "e2mu", "e2mu_allMass"};
+const std::vector<std::string> OPT_CUTS = {"3mu", "e2mu"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
-const std::vector<std::string> CAT_CUTS = { "noZ_ge2j_btag_mass12",
-					    "looseLepMVA_noZ_ge2j_btag_mass12",
-					    "medLepMVA_noZ_ge2j_btag_mass12",
-					    "tightLepMVA_noZ_ge2j_btag_mass12",
-                                            "medLepMVA_onZ_ge2j_btag_mass12" };
+const std::vector<std::string> CAT_CUTS = { "looseLepMVA_ge2j_btag",
+					    "medLepMVA_noZ5_ge2j_btag",
+					    "hiPt_lepW20_medLepMVA_noZ10_ge2j_btag" };
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -189,13 +190,24 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
   ConfigureEventSelection (evt_sel, YEAR);
   ConfigureEventWeight    (evt_wgt, YEAR);
 
-  evt_sel.muPair_mass_min = 12; // Allow masses down to 12 GeV (instead of 60 GeV) for background studies
+  evt_sel.muPair_mass_min = 12;  // Allow masses down to 12 GeV (instead of 60 GeV) for background studies
 
-  if (verbose) obj_sel.Print();
-  if (verbose) evt_sel.Print();
-  if (verbose) evt_wgt.Print();
+  obj_sel.Print();
+  evt_sel.Print();
+  evt_wgt.Print();
+
+  ObjectSelectionConfig obj_sel_orig = obj_sel;  // Store original object selection (may change for different CAT_CUTS)
 
   std::string PTC = obj_sel.mu_pt_corr; // Store muon pT correction in a shorter string; not changed later
+
+  std::cout << "\n******* About to load 2D LepMVA efficiency scale factor histograms *******" << std::endl;
+  std::map<std::string, TH2F *> lepSF;
+  lepSF["mu_T"]  = LoadSFsLepMVA(YEAR,  "mu", "T");
+  lepSF["mu_M"]  = LoadSFsLepMVA(YEAR,  "mu", "M");
+  lepSF["mu_L"]  = LoadSFsLepMVA(YEAR,  "mu", "L");
+  lepSF["ele_T"] = LoadSFsLepMVA(YEAR, "ele", "T");
+  lepSF["ele_M"] = LoadSFsLepMVA(YEAR, "ele", "M");
+  lepSF["ele_L"] = LoadSFsLepMVA(YEAR, "ele", "L");
 
 
   std::cout << "\n******* About to enter the loop over " << in_chain->GetEntries() << " events *******" << std::endl;
@@ -248,7 +260,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
     // Initialize the selected Higgs candidate dimuon pair
     MuPairInfo        H_pair;     // When filling histograms, have only one candidate pair at a time
     TLorentzVector    H_pair_vec;
-      
+
     bool MU = false;  // Says whether event has 3 muons or 1 electron + 2 muons
 
     ///////////////////////////////////////////////////////////////
@@ -276,9 +288,12 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	ASSERT( OPT_CUT == "3lep" || OPT_CUT == "3mu" || OPT_CUT == "e2mu" || OPT_CUT == "3lep_allMass" || OPT_CUT == "3mu_allMass" || OPT_CUT == "e2mu_allMass" || OPT_CUT == "3lep_hiPt" || OPT_CUT == "3mu_hiPt",
 	       "OPT_CUT == '3lep' || OPT_CUT == '3mu' || OPT_CUT == 'e2mu' || OPT_CUT == '3lep_allMass' || OPT_CUT == '3mu_allMass' || OPT_CUT == 'e2mu_allMass' || OPT_CUT == '3lep_hiPt' || OPT_CUT == '3mu_hiPt'" );
 
+	// Reset object selection to original state
+	obj_sel = obj_sel_orig;
+
 	// Choose Higgs mass (110 - 160 GeV) or all mass (> 12 GeV) requirements
 	bool allMass = ( OPT_CUT.find("allMass") != std::string::npos );
-	// Require Higgs candidate pair to have the vector pT value
+	// If two muon pairs are in the signal mass window, choose the higher-pT pair
 	bool hiPt    = ( OPT_CUT.find("hiPt")    != std::string::npos );
 
 	// Assume event fails the optional cut
@@ -291,13 +306,18 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	}
 
 	// All categories require >=2 opposite-charge muons, and == 3 leptons with charge summing to +/-1
+	// All opposite-charge lepton pairs must have mass > 12 GeV
 	if (true) {
 	  if ( SelectedEles(obj_sel, br).size() == 0 ) {
 	    if ( SelectedMuPairs(obj_sel, br).size() != 2 ) continue;
+	    if ( FourVec( SelectedMuPairs(obj_sel, br).at(0), PTC).M() < 12 ) continue;
+	    if ( FourVec( SelectedMuPairs(obj_sel, br).at(1), PTC).M() < 12 ) continue;
 	    MU = true;
 	  } else if ( SelectedEles(obj_sel, br).size() == 1 ) {
 	    if ( SelectedMuPairs(obj_sel, br).size() != 1 ) continue;
 	    if ( iPair != 0 ) continue;  // Only one Higgs pair possible, hence iPair must be 0
+	    int iMuOS = (SelectedMuons(obj_sel, br).at(0).charge != SelectedEles(obj_sel, br).at(0).charge ? 0 : 1);
+	    if ( ( FourVec(SelectedMuons(obj_sel, br).at(iMuOS), PTC) + FourVec(SelectedEles(obj_sel, br).at(0)) ).M() < 12 ) continue;
 	    MU = false;
 	  } else continue;
 
@@ -315,8 +335,10 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    if (iZ != iPair) continue;
 	  }
 	  if ( MU && hiPt ) {
-	    // Require Higgs candidate pair to have the higher vector pT value
-	    if ( H_pair_vec.Pt() < FourVec(SelectedMuPairs(obj_sel, br).at((iPair+1) % 2), PTC).Pt() ) continue;
+	    // Choose the Higgs candidate pair with the higher vector pT value
+	    if ( FourVec(SelectedMuPairs(obj_sel, br).at((iPair+1) % 2), PTC).M()  > 110 &&
+		 FourVec(SelectedMuPairs(obj_sel, br).at((iPair+1) % 2), PTC).M()  < 160 &&
+		 FourVec(SelectedMuPairs(obj_sel, br).at((iPair+1) % 2), PTC).Pt() > H_pair_vec.Pt() ) continue;
 	  }
 	}
 
@@ -343,10 +365,12 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  ///  Compute variables relevent for category cuts  ///
 	  //////////////////////////////////////////////////////
 
+	  // Reset object selection to original state
+	  obj_sel = obj_sel_orig;
+
 	  // Get selected muons and electrons in event
 	  MuonInfos muons = SelectedMuons(obj_sel, br);
 	  EleInfos  eles  = SelectedEles(obj_sel, br);
-	  JetInfos  jets  = SelectedJets(obj_sel, br);
 	  int sum_lep_charge = 0;
 	  if (MU) {
 	    ASSERT(muons.size() == 3 && eles.size() == 0, "muons.size() == 3 && eles.size() == 0");
@@ -459,7 +483,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 		}
 	      }
 	    }
-	    ASSERT( muW.pt >= obj_sel.mu_pt_min, "muW.pt >= obj_sel.mu_pt_min" ); // We should always find a W candidate
+	    ASSERT( MuonPt(muW, PTC) >= obj_sel.mu_pt_min, "MuonPt(muW, PTC) >= obj_sel.mu_pt_min" ); // We should always find a W candidate
 	    ASSERT( muSS1.charge == muSS2.charge && muOS.charge == -1*sum_lep_charge,
 		   "muSS1.charge == muSS2.charge && muOS.charge == -1*sum_lep_charge" ); // We should always find two SS and one OS muon
 	  }
@@ -480,13 +504,6 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 		   "muSS1.charge == ele.charge && muOS.charge == -1*sum_lep_charge"); // We should always find one SS and one OS muon
 	  }
 	  
-	  TLorentzVector MET_vec     = FourVec(*br.met);
-	  TLorentzVector lep_MET_vec = lep_vecT + MET_vec;
-	  TLorentzVector evt_vec     = FourVec(muons, PTC, eles, jets);
-	  TLorentzVector MHT_vec     = FourVec(muons, PTC, eles, jets, "T");
-	  MHT_vec.RotateZ(TMath::Pi());
-	  TLorentzVector lep_MHT_vec = lep_vecT + MHT_vec;
-	  
 	  ///////////////////////////////////////////
 	  ///  Apply the category selection cuts  ///
 	  ///////////////////////////////////////////
@@ -494,19 +511,78 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  std::string CAT_CUT   = CAT_CUTS.at(iCat);
 	  std::string CAT_UNCUT = CAT_CUT; // Track what sub-strings don't match any known cuts
 	  bool pass_cat_cut = true;
-	  if ( CAT_CUT.find("mass12") != std::string::npos ) {
-	    if ( OS_pair_vec.M() < 12 )                               { pass_cat_cut = false; continue; }
-	    CAT_UNCUT.erase( CAT_UNCUT.find("mass12"), std::string("mass12").length() );
-	  }
-	  if ( CAT_CUT.find("noZ") != std::string::npos ) {
+
+	  if ( CAT_CUT.find("noZ10") != std::string::npos ) {
 	    if ( (abs(OS_pair_vec.M() - 91) < 10 && MU) ||
-		  abs(H_pair_vec.M()  - 91) < 10        )             { pass_cat_cut = false; continue; }
-	    CAT_UNCUT.erase( CAT_UNCUT.find("noZ"), std::string("noZ").length() );
+		  abs(H_pair_vec.M()  - 91) < 10        )         { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("noZ10"), std::string("noZ10").length() );
 	  }
-	  if ( CAT_CUT.find("onZ") != std::string::npos ) {
+	  if ( CAT_CUT.find("noZ5") != std::string::npos ) {
+	    if ( (abs(OS_pair_vec.M() - 91) < 5 && MU) ||
+		  abs(H_pair_vec.M()  - 91) < 5        )          { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("noZ5"), std::string("noZ5").length() );
+	  }
+	  if ( CAT_CUT.find("onZ10") != std::string::npos ) {
 	    if ( (abs(OS_pair_vec.M() - 91) > 10 || !MU) &&
-		  abs(H_pair_vec.M()  - 91) > 10          )           { pass_cat_cut = false; continue; }
-	    CAT_UNCUT.erase( CAT_UNCUT.find("onZ"), std::string("onZ").length() );
+		  abs(H_pair_vec.M()  - 91) > 10          )       { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("onZ10"), std::string("onZ10").length() );
+	  }
+	  if ( CAT_CUT.find("hiPt") != std::string::npos ) {
+	    if ( MU && H_pair_vec.Pt() < OS_pair_vec.Pt() &&
+		 OS_pair_vec.M() > 110 && OS_pair_vec.M() < 160 ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("hiPt"), std::string("hiPt").length() );
+	  }
+	  if ( CAT_CUT.find("onlyHiPt") != std::string::npos ) {
+	    if ( MU && H_pair_vec.Pt() < OS_pair_vec.Pt() )       { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("onlyHiPt"), std::string("onlyHiPt").length() );
+	  }
+	  if ( CAT_CUT.find("ele20") != std::string::npos ) {
+	    obj_sel.ele_pt_min = 20;
+	    if ( !MU && SelectedEles(obj_sel, br).size() != 1 )   { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("ele20"), std::string("ele20").length() );
+	  }
+	  if ( CAT_CUT.find("lepW20") != std::string::npos ) {
+	    obj_sel.ele_pt_min = 20;
+	    if ( !MU && SelectedEles(obj_sel, br).size() != 1 )   { pass_cat_cut = false; continue; }
+	    if (  MU && lep_vec.Pt() < 20 )                       { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("lepW20"), std::string("lepW20").length() );
+	  }
+	  if ( CAT_CUT.find("lep20") != std::string::npos ) {
+	    obj_sel.mu_pt_min  = 20;
+	    obj_sel.ele_pt_min = 20;
+	    if ( SelectedMuons(obj_sel, br).size() + SelectedEles(obj_sel, br).size() != 3 ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("lep20"), std::string("lep20").length() );
+	  }
+	  if ( CAT_CUT.find("looseLepMVA") != std::string::npos ) {
+	    obj_sel.mu_MVA_min  = -0.4;
+	    obj_sel.ele_MVA_min = -0.4;
+	    if ( SelectedMuons(obj_sel, br).size() + SelectedEles(obj_sel, br).size() != 3 ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("looseLepMVA"), std::string("looseLepMVA").length() );
+	  }
+	  if ( CAT_CUT.find("medLepMVA") != std::string::npos ) {
+	    obj_sel.mu_MVA_min  = 0.4;
+	    obj_sel.ele_MVA_min = 0.4;
+	    if ( SelectedMuons(obj_sel, br).size() + SelectedEles(obj_sel, br).size() != 3 ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("medLepMVA"), std::string("medLepMVA").length() );
+	  }
+	  if ( CAT_CUT.find("muMeleT_lepMVA") != std::string::npos ) {
+	    obj_sel.mu_MVA_min  = 0.4;
+	    obj_sel.ele_MVA_min = 0.8;
+	    if ( SelectedMuons(obj_sel, br).size() + SelectedEles(obj_sel, br).size() != 3 ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("muMeleT_LepMVA"), std::string("muMeleT_LepMVA").length() );
+	  }
+	  if ( CAT_CUT.find("tightLepMVA") != std::string::npos ) {
+	    obj_sel.mu_MVA_min  = 0.8;
+	    obj_sel.ele_MVA_min = 0.8;
+	    if ( SelectedMuons(obj_sel, br).size() + SelectedEles(obj_sel, br).size() != 3 ) { pass_cat_cut = false; continue; }
+	    CAT_UNCUT.erase( CAT_UNCUT.find("tightLepMVA"), std::string("tightLepMVA").length() );
+	  }
+	  if ( CAT_CUT.find("tightLepCut") != std::string::npos ) {
+	    if (        muH1_vec.Pt() < 20 || !muH1.isTightID || muH1.relIso > 0.12 ) { pass_cat_cut = false; continue; };
+	    if (        muH2_vec.Pt() < 20 || !muH2.isTightID || muH2.relIso > 0.12 ) { pass_cat_cut = false; continue; };
+	    if (  MU && (lep_vec.Pt() < 20 || !muW.isTightID  || muW.relIso > 0.12) ) { pass_cat_cut = false; continue; };
+	    if ( !MU && (lep_vec.Pt() < 20 || !ele.isTightID  || ele.relIso > 0.12) ) { pass_cat_cut = false; continue; };
+	    CAT_UNCUT.erase( CAT_UNCUT.find("tightLepCut"), std::string("tightLepCut").length() );
 	  }
 	  if ( CAT_CUT.find("ge2j") != std::string::npos ) {
 	    if ( SelectedJets(obj_sel, br).size() < 2 )               { pass_cat_cut = false; continue; }
@@ -521,45 +597,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 		 SelectedJets(obj_sel, br, "BTagLoose").size()  < 2 ) { pass_cat_cut = false; continue; }
 	    CAT_UNCUT.erase( CAT_UNCUT.find("btag"), std::string("btag").length() );
 	  }
-	  if ( CAT_CUT.find("looseLepMVA") != std::string::npos ) {
-	    if (!LepMVA(muH1, YEAR, "L") || !LepMVA(muH2, YEAR, "L") ) { pass_cat_cut = false; continue; }
-	    if ( MU && !LepMVA(muW, YEAR, "L") )                       { pass_cat_cut = false; continue; }
-	    if (!MU && !LepMVA(ele, YEAR, "L") )                       { pass_cat_cut = false; continue; }
-	    if (MU) lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] = LepMVASF(lepSF_mu_L, muH1.pt, muH1.eta) * LepMVASF(lepSF_mu_L, muH2.pt, muH2.eta) * LepMVASF(lepSF_mu_L,  muW.pt, muW.eta);
-	    else    lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] = LepMVASF(lepSF_mu_L, muH1.pt, muH1.eta) * LepMVASF(lepSF_mu_L, muH2.pt, muH2.eta) * LepMVASF(lepSF_ele_L, ele.pt, ele.eta);
-	    CAT_UNCUT.erase( CAT_UNCUT.find("looseLepMVA"), std::string("looseLepMVA").length() );
-	  }
-	  if ( CAT_CUT.find("medLepMVA") != std::string::npos ) {
-	    if ( !LepMVA(muH1, YEAR, "M") || !LepMVA(muH2, YEAR, "M") ) { pass_cat_cut = false; continue; }
-	    if ( MU && !LepMVA(muW, YEAR, "M") )                        { pass_cat_cut = false; continue; }
-	    if (!MU && !LepMVA(ele, YEAR, "M") )                        { pass_cat_cut = false; continue; }
-	    if (MU) lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] = LepMVASF(lepSF_mu_M, muH1.pt, muH1.eta) * LepMVASF(lepSF_mu_M, muH2.pt, muH2.eta) * LepMVASF(lepSF_mu_M,  muW.pt, muW.eta);
-	    else    lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] = LepMVASF(lepSF_mu_M, muH1.pt, muH1.eta) * LepMVASF(lepSF_mu_M, muH2.pt, muH2.eta) * LepMVASF(lepSF_ele_M, ele.pt, ele.eta);
-	    CAT_UNCUT.erase( CAT_UNCUT.find("medLepMVA"), std::string("medLepMVA").length() );
-	  }
-	  if ( CAT_CUT.find("muMeleT_lepMVA") != std::string::npos ) {
-	    if ( !LepMVA(muH1, YEAR, "M") || !LepMVA(muH2, YEAR, "M") ) { pass_cat_cut = false; continue; }
-	    if ( MU && !LepMVA(muW, YEAR, "M") )                        { pass_cat_cut = false; continue; }
-	    if (!MU && !LepMVA(ele, YEAR, "T") )                        { pass_cat_cut = false; continue; }
-	    if (MU) lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] = LepMVASF(lepSF_mu_M, muH1.pt, muH1.eta) * LepMVASF(lepSF_mu_M, muH2.pt, muH2.eta) * LepMVASF(lepSF_mu_M,  muW.pt, muW.eta);
-	    else    lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] = LepMVASF(lepSF_mu_M, muH1.pt, muH1.eta) * LepMVASF(lepSF_mu_M, muH2.pt, muH2.eta) * LepMVASF(lepSF_ele_T, ele.pt, ele.eta);
-	    CAT_UNCUT.erase( CAT_UNCUT.find("muMeleT_lepMVA"), std::string("muMeleT_lepMVA").length() );
-	  }
-	  if ( CAT_CUT.find("tightLepMVA") != std::string::npos ) {
-	    if ( !LepMVA(muH1, YEAR, "T") || !LepMVA(muH2, YEAR, "T") ) { pass_cat_cut = false; continue; }
-	    if ( MU && !LepMVA(muW, YEAR, "T") )                        { pass_cat_cut = false; continue; }
-	    if (!MU && !LepMVA(ele, YEAR, "Y") )                        { pass_cat_cut = false; continue; }
-	    if (MU) lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] = LepMVASF(lepSF_mu_T, muH1.pt, muH1.eta) * LepMVASF(lepSF_mu_T, muH2.pt, muH2.eta) * LepMVASF(lepSF_mu_T,  muW.pt, muW.eta);
-	    else    lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] = LepMVASF(lepSF_mu_T, muH1.pt, muH1.eta) * LepMVASF(lepSF_mu_T, muH2.pt, muH2.eta) * LepMVASF(lepSF_ele_T, ele.pt, ele.eta);
-	    CAT_UNCUT.erase( CAT_UNCUT.find("tightLepMVA"), std::string("tightLepMVA").length() );
-	  }
-	  if ( CAT_CUT.find("tightLepCut") != std::string::npos ) {
-	    if (        muH1_vec.Pt() < 20 || !muH1.isTightID || muH1.relIso > 0.12 ) { pass_cat_cut = false; continue; };
-	    if (        muH2_vec.Pt() < 20 || !muH2.isTightID || muH2.relIso > 0.12 ) { pass_cat_cut = false; continue; };
-	    if (  MU && (lep_vec.Pt() < 20 || !muW.isTightID  || muW.relIso > 0.12) ) { pass_cat_cut = false; continue; };
-	    if ( !MU && (lep_vec.Pt() < 20 || !ele.isTightID  || ele.relIso > 0.12) ) { pass_cat_cut = false; continue; };
-	    CAT_UNCUT.erase( CAT_UNCUT.find("tightLepCut"), std::string("tightLepCut").length() );
-	  }
+
 	  // Remove "_" characters left over after all known category sub-strings have been removed
 	  while ( CAT_UNCUT.find("_") != std::string::npos ) {
 	    CAT_UNCUT.erase( CAT_UNCUT.find("_"), std::string("_").length() );
@@ -582,6 +620,20 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  b_map_int["OPT_"+OPT_CUT+"_CAT_"+CAT_CUT] = 1;
 	  pass_cat_cuts = true;
 
+	  // Compute lepMVA muon and electron efficiency scale factors
+	  if ( CAT_CUT.find("LepMVA") != std::string::npos ) {
+	    std::string SFm, SFe;
+	    if ( CAT_CUT.find("looseLepMVA")    != std::string::npos ) { SFm = "mu_L"; SFe = "ele_L"; }
+	    if ( CAT_CUT.find("medLepMVA")      != std::string::npos ) { SFm = "mu_M"; SFe = "ele_M"; }
+	    if ( CAT_CUT.find("muMeleT_lepMVA") != std::string::npos ) { SFm = "mu_M"; SFe = "ele_T"; }
+	    if ( CAT_CUT.find("tightLepMVA")    != std::string::npos ) { SFm = "mu_T"; SFe = "ele_T"; }
+
+	    lepMVA_wgts[OPT_CUT+"_"+CAT_CUT]  = LepMVASF(lepSF[SFm], muH1.pt, muH1.eta);
+	    lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] *= LepMVASF(lepSF[SFm], muH2.pt, muH2.eta);
+	    if (MU) lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] *= LepMVASF(lepSF[SFm],  muW.pt, muW.eta);
+	    else    lepMVA_wgts[OPT_CUT+"_"+CAT_CUT] *= LepMVASF(lepSF[SFe], ele.pt, ele.eta);
+	  }
+
 	  // Store the lepMVA weight separately (varies depending on category selection)
 	  float lepMVA_wgt = (isData ? 1.0 : lepMVA_wgts[OPT_CUT+"_"+CAT_CUT]);
 	  b_map_flt["lepMVA_wgt_OPT_"+OPT_CUT+"_CAT_"+CAT_CUT] = lepMVA_wgt;
@@ -590,6 +642,16 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  //////////////////////////////////////
 	  ///  Compute a few more variables  ///
 	  //////////////////////////////////////
+
+	  // Full event variables
+	  JetInfos jets = SelectedJets(obj_sel, br);
+
+	  TLorentzVector MET_vec     = FourVec(*br.met);
+	  TLorentzVector lep_MET_vec = lep_vecT + MET_vec;
+	  TLorentzVector evt_vec     = FourVec(muons, PTC, eles, jets);
+	  TLorentzVector MHT_vec     = FourVec(muons, PTC, eles, jets, "T");
+	  MHT_vec.RotateZ(TMath::Pi());
+	  TLorentzVector lep_MHT_vec = lep_vecT + MHT_vec;
 
 	  // Leptons ordered by pT
 	  TLorentzVector lep1_vec;
@@ -652,6 +714,125 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  ///  Generate and fill branches and histograms  ///
 	  ///////////////////////////////////////////////////
 
+	  // Rank jets by highest b-tag score
+	  int   bjet1_idx = -99;
+	  int   bjet2_idx = -99;
+	  float bjet1_CSV = -99;
+	  float bjet2_CSV = -99;
+	  TLorentzVector bjet1_vec;
+	  TLorentzVector bjet2_vec;
+
+	  for (int i = 0; i < jets.size(); i++) {
+	    if (jets.at(i).deepCSV > bjet1_CSV) {
+	      bjet2_idx = bjet1_idx;
+	      bjet2_CSV = bjet1_CSV;
+	      bjet2_vec = bjet1_vec;
+	      bjet1_idx = i;
+	      bjet1_CSV = max(jets.at(i).deepCSV, float(-0.1));
+	      bjet1_vec = FourVec(jets.at(i));
+	    } else if (jets.at(i).deepCSV > bjet2_CSV) {
+	      bjet2_idx = i;
+	      bjet2_CSV = max(jets.at(i).deepCSV, float(-0.1));
+	      bjet2_vec = FourVec(jets.at(i));
+	    }
+	  }
+
+	  // Guess a plausible ttbar reconstruction in ttH signal events
+	  int top1_b_idx = -99;
+	  int top2_b_idx = -99;
+	  int topH_b_idx = -99;
+	  int W_jet1_idx = -99;
+	  int W_jet2_idx = -99;
+
+	  float top1_b_CSV = -99;
+	  float top2_b_CSV = -99;
+	  float topH_b_CSV = -99;
+
+	  TLorentzVector top1_b_vec;
+	  TLorentzVector top2_b_vec;
+	  TLorentzVector topH_b_vec;
+	  TLorentzVector W_jet1_vec;
+	  TLorentzVector W_jet2_vec;
+	  TLorentzVector W_jj_vec;
+	  TLorentzVector topH_vec;
+
+	  // Associate loose b-tagged jets with top quark decays
+	  if (bjet1_CSV > obj_sel.jet_btag_cuts.at(0)) {
+	    top1_b_idx = bjet1_idx;
+	    top1_b_CSV = bjet1_CSV;
+	    top1_b_vec = FourVec(jets.at(top1_b_idx));
+	  }
+	  if (bjet2_CSV > obj_sel.jet_btag_cuts.at(0)) {
+	    top2_b_idx = bjet2_idx;
+	    top2_b_CSV = bjet2_CSV;
+	    top2_b_vec = FourVec(jets.at(top2_b_idx));
+	  }
+
+	  // Pick the closest remaining pair in dR as the W candidate
+	  float min_dR_jj = 99;
+	  for (int i = 0; i < jets.size(); i++) {
+	    if (i == top1_b_idx || i == top2_b_idx || abs(jets.at(i).eta) > 2.4)
+	      continue;
+	    TLorentzVector jv1 = FourVec(jets.at(i));
+	    for (int j = i+1; j < jets.size(); j++) {
+	      if (j == top1_b_idx || j == top2_b_idx || abs(jets.at(j).eta) > 2.4)
+		continue;
+	      TLorentzVector jv2 = FourVec(jets.at(j));
+	      if (jv1.DeltaR(jv2) < min_dR_jj) {
+		W_jet1_idx = i;
+		W_jet2_idx = j;
+		W_jet1_vec = jv1;
+		W_jet2_vec = jv2;
+		W_jj_vec   = jv1+jv2;
+	      }
+	    }
+	  }
+
+	  // Pick the best bj(j) combination for an hadronic top
+	  float top_mass = -9999;
+	  // First consider the case with no selected di-jet W pair
+	  if (W_jet1_idx < 0) {
+	    for (int i = 0; i < jets.size(); i++) {
+	      if (i == top1_b_idx || i == top2_b_idx || abs(jets.at(i).eta) > 2.4)
+		continue;
+	      TLorentzVector jv1 = FourVec(jets.at(i));
+	      if ( top1_b_idx > 0 && abs((top1_b_vec+jv1).M() - 173) < abs(top_mass - 173) ) {
+		W_jet1_idx = i;
+		W_jet1_vec = jv1;
+		topH_b_idx = top1_b_idx;
+		topH_b_CSV = top1_b_CSV;
+		topH_b_vec = top1_b_vec;
+		topH_vec   = top1_b_vec+W_jet1_vec;
+	      }
+	      if ( top2_b_idx > 0 && abs((top2_b_vec+jv1).M() - 173) < abs(top_mass - 173) ) {
+		W_jet1_idx = i;
+		W_jet1_vec = jv1;
+		topH_b_idx = top2_b_idx;
+		topH_b_CSV = top2_b_CSV;
+		topH_b_vec = top2_b_vec;
+		topH_vec   = top2_b_vec+W_jet1_vec;
+	      }
+	    }
+	  } else { // Also consider the fully-reconstructed t --> bjj system
+	    if ( top1_b_idx > 0 && abs((top1_b_vec+W_jj_vec).M() - 173) < abs(top_mass - 173) ) {
+	      topH_b_idx = top1_b_idx;
+	      topH_b_CSV = top1_b_CSV;
+	      topH_b_vec = top1_b_vec;
+	      topH_vec   = top1_b_vec+W_jj_vec;
+	    }
+	    if ( top2_b_idx > 0 && abs((top2_b_vec+W_jj_vec).M() - 173) < abs(top_mass - 173) ) {
+	      topH_b_idx = top2_b_idx;
+	      topH_b_CSV = top2_b_CSV;
+	      topH_b_vec = top2_b_vec;
+	      topH_vec   = top2_b_vec+W_jj_vec;
+	    }
+	  }
+
+
+	  ///////////////////////////////////////////////////
+	  ///  Generate and fill branches and histograms  ///
+	  ///////////////////////////////////////////////////
+
 	  // Tuple containing maps and common options for "BookAndFill"
 	  std::tuple< const TString, std::map<TString, float> &, TTree *, std::map<TString, TH1*> &, const TString >
 	    tupF{ hist_tree, b_map_flt, out_tree, h_map_1D, h_pre };
@@ -684,16 +865,35 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupI, "nJetsCent",  11, -0.5, 10.5, SelectedJets(obj_sel, br, "Central").size(),    cat_evt_wgt );
 	  BookAndFill(tupI, "nJetsFwd",    6, -0.5,  5.5, SelectedJets(obj_sel, br, "Forward").size(),    cat_evt_wgt );
 
-	  BookAndFill(tupF, "jet1_pt",  30,    0, 150, (jets.size() > 0 ? jets.at(0).pt      : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet2_pt",  20,    0, 100, (jets.size() > 1 ? jets.at(1).pt      : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet1_eta", 20, -5.0, 5.0, (jets.size() > 0 ? jets.at(0).eta     : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet2_eta", 20, -5.0, 5.0, (jets.size() > 1 ? jets.at(1).eta     : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet1_CSV", 50, -1.0, 1.0, (jets.size() > 0 ? jets.at(0).deepCSV : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet2_CSV", 50, -1.0, 1.0, (jets.size() > 1 ? jets.at(1).deepCSV : -9), cat_evt_wgt, false );
+	  obj_sel.jet_pt_min = 30;
+	  BookAndFill(tupI, "nJetsCent30",  11, -0.5, 10.5, SelectedJets(obj_sel, br, "Central").size(),    cat_evt_wgt );
+	  obj_sel.jet_pt_min = 40;
+	  BookAndFill(tupI, "nJetsCent40",  11, -0.5, 10.5, SelectedJets(obj_sel, br, "Central").size(),    cat_evt_wgt );
+	  obj_sel.jet_pt_min = 50;
+	  BookAndFill(tupI, "nJetsCent50",  11, -0.5, 10.5, SelectedJets(obj_sel, br, "Central").size(),    cat_evt_wgt );
+	  obj_sel.jet_pt_min = 20;
+
+	  BookAndFill(tupF, "jet1_pt",  40,    0, 400, (jets.size() > 0 ? jets.at(0).pt                        : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet2_pt",  30,    0, 300, (jets.size() > 1 ? jets.at(1).pt                        : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet3_pt",  40,    0, 200, (jets.size() > 2 ? jets.at(2).pt                        : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet4_pt",  30,    0, 150, (jets.size() > 3 ? jets.at(3).pt                        : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet1_eta", 20, -5.0, 5.0, (jets.size() > 0 ? jets.at(0).eta                       : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet2_eta", 20, -5.0, 5.0, (jets.size() > 1 ? jets.at(1).eta                       : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet3_eta", 20, -5.0, 5.0, (jets.size() > 2 ? jets.at(2).eta                       : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet4_eta", 20, -5.0, 5.0, (jets.size() > 3 ? jets.at(3).eta                       : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet1_CSV", 22, -0.1, 1.0, (jets.size() > 0 ? max(jets.at(0).deepCSV, float(-0.1)) : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet2_CSV", 22, -0.1, 1.0, (jets.size() > 1 ? max(jets.at(1).deepCSV, float(-0.1)) : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet3_CSV", 22, -0.1, 1.0, (jets.size() > 2 ? max(jets.at(2).deepCSV, float(-0.1)) : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet4_CSV", 22, -0.1, 1.0, (jets.size() > 3 ? max(jets.at(3).deepCSV, float(-0.1)) : -9), cat_evt_wgt, false );
+
+	  BookAndFill(tupF, "bjet1_pt",  40,    0, 200, (bjet1_idx > 0 ? bjet1_vec.Pt() : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "bjet2_pt",  40,    0, 200, (bjet2_idx > 0 ? bjet2_vec.Pt() : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "bjet1_CSV", 22, -0.1, 1.0, (bjet1_idx > 0 ? bjet1_CSV      : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "bjet2_CSV", 22, -0.1, 1.0, (bjet2_idx > 0 ? bjet2_CSV      : -9), cat_evt_wgt, false );
 
 	  BookAndFill(tupF, "MET",  20, 0,  200, MET_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "MHT",  20, 0,  200, MHT_vec.Pt(), cat_evt_wgt );
-	  BookAndFill(tupF, "MASS", 30, 0, 1500, evt_vec.M(),  cat_evt_wgt );
+	  BookAndFill(tupF, "MASS", 20, 0, 2000, evt_vec.M(),  cat_evt_wgt );
 
 	  BookAndFill(tupF, "lep1_pt", 30, 0, 300, lep1_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "lep2_pt", 20, 0, 200, lep2_vec.Pt(), cat_evt_wgt );
@@ -762,7 +962,6 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "SS_pair_pt",        30,   0, 300, SS_pair_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "trilep_mass",       30,   0, 600, trilep_vec.M(),   cat_evt_wgt );
 
-
 	  // More useful variables for ttH vs. Z+jets and ttH vs. ttZ
 	  BookAndFill(tupI, "lep_charge",           3, -1.5, 1.5, sum_lep_charge,                    cat_evt_wgt );
 	  BookAndFill(tupF, "lep_H_pair_dEta",     20, -5.0, 5.0, SignedDEta( lep_vec, H_pair_vec ), cat_evt_wgt );
@@ -789,6 +988,29 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "muSS_MHT_dPhi_abs",   16,    0, 3.2, abs(muSS_vec.DeltaPhi(MHT_vec)),   cat_evt_wgt );  // "Wrong combo" of lep_MHT_dPhi_abs
 	  BookAndFill(tupF, "MHT_MET_dPhi_abs",    16,    0, 3.2, abs(MHT_vec.DeltaPhi(MET_vec)),    cat_evt_wgt );
 
+	  // Top quark reconstruction variables in ttH signal events
+	  BookAndFill(tupF, "top1_b_CSV", 22, -0.1,  1.0, (top1_b_idx > 0   ? top1_b_CSV      : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "top2_b_CSV", 22, -0.1,  1.0, (top2_b_idx > 0   ? top2_b_CSV      : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "topH_b_CSV", 22, -0.1,  1.0, (topH_b_idx > 0   ? topH_b_CSV      : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "top1_b_pt",  40,    0,  200, (top1_b_idx > 0   ? top1_b_vec.Pt() : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "top2_b_pt",  40,    0,  200, (top2_b_idx > 0   ? top1_b_vec.Pt() : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "topH_b_pt",  40,    0,  200, (topH_b_idx > 0   ? top1_b_vec.Pt() : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "W_jet1_pt",  30,    0,  300, (W_jet1_idx > 0   ? W_jet1_vec.Pt() : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "W_jet2_pt",  30,    0,  300, (W_jet2_idx > 0   ? W_jet2_vec.Pt() : -9), cat_evt_wgt, false);
+
+	  BookAndFill(tupF, "topH_mass", 100,    0, 1000, (topH_vec.M() > 0 ? topH_vec.M()    : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "topH_pt",    50,    0,  500, (topH_vec.M() > 0 ? topH_vec.Pt()   : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "W_jj_mass", 100,    0, 1000, (W_jj_vec.M() > 0 ? W_jj_vec.M()    : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "W_jj_pt",    50,    0,  500, (W_jj_vec.M() > 0 ? W_jj_vec.Pt()   : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "W_jj_dR",    20,    0,  6.0, (W_jj_vec.M() > 0 ? min_dR_jj       : -9), cat_evt_wgt, false);
+
+	  // Top quark reconstruction variables in ttbar background events
+	  BookAndFill(tupF, "bjet1_muSS_dR",   20, 0, 6.0, (bjet1_idx > 0 ? muSS_vec.DeltaR(bjet1_vec) : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_lep_dR",    20, 0, 6.0, (bjet1_idx > 0 ?  lep_vec.DeltaR(bjet1_vec) : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_muSS_pt",   30, 0, 300, (bjet1_idx > 0 ? (muSS_vec+bjet1_vec).Pt()  : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_lep_pt",    30, 0, 300, (bjet1_idx > 0 ?  (lep_vec+bjet1_vec).Pt()  : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_muSS_mass", 30, 0, 300, (bjet1_idx > 0 ? (muSS_vec+bjet1_vec).M()   : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_lep_mass",  30, 0, 300, (bjet1_idx > 0 ?  (lep_vec+bjet1_vec).M()   : -9), cat_evt_wgt, false);
 
 	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
       } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
