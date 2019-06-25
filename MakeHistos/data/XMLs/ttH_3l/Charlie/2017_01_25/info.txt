@@ -1,0 +1,4 @@
+
+Full event reconstruction BDT for ttH, H --> WW in the same-sign di-lepton decay channel
+From Charlie Mueller and the Notre Dame team (Kevin Lannon, Geoff Smith, etc.)
+https://github.com/cms-ttH/ttH-13TeVMultiLeptons/blob/master/simpleweights/reconstruction_bdt_weights/jan25_weights/

@@ -315,6 +315,16 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
 
 } // End function: bool JetPUID ()
 
+float JetCSV( const JetInfo & jet, const std::string opt ) {
+  assert(opt == "CSVv2" || opt == "deepCSV");
+  if (opt == "CSVv2") {
+    if ( isnan(jet.CSV) ) return -1.5;
+    else                  return jet.CSV;
+  } else {
+    if ( isnan(jet.deepCSV) ) return -1.5;
+    else                      return jet.deepCSV;
+  }
+} // End function: float JetCSV()
 
 // Return a new JetPair object, modeled on Ntupliser/DiMuons/src/JetPairHelper.cc
 JetPairInfo MakeJetPair( TLorentzVector jet1_vec, TLorentzVector jet2_vec ) {
