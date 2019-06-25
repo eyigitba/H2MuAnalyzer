@@ -23,8 +23,14 @@
 
 // #include "H2MuAnalyzer/MakeHistos/interface/SampleDatabase2016.h" // Input data and MC samples
 
+const std::string YEAR = "2017";
 // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
 R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
+
+// const std::string YEAR = "2018";
+// // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
+// R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
+
 
 // Hard-coded options for running locally / manually
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
@@ -36,30 +42,34 @@ const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WplusH_HToMuMu_WToAll_M125_13TeV_powheg_pythia8/H2Mu_WH_pos_125";
-const TString SAMPLE   = "H2Mu_WH_pos_125";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZJets_MG_1";
-// const TString SAMPLE   = "ZJets_MG_1";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/WZ_3l";
-// const TString SAMPLE   = "WZ_3l";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/SingleMuon/SingleMu_2017D";
-// const TString SAMPLE   = "SingleMu";
+const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WplusH_HToMuMu_WToAll_M125_13TeV_powheg_pythia8/H2Mu_WH_pos_125";
+const TString SAMPLE = "H2Mu_WH_pos_125";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZJets_MG_1";
+// const TString SAMPLE = "ZJets_MG_1";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/WZ_3l";
+// const TString SAMPLE = "WZ_3l";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/SingleMuon/SingleMu_2017D";
+// const TString SAMPLE = "SingleMu";
 
-const std::string YEAR  = "2017";
-const std::string SLIM  = "Slim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
+// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/WplusH_HToMuMu_WToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_WH_pos_125/190528_111606/0000";
+// const TString SAMPLE = "H2Mu_WH_pos_125";
+// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/SingleMuon/SingleMu_2018D/190528_111415/0000";
+// const TString SAMPLE = "SingleMu";
+
+const std::string SLIM  = (YEAR == "2018" ? "notSlim" : "Slim");  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR   = "plots";
 const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both
 
 // Cuts which every event must pass, applied in sequence
-const std::vector<std::string> SEL_CUTS = {"Presel2017"};
+const std::vector<std::string> SEL_CUTS = {"PreselRun2"};
 // Multiple selection cuts, applied independently in parallel
-// const std::vector<std::string> OPT_CUTS = {"lep", "lep_allMass", "3mu", "3mu_allMass", "e2mu", "e2mu_allMass"};
-const std::vector<std::string> OPT_CUTS = {"lep", "3mu", "e2mu"};
+const std::vector<std::string> OPT_CUTS = {"3lep", "3mu", "e2mu", "3lep_allMass", "3mu_allMass", "e2mu_allMass"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
 const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ5_noBtag",
 					    "medLepMVA_noZ10_noBtag",
-					    "hiPt_lepW20_medLepMVA_noZ10_noBtag" };
+					    "hiPt_lepW20_medLepMVA_noZ10_noBtag",
+					    "hiPt_lepW20_medLepMVA_onZ10_noBtag" };
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -90,14 +100,17 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
     in_file_names.push_back(in_file_name);
   }
   if (in_files.size() == 0) {
-    // for (int i = MIN_FILE; i <= MAX_FILE; i++) {
-    //   in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
-    //   std::cout << "Adding file " << in_file_name.Data() << std::endl;
-    //   in_file_names.push_back(in_file_name.Data());
-    // }
-    in_file_name.Form("%s/NTuple_0.root", in_dir.Data());
-    std::cout << "Adding file " << in_file_name.Data() << std::endl;
-    in_file_names.push_back(in_file_name.Data());
+    if (YEAR == "2018") {
+      for (int i = MIN_FILE; i <= MAX_FILE; i++) {
+	in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
+	std::cout << "Adding file " << in_file_name.Data() << std::endl;
+	in_file_names.push_back(in_file_name.Data());
+      }
+    } else {
+      in_file_name.Form("%s/NTuple_0.root", in_dir.Data());
+      std::cout << "Adding file " << in_file_name.Data() << std::endl;
+      in_file_names.push_back(in_file_name.Data());
+    }
   }
 
   // Open all input files
@@ -210,32 +223,33 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   lepSF["ele_L"] = LoadSFsLepMVA(YEAR, "ele", "L");
 
   std::cout << "\n******* About to load XML files for signal-background BDTs *******" << std::endl;
-  MVA::MVA BDT_XWZ_noMass( "data/XMLs/WH_3l/Xunwu/2019_05_12/2017_WH_ele_against_inclu_trimvar_all_sig_all_bkg_ge0j/",
-		       "weights/2017_WH_ele_against_inclu_trimvar_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
-		       "BDTG_UF_v2" );
-  MVA::MVA BDT_XWZ_withMass  ( "data/XMLs/WH_3l/Xunwu/2019_05_12/2017_WH_ele_against_inclu_trimvar_with_mass_all_sig_all_bkg_ge0j/",
-			       "weights/2017_WH_ele_against_inclu_trimvar_with_mass_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
-			       "BDTG_UF_v2" );
+  MVA BDT_XWZ_noMass( "data/XMLs/WH_3l/Xunwu/2019_05_12/2017_WH_ele_against_inclu_trimvar_all_sig_all_bkg_ge0j/",
+		      "weights/2017_WH_ele_against_inclu_trimvar_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
+		      "BDTG_UF_v2" );
+  MVA BDT_XWZ_withMass  ( "data/XMLs/WH_3l/Xunwu/2019_05_12/2017_WH_ele_against_inclu_trimvar_with_mass_all_sig_all_bkg_ge0j/",
+			  "weights/2017_WH_ele_against_inclu_trimvar_with_mass_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
+			  "BDTG_UF_v2" );
 
-  MVA::MVA BDT_AWB_2_noMass( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_AWB_noMass_v2_all_sig_all_bkg_ge0j/",
-			     "weights/f_Opt_AWB_noMass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
-			     "BDTG_UF_v1" );
-  MVA::MVA BDT_AWB_2_withMass( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_AWB_withMass_v2_all_sig_all_bkg_ge0j/",
-			       "weights/f_Opt_AWB_withMass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
-			       "BDTG_UF_v1" );
-  MVA::MVA BDT_AWB_2_retrain( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_noMassBDT_mass_v2_all_sig_all_bkg_ge0j/",
-			      "weights/f_Opt_noMassBDT_mass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
-			      "BDTG_UF_v1" );
+  MVA BDT_AWB_2_noMass( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_AWB_noMass_v2_all_sig_all_bkg_ge0j/",
+			"weights/f_Opt_AWB_noMass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
+			"BDTG_UF_v1" );
+  MVA BDT_AWB_2_withMass( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_AWB_withMass_v2_all_sig_all_bkg_ge0j/",
+			  "weights/f_Opt_AWB_withMass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
+			  "BDTG_UF_v1" );
+  MVA BDT_AWB_2_retrain( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_noMassBDT_mass_v2_all_sig_all_bkg_ge0j/",
+			 "weights/f_Opt_noMassBDT_mass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
+			 "BDTG_UF_v1" );
 
-  MVA::MVA BDT_AWB_3_noMass( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_AWB_noMass_v3_resWgt_all_sig_all_bkg_resWgt/",
-			     "weights/f_Opt_AWB_noMass_v3_resWgt_all_sig_all_bkg_resWgt_BDTG_UF_v1.weights.xml",
-			     "BDTG_UF_v1" );
-  MVA::MVA BDT_AWB_3_withMass( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_AWB_withMass_v3_all_sig_all_bkg_/",
-			       "weights/f_Opt_AWB_withMass_v3_all_sig_all_bkg__BDTG_UF_v1.weights.xml",
-			       "BDTG_UF_v1" );
-  MVA::MVA BDT_AWB_3_retrain( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_noMassBDT_mass_v3_all_sig_all_bkg_ge0j/",
-			      "weights/f_Opt_noMassBDT_mass_v3_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
-			      "BDTG_UF_v1" );
+  MVA BDT_AWB_3_noMass( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_AWB_noMass_v3_resWgt_all_sig_all_bkg_resWgt/",
+			"weights/f_Opt_AWB_noMass_v3_resWgt_all_sig_all_bkg_resWgt_BDTG_UF_v1.weights.xml",
+			"BDTG_UF_v1" );
+  MVA BDT_AWB_3_withMass( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_AWB_withMass_v3_all_sig_all_bkg_/",
+			  "weights/f_Opt_AWB_withMass_v3_all_sig_all_bkg__BDTG_UF_v1.weights.xml",
+			  "BDTG_UF_v1" );
+  MVA BDT_AWB_3_retrain( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_noMassBDT_mass_v3_all_sig_all_bkg_ge0j/",
+			 "weights/f_Opt_noMassBDT_mass_v3_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
+			 "BDTG_UF_v1" );
+
 
   std::cout << "\n******* About to enter the loop over " << in_chain->GetEntries() << " events *******" << std::endl;
   for (int iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++) {
@@ -253,7 +267,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
     
     if (verbose) std::cout << "... after, event = " << br.event->event << std::endl;
 
-    // For original 2016 and some 2017 NTuples, convert "SlimJets" collection into regular jets
+    // For original 2016 and some 2017 and 2018 NTuples, convert "SlimJets" collection into regular jets
     JetInfos jets_tmp;
     if (SLIM == "Slim") {
       jets_tmp = ConvertSlimJets(*(br.slimJets));
@@ -361,7 +375,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 		       abs(FourVec( SelectedMuPairs(obj_sel, br).at(1), PTC ).M() - 91) ? 0 : 1 );
 	    if (iZ != iPair) continue;
 	  }
-	  if ( MU && hiPt ) {
+	  if ( MU && hiPt && !allMass ) {
 	    // Choose the Higgs candidate pair with the higher vector pT value
 	    if ( FourVec(SelectedMuPairs(obj_sel, br).at((iPair+1) % 2), PTC).M()  > 110 &&
 		 FourVec(SelectedMuPairs(obj_sel, br).at((iPair+1) % 2), PTC).M()  < 160 &&
@@ -370,12 +384,12 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	}
 
 	// Special cuts for 3 muon category
-	if (OPT_CUT == "3mu" || OPT_CUT == "3mu_allMass" || OPT_CUT == "3mu_hiPt") {
+	if ( StartsWith(OPT_CUT, "3mu") ) {
 	  if (!MU) continue;
 	}
-	else if (OPT_CUT == "e2mu" || OPT_CUT == "e2mu_allMass") {
+	else if ( StartsWith(OPT_CUT, "e2mu") ) {
 	  if (MU) continue;
-	}
+	} else ASSERT( StartsWith(OPT_CUT, "3lep"), "StartsWith(OPT_CUT, '3lep')" );
 	pass_opt_cuts = true;
 
 	// Now we know the event passes the optional cut
@@ -758,10 +772,10 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupI, "nPV",   12, -0.5, 59.5, br.nVertices, cat_evt_wgt );
 	  BookAndFill(tupI, "nEles",  2,  0.5,  1.5, eles.size(),  cat_evt_wgt );
 
-	  // BookAndFill(tupI, "nJets",       8, -0.5, 7.5, jets.size(),                                    cat_evt_wgt );
-	  // BookAndFill(tupI, "nBJetsLoose", 6, -0.5, 5.5, SelectedJets(obj_sel, br, "BTagLoose").size(),  cat_evt_wgt );
-	  // BookAndFill(tupI, "nBJetsMed",   4, -0.5, 3.5, SelectedJets(obj_sel, br, "BTagMedium").size(), cat_evt_wgt );
-	  // BookAndFill(tupI, "nBJetsTight", 4, -0.5, 3.5, SelectedJets(obj_sel, br, "BTagTight").size(),  cat_evt_wgt );
+	  BookAndFill(tupI, "nJets",       8, -0.5, 7.5, jets.size(),                                    cat_evt_wgt );
+	  BookAndFill(tupI, "nBJetsLoose", 6, -0.5, 5.5, SelectedJets(obj_sel, br, "BTagLoose").size(),  cat_evt_wgt );
+	  BookAndFill(tupI, "nBJetsMed",   4, -0.5, 3.5, SelectedJets(obj_sel, br, "BTagMedium").size(), cat_evt_wgt );
+	  BookAndFill(tupI, "nBJetsTight", 4, -0.5, 3.5, SelectedJets(obj_sel, br, "BTagTight").size(),  cat_evt_wgt );
 	  BookAndFill(tupI, "nJetsCent",   5, -0.5, 4.5, SelectedJets(obj_sel, br, "Central").size(),    cat_evt_wgt );
 	  BookAndFill(tupI, "nJetsFwd",    5, -0.5, 4.5, SelectedJets(obj_sel, br, "Forward").size(),    cat_evt_wgt );
 
@@ -789,9 +803,9 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "lepSS1_pt", 20, 0, 200, lepSS1_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "lepSS2_pt", 20, 0, 100, lepSS2_vec.Pt(), cat_evt_wgt );
 
-	  // BookAndFill(tupF, "lep1_eta", 24, -2.4, 2.4, lep1_vec.Eta(), cat_evt_wgt );
-	  // BookAndFill(tupF, "lep2_eta", 24, -2.4, 2.4, lep2_vec.Eta(), cat_evt_wgt );
-	  // BookAndFill(tupF, "lep3_eta", 24, -2.4, 2.4, lep3_vec.Eta(), cat_evt_wgt );
+	  BookAndFill(tupF, "lep1_eta", 24, -2.4, 2.4, lep1_vec.Eta(), cat_evt_wgt );
+	  BookAndFill(tupF, "lep2_eta", 24, -2.4, 2.4, lep2_vec.Eta(), cat_evt_wgt );
+	  BookAndFill(tupF, "lep3_eta", 24, -2.4, 2.4, lep3_vec.Eta(), cat_evt_wgt );
 
 	  BookAndFill(tupF, "muH1_eta", 12, -2.4, 2.4, muH1_vec.Eta(), cat_evt_wgt );
 	  BookAndFill(tupF, "muH2_eta", 12, -2.4, 2.4, muH2_vec.Eta(), cat_evt_wgt );
