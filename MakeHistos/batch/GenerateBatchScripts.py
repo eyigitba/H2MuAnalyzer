@@ -37,8 +37,8 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 #MACRO = 'macros/MC_data_comparison.C'
 #MACRO = 'macros/ggH_VBF_2l.C'
 #MACRO = 'macros/WH_lep.C'
-#MACRO = 'macros/ttH_3l.C'
-MACRO = 'macros/MiniNTupliser.C'
+MACRO = 'macros/ttH_3l.C'
+#MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/MiniNTupliser_4l_cat.C'
 #MACRO = 'macros/MiniNTupliser_WH_all_comb.C'
 #MACRO = 'macros/lepMVA_SF_calc.C'
@@ -53,25 +53,27 @@ LUMI   = 41500   ## 36814 for 2016, 41500 for 2017
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
 IN_DIR = ''
-HADD_IN = True   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
+HADD_IN = False   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
 
 ## Directory for logs and output root files
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%d/Histograms' % YEAR
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%d/Histograms' % YEAR
 
 #LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
-#LABEL = 'WH_lep_AWB_2019_04_24_v1'
-#LABEL = 'ttH_3l_AWB_2019_05_01_v1'
+#LABEL = 'WH_lep_AWB_2019_06_24_v1'
+LABEL = 'ttH_3l_AWB_2019_06_24_v1'
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'
-LABEL = 'VH_selection_2019april/pt10_iso04/WH_mu_test_run'
+#LABEL = 'VH_selection_2019april/pt10_iso04/WH_mu_test_run'
 #LABEL  = 'ttH_3l_AWB_2019_04_12_v1'
 #LABEL = 'data_MC_2018_M70_170_v1'
 #LABEL = 'WH_mu_med_ID_loose_iso_v1'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
+# JOBSIZE =  200  ## Size of input NTuples in MB, per job (WH with multiple categories)
+# JOBSIZE =   50  ## Size of input NTuples in MB, per job (ttH with BDT reconstruction)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
 PRT_EVT = 10000  ## Print every Nth event in each job
@@ -143,6 +145,8 @@ def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_
     sub_files[-1].write( 'error       = $(out_dir)/err/sub_%d_%s.err\n' % (job_num, samp_name) )
     sub_files[-1].write( 'log         = $(out_dir)/log/sub_%d_%s.log\n' % (job_num, samp_name) )
     sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*5) )  ## Use for WH_lep with more categories
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*20) )  ## Use for ttH with BDT reconstruction
     sub_files[-1].write( 'queue\n' )
     sub_files[-1].close()
     # print 'Wrote file %s' % sub_files[-1].name
@@ -360,7 +364,7 @@ def main():
         for iFile in range(len(in_files)):
             if (len(run_files) >= NJOBS - 1 and NJOBS > 0):
                 break
-            if (job_size > JOBSIZE and JOBSIZE > 0):
+            if ( (job_size > JOBSIZE and JOBSIZE > 0) or len(job_files) >= 50 ):  ## ROOT doesn't like vectors of file names that are too long
                 if VERBOSE: print 'In loop, writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
                 WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, job_size, samp_wgt)
                 job_size  = 0.
