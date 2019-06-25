@@ -87,8 +87,8 @@ bool PassSelection( const NTupleBranches & br, const EventSelectionConfig & evt,
   ////////////////////////////////////////
   ///  Pre-selection in 2017 and 2018  ///
   ////////////////////////////////////////
-  else if (selection == "Presel2017" || selection == "Presel2018") {
-    if (verbose) std::cout << "\n  * Applying Presel2017/2018 cuts" << std::endl;
+  else if (selection == "PreselRun2" || selection == "Presel2017" || selection == "Presel2018") {
+    if (verbose) std::cout << "\n  * Applying PreselRun2/2017/2018 cuts" << std::endl;
     if (verbose) std::cout << "    - Using " << obj.mu_pt_corr << " muon pT corrections"         << std::endl;
     if (verbose) std::cout << "    - Lead (triggering) muon pT > "      << evt.mu_trig_pt_min    << std::endl;
     if (verbose) std::cout << "    - Triggering muon must match HLT = " << evt.mu_trig_HLT_match << std::endl;
@@ -121,7 +121,7 @@ bool PassSelection( const NTupleBranches & br, const EventSelectionConfig & evt,
       break;
     } // End loop: for (int i = 0; i < br.nMuPairs; i++)
 
-  } // End else if (selection == "Presel2017" || selection == "Presel2018")
+  } // End else if (selection == "PreselRun2" || selection == "Presel2017" || selection == "Presel2018")
 
  
   else {
