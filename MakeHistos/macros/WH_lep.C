@@ -783,8 +783,8 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "jet2_pt",  20,    0, 100, (jets.size() > 1 ? jets.at(1).pt      : -9), cat_evt_wgt, false );
 	  BookAndFill(tupF, "jet1_eta", 20, -5.0, 5.0, (jets.size() > 0 ? jets.at(0).eta     : -9), cat_evt_wgt, false );
 	  BookAndFill(tupF, "jet2_eta", 20, -5.0, 5.0, (jets.size() > 1 ? jets.at(1).eta     : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet1_CSV", 50, -1.0, 1.0, (jets.size() > 0 ? jets.at(0).deepCSV : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet2_CSV", 50, -1.0, 1.0, (jets.size() > 1 ? jets.at(1).deepCSV : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet1_CSV", 50, -1.0, 1.0, (jets.size() > 0 ? JetCSV(jets.at(0)) : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet2_CSV", 50, -1.0, 1.0, (jets.size() > 1 ? JetCSV(jets.at(1)) : -9), cat_evt_wgt, false );
 
 	  BookAndFill(tupF, "MET",  20, 0,  200, MET_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "MHT",  20, 0,  200, MHT_vec.Pt(), cat_evt_wgt );
