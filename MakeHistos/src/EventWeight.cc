@@ -69,10 +69,10 @@ float EventWeight( const NTupleBranches & br, const EventWeightConfig & cfg, con
 
   float evt_weight = MuonWeight(br, cfg, verbose);
 
-  if (cfg.PU && br.PU_wgt <= 0) {
-    std::cout << "\n\nTruly bizzare case where PU_wgt = " << br.PU_wgt << "!!!" << std::endl;
-    std::cout << "Check computation!\n\n" << std::endl;
-  }
+  // if (cfg.PU && br.PU_wgt <= 0) {
+  //   std::cout << "\n\nTruly bizzare case where PU_wgt = " << br.PU_wgt << "!!!" << std::endl;
+  //   std::cout << "Check computation!\n\n" << std::endl;
+  // }
 
   if (cfg.year == "2016") {
 
