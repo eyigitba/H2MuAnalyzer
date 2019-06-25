@@ -212,8 +212,8 @@ JetInfos ConvertSlimJets(SlimJetInfos & _slimJets) {
     _jet.jecFactor  = _slimJet.jecFactor;
     _jet.jecUnc     = _slimJet.jecUnc;
 
-    _jet.CSV     = _slimJet.CSV;
-    _jet.deepCSV = _slimJet.deepCSV;
+    _jet.CSV     = ( isnan(_slimJet.CSV    ) ? -1.5 : _slimJet.CSV     );
+    _jet.deepCSV = ( isnan(_slimJet.deepCSV) ? -1.5 : _slimJet.deepCSV );
     _jet.puID    = _slimJet.puID;
     
     _jets.push_back(_jet);

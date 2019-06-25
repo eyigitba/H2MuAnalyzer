@@ -163,9 +163,9 @@ bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const NTup
 
   if (verbose) std::cout << "  * Inside JetPass, selection = " << sel << std::endl;
   if (verbose) std::cout << "  * Jet pT = " << jet.pt << ", eta = " << jet.eta << ", phi = " << jet.phi
-                         << ", puID = " << jet.puID << ", CSV = " << jet.CSV << ", deepCSV = " << jet.deepCSV << std::endl;
+                         << ", puID = " << jet.puID << ", CSV = " << JetCSV(jet, "CSVv2") << ", deepCSV = " << JetCSV(jet) << std::endl;
 
-  float jet_CSV = (cfg.year == "2016" ? jet.CSV : jet.deepCSV);  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+  float jet_CSV = JetCSV(jet, (cfg.year == "2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
 
   if ( jet.pt         < cfg.jet_pt_min     )         return false;
   if ( fabs(jet.eta)  > cfg.jet_eta_max    )         return false;
@@ -215,7 +215,7 @@ int JetMuonClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const 
     jetPass = false;
   } else {                         // Remove leptons with pT < 20 matched to b-tagged jets
     assert(cfg.mu_CSV_max == "loose");
-    float jet_CSV = (cfg.year == "2016" ? jet.CSV : jet.deepCSV);  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+    float jet_CSV = JetCSV(jet, (cfg.year == "2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
     if (vLep.Pt() > 20 || jet_CSV < cfg.jet_btag_cuts.at(0)) {
       jetPass = false;
     } else {
@@ -254,7 +254,7 @@ int JetEleClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const E
     jetPass = false;
   } else {                         // Remove leptons with pT < 20 matched to b-tagged jets
     assert(cfg.ele_CSV_max == "loose");
-    float jet_CSV = (cfg.year == "2016" ? jet.CSV : jet.deepCSV);  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+    float jet_CSV = JetCSV(jet, (cfg.year == "2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
     if (vLep.Pt() > 20 || jet_CSV < cfg.jet_btag_cuts.at(0)) {
       jetPass = false;
     } else {

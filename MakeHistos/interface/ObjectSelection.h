@@ -54,7 +54,7 @@ struct ObjectSelectionConfig {  // Default values taken from 2016
     std::cout << "\n*** ObjectSelectionConfig for year = " << year << " ***" << std::endl;
     std::cout << "Muons: pt_corr = " << mu_pt_corr << ", pt_min = " << mu_pt_min << ", eta_max = " << mu_eta_max << ", ID_cut = " << mu_ID_cut
 	      << ", iso_max = " << mu_iso_max << ", SIP_max = " << mu_SIP_max << ", seg_min = " << mu_seg_min
-	      << "MVA_min = " << mu_MVA_min << ", mu_CSV_max = " << mu_CSV_max << std::endl;
+	      << ", MVA_min = " << mu_MVA_min << ", mu_CSV_max = " << mu_CSV_max << std::endl;
     std::cout << "Electrons: pt_min = " << ele_pt_min << ", eta_max = " << ele_eta_max << ", ID_cut = " << ele_ID_cut
 	      << ", iso_max = " << ele_iso_max << ", SIP_max = " << ele_SIP_max
 	      << ", MVA_min = " << ele_MVA_min << ", ele_CSV_max = " << ele_CSV_max << std::endl;
