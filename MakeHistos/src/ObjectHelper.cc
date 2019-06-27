@@ -98,7 +98,7 @@ float MuPairMassErr ( const MuPairInfo & muPair, const std::string pt_corr ) {
 
 // Load LepMVA scale factor histogram
 TH2F * LoadSFsLepMVA( const std::string year, const std::string flavor, const std::string WP ) {
-  assert(year == "2016" || year == "2017");
+  assert(year == "2016" || year == "2017" || year == "2018");
   assert(flavor == "mu" || flavor == "ele");
   assert(WP == "T" || WP == "M" || WP == "L");
 
@@ -106,7 +106,7 @@ TH2F * LoadSFsLepMVA( const std::string year, const std::string flavor, const st
   if (year == "2016") {
     if (flavor == "mu")  SF_file = TFile::Open("data/LepMVA/scaleFactors_2016_mu.root");
     if (flavor == "ele") SF_file = TFile::Open("data/LepMVA/scaleFactors_2016_ele.root");
-  } else if (year == "2017") {
+  } else if (year == "2017" || year == "2018") {
     if (flavor == "mu")  SF_file = TFile::Open("data/LepMVA/scaleFactors_2017_mu.root");
     if (flavor == "ele") SF_file = TFile::Open("data/LepMVA/scaleFactors_2017_ele.root");
   }
