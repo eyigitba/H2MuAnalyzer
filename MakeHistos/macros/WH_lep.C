@@ -63,13 +63,14 @@ const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output
 // Cuts which every event must pass, applied in sequence
 const std::vector<std::string> SEL_CUTS = {"PreselRun2"};
 // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> OPT_CUTS = {"3lep", "3mu", "e2mu", "3lep_allMass", "3mu_allMass", "e2mu_allMass"};
+// const std::vector<std::string> OPT_CUTS = {"3lep", "3mu", "e2mu", "3lep_allMass", "3mu_allMass", "e2mu_allMass"};
+const std::vector<std::string> OPT_CUTS = {"3lep"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
 const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ5_noBtag",
 					    "medLepMVA_noZ10_noBtag",
-					    "hiPt_lepW20_medLepMVA_noZ10_noBtag",
-					    "hiPt_lepW20_medLepMVA_onZ10_noBtag" };
+					    "hiPt_lepW20_medLepMVA_noZ10_noBtag" };
+                                            // "hiPt_lepW20_medLepMVA_onZ10_noBtag" };
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.

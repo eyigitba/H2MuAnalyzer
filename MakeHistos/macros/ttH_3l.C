@@ -34,22 +34,28 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H
 
 // Hard-coded options for running locally / manually
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
-const int MIN_FILE = 1;     // Minimum index of input files to process
-const int MAX_FILE = 1;     // Maximum index of input files to process
-const int MAX_EVT  = 10000; // Maximum number of events to process
-const int PRT_EVT  = 1000;  // Print every N events
+const int MIN_FILE = 1;    // Minimum index of input files to process
+const int MAX_FILE = 1;    // Maximum index of input files to process
+const int MAX_EVT  = 1000; // Maximum number of events to process
+const int PRT_EVT  = 100;  // Print every N events
 const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8/H2Mu_ttH_125";
-const TString SAMPLE   = "H2Mu_ttH_125";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/tt_ll_MG";
-// const TString SAMPLE   = "tt_ll_MG";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTWJetsToLNu_TuneCP5_PSweights_13TeV-amcatnloFXFX-madspin-pythia8/ttW";
-// const TString SAMPLE   = "ttW";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
-// const TString SAMPLE   = "SingleMu";
+const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8/H2Mu_ttH_125";
+const TString SAMPLE = "H2Mu_ttH_125";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/tt_ll_MG";
+// const TString SAMPLE = "tt_ll_MG";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTWJetsToLNu_TuneCP5_PSweights_13TeV-amcatnloFXFX-madspin-pythia8/ttW";
+// const TString SAMPLE = "ttW";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
+// const TString SAMPLE = "SingleMu";
+
+// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/ttHToMuMu_M125_TuneCP5_PSweights_13TeV-powheg-pythia8/H2Mu_ttH_125/190528_111755/0000";
+// const TString SAMPLE = "H2Mu_ttH_125";
+// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/SingleMuon/SingleMu_2018D/190528_111415/0000";
+// const TString SAMPLE = "SingleMu";
+
 
 const std::string SLIM  = (YEAR == "2018" ? "notSlim" : "Slim");  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR   = "plots";
@@ -58,13 +64,14 @@ const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output
 // Cuts which every event must pass, applied in sequence
 const std::vector<std::string> SEL_CUTS = {"PreselRun2"};
 // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> OPT_CUTS = {"3lep", "3lep_allMass"};
+// const std::vector<std::string> OPT_CUTS = {"3lep", "3lep_allMass"};
+const std::vector<std::string> OPT_CUTS = {"3lep"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
 const std::vector<std::string> CAT_CUTS = { "looseLepMVA_ge2j_btag",
 					    "medLepMVA_noZ5_ge2j_btag",
-					    "hiPt_lepW20_medLepMVA_noZ10_ge2j_btag",
-					    "hiPt_lepW20_medLepMVA_onZ10_ge2j_btag" };
+                                            "hiPt_lepW20_medLepMVA_noZ10_ge2j_btag" };
+					    // "hiPt_lepW20_medLepMVA_onZ10_ge2j_btag" };
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
