@@ -1,4 +1,8 @@
 
+# for i in {0..150..3}; do
+#     echo "Running macros/StackPlots.py $i $((i+2))"
+#     `macros/StackPlots.py $i $((i+2))`
+# done
 
 macros/StackPlots.py  0  9
 macros/StackPlots.py 10 19
