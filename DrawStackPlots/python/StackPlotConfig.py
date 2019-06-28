@@ -15,6 +15,7 @@ class StackPlotConfig:
         self.ntuple_loc = 'NONE',  ## 'CERN', 'CERN_hiM', or 'UF'
         self.sig_mass   = 'NONE',  ## '120', '125', or '130'
         self.groups     = {}       ## 'Data', 'Sig', and 'Bkg' defined below
+        self.weight     = {}       ##  By individual sample, defined below
         self.colors     = {}       ##  Colors for stacked data in each group
 
 ## End class StackPlotConfig
@@ -44,15 +45,20 @@ def ConfigStackPlot(known_config, year):
 
         if (year == '2016'):
 
-            cfg.groups['Data']['Data']   = []  ## By default, all data samples go into 'Data'
-            cfg.groups['Sig']['Signal']  = []  ## By default, all signal samples go into 'Signal'
+            cfg.groups['Data']['Data']  = []  ## By default, all data samples go into 'Data'
+            cfg.groups['Sig']['Signal'] = []  ## By default, all signal samples go into 'Signal'
+
+            cfg.groups['Bkg']['ZJets'] = ['ZJets_AMC_0j_A', 'ZJets_AMC_1j_A','ZJets_AMC_2j_A', 'ZJets_MG',
+                                          'ZJets_MG_HT_70_100','ZJets_MG_HT_100_200_A', 'ZJets_MG_HT_100_200_B',
+                                          'ZJets_MG_HT_200_400_A', 'ZJets_MG_HT_200_400_B', 'ZJets_MG_HT_400_600_A',
+                                          'ZJets_MG_HT_400_600_B', 'ZJets_MG_HT_600_800', 'ZJets_MG_HT_800_1200',
+                                          'ZJets_MG_HT_1200_2500', 'ZJets_MG_HT_2500_inf']
             ## After GEN_wgt (+/-1) factor, AMC_0j sample has ~60% of the total stats,
             ##   vs. ~40% for ZJets_MG.  Weight by 0.6 and 0.4, respectively.
-            cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC_0j_A', 'ZJets_AMC_1j_A','ZJets_AMC_2j_A', 'ZJets_MG',
-                                               'ZJets_MG_HT_70_100','ZJets_MG_HT_100_200_A', 'ZJets_MG_HT_100_200_B',
-                                               'ZJets_MG_HT_200_400_A', 'ZJets_MG_HT_200_400_B', 'ZJets_MG_HT_400_600_A',
-                                               'ZJets_MG_HT_400_600_B', 'ZJets_MG_HT_600_800', 'ZJets_MG_HT_800_1200',
-                                               'ZJets_MG_HT_1200_2500', 'ZJets_MG_HT_2500_inf']
+            for samp in cfg.groups['Bkg']['ZJets']:
+                if 'ZJets_AMC' in samp: cfg.weight[samp] = 0.6
+                if 'ZJets_MG'  in samp: cfg.weight[samp] = 0.4
+
             cfg.groups['Bkg']['WZ']         = ['WZ_3l_AMC']
             cfg.groups['Bkg']['ttbar']      = ['tt_ll_MG_1', 'tt_ll_MG_2']
             cfg.groups['Bkg']['single top'] = ['tW_pos_1', 'tW_pos_2', 'tW_neg_1', 'tW_neg_2']
@@ -95,50 +101,81 @@ def ConfigStackPlot(known_config, year):
         cfg.ntuple_loc = 'CERN'
         cfg.sig_mass   = '125'
 
-        if (year == '2017'):
+        if (year == '2017' or year == '2018' or year == 'Run2'):
 
-            cfg.groups['Data']['Data']   = []  ## By default, all data samples go into 'Data'
-            cfg.groups['Sig']['Signal']  = []  ## By default, all signal samples go into 'Signal'
-            cfg.groups['Bkg']['WZ']         = ['WZ_3l']
-            cfg.groups['Bkg']['ZZ']         = ['ZZ_4l']
+            cfg.groups['Data']['Data']  = []  ## By default, all data samples go into 'Data'
+            cfg.groups['Sig']['Signal'] = []  ## By default, all signal samples go into 'Signal'
+
+            cfg.groups['Bkg']['WZ'] = ['WZ_3l']
+
+            cfg.groups['Bkg']['ZZ'] = ['ZZ_4l']
+            if (year == '2017' or year == 'Run2'):
+                cfg.groups['Bkg']['ZZ'] += ['ZZ_4l_gg_4mu', 'ZZ_4l_gg_2e2mu']
+            if (year == '2018' or year == 'Run2'):
+                cfg.groups['Bkg']['ZZ'] += ['ggZZ_4mu', 'ggZZ_4tau', 'ggZZ_2e2mu', 'ggZZ_2mu2tau']
+
             ## Powheg sample has ~70% of the stats, MadGraph sample has ~30%.  Weight by 0.7 and 0.3.
-            cfg.groups['Bkg']['ttbar']      = ['tt_ll_POW', 'tt_ll_MG']
-            cfg.groups['Bkg']['Other']      = []  ## Any background sample not of a specified type goes into 'Other'
+            cfg.groups['Bkg']['ttbar'] = ['tt_ll_POW', 'tt_ll_MG', 'tW_pos', 'tW_neg']
+            cfg.weight['tt_ll_POW'] = 0.7
+            cfg.weight['tt_ll_MG']  = 0.3
 
+            # ## Inclusive (mass > 50 GeV) Z+jets samples, to use for Z mass background validation plots
+            # cfg.groups['Bkg']['ZJets'] = ['ZJets_MG_1']
+            # if (year == '2017'):
+            #     ## Can't use extra 2017 samples for Run2 because they don't exist in 2018
+            #     cfg.groups['Bkg']['ZJets'] += ['ZJets_AMC', 'ZJets_MG_2']
+            #     ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
+            #     ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
+            #     cfg.weight['ZJets_AMC']  = 0.50
+            #     cfg.weight['ZJets_MG_1'] = 0.25
+            #     cfg.weight['ZJets_MG_2'] = 0.25
+            
+            ## High-mass (105 - 160 GeV) Z+jets samples, to use for Higgs mass signal region plots
+            cfg.groups['Bkg']['ZJets']  = ['ZJets_hiM_AMC', 'ZJets_hiM_MG']
+            ## Assume 50-50 split for AMC and MG
+            cfg.weight['ZJets_hiM_AMC'] = 0.5
+            cfg.weight['ZJets_hiM_MG']  = 0.5
+
+            cfg.groups['Bkg']['Other'] = []  ## Any background sample not of a specified type goes into 'Other'
+
+            ## Samples to exclude from consideration
+            cfg.excl_samps = ['tt_ll_AMC']
+            # cfg.excl_samps += ['ZJets_hiM_AMC',  ## Using inclusive samples, don't need 'hiM'
+            #                    'ZJets_hiM_MG']
+            cfg.excl_samps += ['ZJets_MG_1',  ## Using 'hiM' samples, don't need inclusive
+                               'ZJets_MG_2',
+                               'ZJets_AMC']
+
+
+            ## Special modifications for WH or ttH plots
             if known_config == 'WH_lep':
-                # ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
-                # ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
-                # cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
-                ## Assume 50-50 split for AMC and MG
-                cfg.groups['Bkg']['ZJets']      = ['ZJets_hiM_AMC', 'ZJets_hiM_MG']
-                cfg.groups['Bkg']['single top'] = ['tW_pos', 'tW_neg']
-                cfg.groups['Bkg']['ttX']        = ['ttW', 'ttZ', 'ttH', 'tZq']
-                # ## Samples to exclude from consideration
-                # cfg.excl_samps = ['ZJets_hiM_AMC',  ## Using inclusive samples, don't need 'hiM'
-                #                   'ZJets_hiM_MG']
-                ## Samples to exclude from consideration
-                cfg.excl_samps = ['ZJets_MG_1',  ## Using 'hiM' samples, don't need inclusive
-                                  'ZJets_MG_2',
-                                  'ZJets_AMC']
-            else:
-                ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
-                ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
-                cfg.groups['Bkg']['ZJets']      = ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']
+
+                cfg.groups['Bkg']['ttX']      = ['ttW', 'ttZ', 'ttH', 'tZq']
+                if (year == '2018' or year == 'Run2'):
+                    cfg.groups['Bkg']['ttX'] += ['tHq', 'tHW', 'ttZ_lowM', 'ttWW']
+
+            elif known_config == 'ttH_3l':
                 cfg.groups['Bkg']['top+X']      = ['tZq'] ## Missing tZW
+                if (year == '2018' or year == 'Run2'):
+                    cfg.groups['Bkg']['top+X'] += ['tHq', 'tHW', 'ttWW']
                 cfg.groups['Bkg']['ttW']        = ['ttW']
                 cfg.groups['Bkg']['ttZ']        = ['ttZ']
+                if (year == '2018' or year == 'Run2'):
+                    cfg.groups['Bkg']['ttZ']   += ['ttZ_lowM']
                 cfg.groups['Bkg']['ttH']        = ['ttH']
-                ## Samples to exclude from consideration
-                cfg.excl_samps = ['ZJets_hiM_AMC',  ## Using inclusive samples, don't need 'hiM'
-                                  'ZJets_hiM_MG']
+
+
+            else: print 'Config %s is not valid for year %s. Exiting.' % (known_config, year), sys.exit()
 
             ## Preserve ordering of groups
             cfg.groups['Data'] = OrderedDict(cfg.groups['Data'])
             cfg.groups['Sig']  = OrderedDict(cfg.groups['Sig'])
             cfg.groups['Bkg']  = OrderedDict(cfg.groups['Bkg'])
 
+        else: print 'Year %s not valid for config %s. Exiting.' % (year, known_config), sys.exit()
 
-        else: print 'Year %s not valid for config %s. Exiting.' % year, sys.exit()
+
+    if (year == '2017' or year == '2018' or year == 'Run2'):
 
         ## Colors for each group
         cfg.colors = {}
@@ -146,15 +183,13 @@ def ConfigStackPlot(known_config, year):
         cfg.colors['Data']       = R.kBlack
         cfg.colors['WZ']         = R.kViolet
         cfg.colors['ZZ']         = R.kPink+7
+        cfg.colors['ZJets']      = R.kAzure
         cfg.colors['ttbar']      = R.kOrange+2
         cfg.colors['Other']      = R.kCyan
 
         if known_config == 'WH_lep':
-            cfg.colors['ZJets']      = R.kAzure
-            cfg.colors['single top'] = R.kOrange
             cfg.colors['ttX']        = R.kSpring
         else:
-            cfg.colors['ZJets']      = R.kAzure
             cfg.colors['top+X']      = R.kOrange
             cfg.colors['ttW']        = R.kSpring
             cfg.colors['ttZ']        = R.kGreen+3
