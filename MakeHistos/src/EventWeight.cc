@@ -74,19 +74,17 @@ float EventWeight( const NTupleBranches & br, const EventWeightConfig & cfg, con
   //   std::cout << "Check computation!\n\n" << std::endl;
   // }
 
-  if (cfg.year == "2016") {
+  if (cfg.year == "2016" || cfg.year == "2017" || cfg.year == "2018") {
 
-    if (cfg.PU ) evt_weight *= br.PU_wgt;
+    if (cfg.PU) {
+      if (br.PU_wgt >= 99) {
+	std::cout << "\n\nTruly bizzare case where PU_wgt = " << br.PU_wgt << "!!!" << std::endl;
+	std::cout << "Check computation! Setting to 1.\n\n" << std::endl;
+      } else evt_weight *= br.PU_wgt;
+    }
     if (cfg.GEN) evt_weight *= br.GEN_wgt;
 
-  } // End conditional: if (cfg.year == "2016")
-
-  else if (cfg.year == "2017" || cfg.year == "2018") {
-
-    if (cfg.PU ) evt_weight *= br.PU_wgt;
-    if (cfg.GEN) evt_weight *= br.GEN_wgt;
-
-  } // End conditional: if (cfg.year == "2017" || cfg.year == "2018")
+  } // End conditional: if (cfg.year == "2016" || cfg.year == "2017" || cfg.year == "2018")
 
   else {
     std::cout << "Inside EventWeight.cc, invalid year = " << cfg.year << std::endl;

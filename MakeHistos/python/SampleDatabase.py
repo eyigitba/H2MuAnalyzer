@@ -40,7 +40,15 @@ def GetSamples(location = 'CERN', year = '2017'):
         elif (year == 2017):
             in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17'
 	elif (year == 2018):
-	    in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X'
+            in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X'
+        else:
+            print 'Invalid location (%s) and/or year (%d)!!!  Exiting.' % (location, year)
+            sys.exit
+    elif (location == 'CERN_3l'):
+	if (year == 2017):
+	    in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1'
+	elif (year == 2018):
+            in_dir = '/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l'
         else:
             print 'Invalid location (%s) and/or year (%d)!!!  Exiting.' % (location, year)
             sys.exit
@@ -53,9 +61,6 @@ def GetSamples(location = 'CERN', year = '2017'):
     elif (location == 'CERN_lepMVA_test_v2'):
 	if (year == 2017):
 	    in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2'
-    elif (location == 'CERN_lepMVA_3l_test_v1'): 
-	if (year == 2017):
-	    in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1'
 
     if ( in_dir == '' ):
         print 'Invalid location (%s) and/or year (%d)!!!  Exiting.' % (location, year)
@@ -87,6 +92,7 @@ def GetSamples(location = 'CERN', year = '2017'):
 	samples.append( SampleInfo('SingleMu_2018A', 'SingleMuon', 1, year, in_dir, 'Data') )
 	samples.append( SampleInfo('SingleMu_2018B', 'SingleMuon', 1, year, in_dir, 'Data') )
 	samples.append( SampleInfo('SingleMu_2018C', 'SingleMuon', 1, year, in_dir, 'Data') )
+	samples.append( SampleInfo('SingleMu_2018D', 'SingleMuon', 1, year, in_dir, 'Data') )
 
     ########################
     ###  Get MC samples  ###
@@ -96,71 +102,77 @@ def GetSamples(location = 'CERN', year = '2017'):
     ###  Signal  ###
     ################
 
-    if (year == 2016): mH = ''
+    if (year != 2017): mH = ''
     if (year == 2017): mH = '_125'
-    if (year == 2018): mH = ''
 
-    if (year == 2016): ORD = ''
+    if (year == 2016): mVH = ''
+    if (year >= 2017): mVH = '_125'
+
+    if (year != 2017): ORD = ''
     if (year == 2017): ORD = '_NLO'
-    if (year == 2018): ORD = ''
 
-    if (year == 2016): sig_gen = '_powheg_pythia8'
-    if (year == 2017): sig_gen = '_amcatnloFXFX_pythia8'
-    if (year == 2018): sig_gen = '_amcatnloFXFX_pythia8'    
+    if (year == 2016): ggH_gen = '_13TeV_powheg_pythia8'
+    if (year == 2017): ggH_gen = '_13TeV_amcatnloFXFX_pythia8'
+    if (year == 2018): ggH_gen = '_TuneCP5_PSweights_13TeV_amcatnloFXFX_pythia8'
+
+    if (year == 2016): VBF_gen = '_13TeV_powheg_pythia8'
+    if (year >= 2017): VBF_gen = '_TuneCP5_PSweights_13TeV_amcatnlo_pythia8'
 
     if (year == 2016): ggH_str = 'GluGlu_HToMuMu_'
-    if (year == 2017): ggH_str = 'GluGluHToMuMu_'
-    if (year == 2018): ggH_str = 'GluGluHToMuMu_'
+    if (year >= 2017): ggH_str = 'GluGluHToMuMu_'
 
     if (year == 2016): VBF_str = 'VBF_'
-    if (year == 2017): VBF_str = 'VBFH_'
+    if (year >= 2017): VBF_str = 'VBF'
 
     if (year == 2016): WH_pos_str = 'WPlusH_HToMuMu_'
-    if (year == 2017): WH_pos_str = 'WplusH_HToMuMu_WToAll_'
-    if (year == 2018): WH_pos_str = 'WplusH_HToMuMu_WToAll_'
+    if (year >= 2017): WH_pos_str = 'WplusH_HToMuMu_WToAll_'
 
     if (year == 2016): WH_neg_str = 'WMinusH_HToMuMu_'
-    if (year == 2017): WH_neg_str = 'WminusH_HToMuMu_WToAll_'
-    if (year == 2018): WH_neg_str = 'WminusH_HToMuMu_WToAll_'
+    if (year >= 2017): WH_neg_str = 'WminusH_HToMuMu_WToAll_'
 
     if (year == 2016): ZH_str = 'ZH_HToMuMu_'
-    if (year == 2017): ZH_str = 'ZH_HToMuMu_ZToAll_'
-    if (year == 2018): ZH_str = 'ZH_HToMuMu_ZToAll_'
+    if (year >= 2017): ZH_str = 'ZH_HToMuMu_ZToAll_'
+
+    if (year <= 2017): VH_gen = '_13TeV_powheg_pythia8'
+    if (year == 2018): VH_gen = '_TuneCP5_PSweights_13TeV_powheg_pythia8'
+
+    if (year == 2017): ttH_gen = '_TuneCP5_13TeV-powheg-pythia8'
+    if (year == 2018): ttH_gen = '_TuneCP5_PSweights_13TeV-powheg-pythia8'
 
     ## H2Mu_gg
-    if (year == 2016 or year == 2017):
-        samples.append( SampleInfo('H2Mu_gg'+mH+ORD,  ggH_str+'M125_13TeV'+sig_gen, 0.009618, year, in_dir, 'Sig') )
-        samples.append( SampleInfo('H2Mu_gg_120'+ORD, ggH_str+'M120_13TeV'+sig_gen, 0.009618, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
-        samples.append( SampleInfo('H2Mu_gg_130'+ORD, ggH_str+'M130_13TeV'+sig_gen, 0.009618, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
-    if (year == 2018):
-	samples.append( SampleInfo('H2Mu_gg', ggH_str+'M125_TuneCP5_PSweights_13TeV'+sig_gen, 0.009618, year, in_dir, 'Sig') ) 
+    samples.append( SampleInfo('H2Mu_gg'+mH +ORD, ggH_str+'M125'+ggH_gen, 0.009618, year, in_dir, 'Sig') )
+    samples.append( SampleInfo('H2Mu_gg_120'+ORD, ggH_str+'M120'+ggH_gen, 0.009618, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_gg_130'+ORD, ggH_str+'M130'+ggH_gen, 0.009618, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+
     ## H2Mu_VBF
-    if (year == 2016):
-        samples.append( SampleInfo('H2Mu_VBF'+mH,  VBF_str+'HToMuMu_M125_13TeV'+sig_gen, 0.0008208, year, in_dir, 'Sig') )
-        samples.append( SampleInfo('H2Mu_VBF_120', VBF_str+'HToMuMu_M120_13TeV'+sig_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
-        samples.append( SampleInfo('H2Mu_VBF_130', VBF_str+'HToMuMu_M130_13TeV'+sig_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    if (year != 2017):
+        samples.append( SampleInfo('H2Mu_VBF'+mH,  VBF_str+'HToMuMu_M125'+VBF_gen, 0.0008208, year, in_dir, 'Sig') )
+        samples.append( SampleInfo('H2Mu_VBF_120', VBF_str+'HToMuMu_M120'+VBF_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+        samples.append( SampleInfo('H2Mu_VBF_130', VBF_str+'HToMuMu_M130'+VBF_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
     if (year == 2017):
-        samples.append( SampleInfo('H2Mu_VBF_125_NLO_1', 'VBFHToMuMu_M125_TuneCP5_PSweights_13TeV_amcatnlo_pythia8', 0.0008208, year, in_dir, 'Sig') )
-        samples.append( SampleInfo('H2Mu_VBF_125_NLO_2', 'VBFHToMuMu_M125_TuneCP5_PSweights_13TeV_amcatnlo_pythia8', 0.0008208, year, in_dir, 'Sig') )
-        samples.append( SampleInfo('H2Mu_VBF_120_NLO_2', 'VBFHToMuMu_M120_TuneCP5_PSweights_13TeV_amcatnlo_pythia8', 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
-        samples.append( SampleInfo('H2Mu_VBF_130_NLO_2', 'VBFHToMuMu_M130_TuneCP5_PSweights_13TeV_amcatnlo_pythia8', 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+        samples.append( SampleInfo('H2Mu_VBF_125_NLO_1', VBF_str+'HToMuMu_M125'+VBF_gen, 0.0008208, year, in_dir, 'Sig') )
+        samples.append( SampleInfo('H2Mu_VBF_125_NLO_2', VBF_str+'HToMuMu_M125'+VBF_gen, 0.0008208, year, in_dir, 'Sig') )
+        samples.append( SampleInfo('H2Mu_VBF_120_NLO_2', VBF_str+'HToMuMu_M120'+VBF_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+        samples.append( SampleInfo('H2Mu_VBF_130_NLO_2', VBF_str+'HToMuMu_M130'+VBF_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
     
     ## H2Mu_VH
-    samples.append( SampleInfo('H2Mu_ZH'+mH,  ZH_str+'M125_13TeV_powheg_pythia8', 0.0001923, year, in_dir, 'Sig') )
-    samples.append( SampleInfo('H2Mu_ZH_120', ZH_str+'M120_13TeV_powheg_pythia8', 0.0001923, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
-    samples.append( SampleInfo('H2Mu_ZH_130', ZH_str+'M130_13TeV_powheg_pythia8', 0.0001923, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_ZH'+mVH, ZH_str+'M125'+VH_gen, 0.0001923, year, in_dir, 'Sig') )
+    samples.append( SampleInfo('H2Mu_ZH_120', ZH_str+'M120'+VH_gen, 0.0001923, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_ZH_130', ZH_str+'M130'+VH_gen, 0.0001923, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
     
-    samples.append( SampleInfo('H2Mu_WH_pos'+mH,  WH_pos_str+'M125_13TeV_powheg_pythia8', 0.0001858, year, in_dir, 'Sig') )
-    samples.append( SampleInfo('H2Mu_WH_pos_120', WH_pos_str+'M120_13TeV_powheg_pythia8', 0.0001858, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
-    samples.append( SampleInfo('H2Mu_WH_pos_130', WH_pos_str+'M130_13TeV_powheg_pythia8', 0.0001858, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_WH_pos'+mVH, WH_pos_str+'M125'+VH_gen, 0.0001858, year, in_dir, 'Sig') )
+    samples.append( SampleInfo('H2Mu_WH_pos_120', WH_pos_str+'M120'+VH_gen, 0.0001858, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_WH_pos_130', WH_pos_str+'M130'+VH_gen, 0.0001858, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
     
-    samples.append( SampleInfo('H2Mu_WH_neg'+mH,  WH_neg_str+'M125_13TeV_powheg_pythia8', 0.0001164, year, in_dir, 'Sig') )
-    samples.append( SampleInfo('H2Mu_WH_neg_120', WH_neg_str+'M120_13TeV_powheg_pythia8', 0.0001164, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
-    samples.append( SampleInfo('H2Mu_WH_neg_130', WH_neg_str+'M130_13TeV_powheg_pythia8', 0.0001164, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_WH_neg'+mVH, WH_neg_str+'M125'+VH_gen, 0.0001164, year, in_dir, 'Sig') )
+    samples.append( SampleInfo('H2Mu_WH_neg_120', WH_neg_str+'M120'+VH_gen, 0.0001164, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+    samples.append( SampleInfo('H2Mu_WH_neg_130', WH_neg_str+'M130'+VH_gen, 0.0001164, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
     
     ## H2Mu_ttH
-    if (year == 2017):
-        samples.append( SampleInfo('H2Mu_ttH'+mH, 'ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8', 0.0001103, year, in_dir, 'Sig') )  ## 0.5071 x 0.0002176 from YR4 (125 GeV)
+    if (year >= 2017):
+        samples.append( SampleInfo('H2Mu_ttH_120', 'ttHToMuMu_M120'+ttH_gen, 0.0001103, year, in_dir, 'Sig') )  ## 0.5071 x 0.0002176 from YR4 (125 GeV)
+        samples.append( SampleInfo('H2Mu_ttH_125', 'ttHToMuMu_M125'+ttH_gen, 0.0001103, year, in_dir, 'Sig') )  ## 0.5071 x 0.0002176 from YR4 (125 GeV)
+        samples.append( SampleInfo('H2Mu_ttH_130', 'ttHToMuMu_M130'+ttH_gen, 0.0001103, year, in_dir, 'Sig') )  ## 0.5071 x 0.0002176 from YR4 (125 GeV)
 
     
     ####################
@@ -231,6 +243,13 @@ def GetSamples(location = 'CERN', year = '2017'):
         samples.append( SampleInfo('tZW',      'ST_tWll_5f_LO_TuneCP5_PSweights_13TeV-madgraph-pythia8',               0.01123, year, in_dir, 'Bkg') )  ## AN-2018/025
 	samples.append( SampleInfo('tHq',      'THQ_4f_Hincl_13TeV_madgraph_pythia8',                                  0.07096, year, in_dir, 'Bkg') )  ## AN-2016/378
 	samples.append( SampleInfo('tHW',      'THW_5f_Hincl_13TeV_madgraph_pythia8',                                  0.01561, year, in_dir, 'Bkg') )  ## AN-2016/378
+    if (year == 2018):
+        samples.append( SampleInfo('tW_pos',   'ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8',     35.85,    year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('tW_neg',   'ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8', 35.85,    year, in_dir, 'Bkg') )
+        samples.append( SampleInfo('tZq',      'tZq_ll_4f_ckm_NLO_TuneCP5_13TeV-madgraph-pythia8',                     0.09418, year, in_dir, 'Bkg') )  ## AN-2018/025
+        # samples.append( SampleInfo('tZW',      'ST_tWll_5f_LO_TuneCP5_PSweights_13TeV-madgraph-pythia8',               0.01123, year, in_dir, 'Bkg') )  ## AN-2018/025
+	samples.append( SampleInfo('tHq',      'THQ_4f_Hincl_13TeV_madgraph_pythia8',                                  0.07096, year, in_dir, 'Bkg') )  ## AN-2016/378
+	samples.append( SampleInfo('tHW',      'THW_5f_Hincl_13TeV_madgraph_pythia8',                                  0.01561, year, in_dir, 'Bkg') )  ## AN-2016/378
 
     ## TTX
     if (year == 2016):
@@ -238,33 +257,45 @@ def GetSamples(location = 'CERN', year = '2017'):
         samples.append( SampleInfo('ttW_2',    'TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8',      0.2043,  year, in_dir, 'Bkg') )  ## AN-2018/025
         samples.append( SampleInfo('ttZ',      'TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8',              0.2728,  year, in_dir, 'Bkg') )  ## AN-2018/025
         samples.append( SampleInfo('ttH',      'ttHToNonbb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',     0.2151,  year, in_dir, 'Bkg') )
-    if (year == 2017):
-        samples.append( SampleInfo('ttW',      'TTWJetsToLNu_TuneCP5_PSweights_13TeV-amcatnloFXFX-madspin-pythia8', 0.2043,  year, in_dir, 'Bkg') )  ## AN-2018/025
-	samples.append( SampleInfo('ttWW',     'TTWW_TuneCP5_13TeV-madgraph-pythia8',                               0.00783, year, in_dir, 'Bkg') )  ## AN-2018/025 (arXiv 1405.0301 has 0.0099)
+    if (year >= 2017):
         samples.append( SampleInfo('ttZ',      'TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8',                   0.2728,  year, in_dir, 'Bkg') )  ## AN-2018/025
 	samples.append( SampleInfo('ttZ_lowM', 'TTZToLL_M-1to10_TuneCP5_13TeV-amcatnlo-pythia8',                    0.0493,  year, in_dir, 'Bkg') )  ## AN-2018/025
+	samples.append( SampleInfo('ttWW',     'TTWW_TuneCP5_13TeV-madgraph-pythia8',                               0.00783, year, in_dir, 'Bkg') )  ## AN-2018/025 (arXiv 1405.0301 has 0.0099)
+    if (year == 2017):
+        samples.append( SampleInfo('ttW',      'TTWJetsToLNu_TuneCP5_PSweights_13TeV-amcatnloFXFX-madspin-pythia8', 0.2043,  year, in_dir, 'Bkg') )  ## AN-2018/025
         samples.append( SampleInfo('ttH',      'ttHJetToNonbb_M125_TuneCP5_13TeV_amcatnloFXFX_madspin_pythia8',     0.2151,  year, in_dir, 'Bkg') )
+    if (year == 2018):
+        samples.append( SampleInfo('ttW',      'TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8',           0.2043,  year, in_dir, 'Bkg') )  ## AN-2018/025
+        samples.append( SampleInfo('ttH',      'ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8',                      0.2151,  year, in_dir, 'Bkg') )
 
 
     ## Diboson
-    samples.append(     SampleInfo('WZ_2l',          'WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',      4.409,   year, in_dir, 'Bkg') ) ## Consistent with current WZ_3l, see below - AWB 28.09.2018
-    samples.append(     SampleInfo('ZZ_2l_2q',       'ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',      3.22,    year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+    samples.append(     SampleInfo('WZ_2l',          'WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',       4.409,   year, in_dir, 'Bkg') ) ## Consistent with current WZ_3l, see below - AWB 28.09.2018
+    samples.append(     SampleInfo('ZZ_2l_2q',       'ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',       3.22,    year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
     if (year == 2016):
-        samples.append( SampleInfo('WW',             'WWTo2L2Nu_13TeV-powheg',                          12.46,    year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
-        samples.append( SampleInfo('WZ_3l_AMC',      'WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 4.666,   year, in_dir, 'Bkg') ) ## We used 2.113 in 2016 - AWB 09.10.2018    4.430(2016) from TOP-18-008, 4.666(2016) from AN-2017/277, 5.063(2017) from TOP-18-008. use 4.666 to align with Hamburg - XZW 13.05.2019
-        samples.append( SampleInfo('ZZ_2l_2v',       'ZZTo2L2Nu_13TeV_powheg_pythia8',                   0.564,   year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
-        samples.append( SampleInfo('ZZ_4l_AMC',      'ZZTo4L_13TeV-amcatnloFXFX-pythia8',                1.212,   year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+        samples.append( SampleInfo('WW',             'WWTo2L2Nu_13TeV-powheg',                           12.46,    year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+        samples.append( SampleInfo('WZ_3l_AMC',      'WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',  4.666,   year, in_dir, 'Bkg') ) ## We used 2.113 in 2016 - AWB 09.10.2018    4.430(2016) from TOP-18-008, 4.666(2016) from AN-2017/277, 5.063(2017) from TOP-18-008. use 4.666 to align with Hamburg - XZW 13.05.2019
+        samples.append( SampleInfo('ZZ_2l_2v',       'ZZTo2L2Nu_13TeV_powheg_pythia8',                    0.564,   year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+        samples.append( SampleInfo('ZZ_4l_AMC',      'ZZTo4L_13TeV-amcatnloFXFX-pythia8',                 1.212,   year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
     if (year == 2017):
-        samples.append( SampleInfo('WW',             'WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8',  12.46,    year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+        samples.append( SampleInfo('WW',             'WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8',   12.46,    year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+        samples.append( SampleInfo('ZZ_4l',          'ZZTo4L_13TeV_powheg_pythia8',                       1.212,   year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+        samples.append( SampleInfo('ZZ_4l_gg_4mu',   'GluGluToContinToZZTo4mu_13TeV_MCFM701_pythia8',     0.00159, year, in_dir, 'Bkg') ) ## From AN-2018/340
+        samples.append( SampleInfo('ZZ_4l_gg_2e2mu', 'GluGluToContinToZZTo2e2mu_13TeV_MCFM701_pythia8',   0.00319, year, in_dir, 'Bkg') ) ## From AN-2018/340
+    if (year == 2018):
+        samples.append( SampleInfo('WW_2l_1',        'WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8',   12.46,    year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+        samples.append( SampleInfo('ZZ_4l',          'ZZTo4L_TuneCP5_13TeV_powheg_pythia8',               1.212,   year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
+        samples.append( SampleInfo('ggZZ_4mu',       'GluGluToContinToZZTo4mu_13TeV_MCFM701_pythia8',     0.00159, year, in_dir, 'Bkg') ) ## From AN-2018/340
+        samples.append( SampleInfo('ggZZ_4tau',      'GluGluToContinToZZTo4tau_13TeV_MCFM701_pythia8',    0.00159, year, in_dir, 'Bkg') ) ## From AN-2018/340
+        samples.append( SampleInfo('ggZZ_2e2mu',     'GluGluToContinToZZTo2e2mu_13TeV_MCFM701_pythia8',   0.00319, year, in_dir, 'Bkg') ) ## From AN-2018/340
+        samples.append( SampleInfo('ggZZ_2e2tau',    'GluGluToContinToZZTo2e2tau_13TeV_MCFM701_pythia8',  0.00319, year, in_dir, 'Bkg') ) ## From AN-2018/340
+        samples.append( SampleInfo('ggZZ_2mu2tau',   'GluGluToContinToZZTo2mu2tau_13TeV_MCFM701_pythia8', 0.00319, year, in_dir, 'Bkg') ) ## From AN-2018/340
+    if (year >= 2017):
         samples.append( SampleInfo('WZ_3l',          'WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8',      4.666,   year, in_dir, 'Bkg') ) ## We used 2.113 in 2016 - AWB 09.10.2018    4.430(2016) from TOP-18-008, 4.666(2016) from AN-2017/277, 5.063(2017) from TOP-18-008. use 4.666 to align with Hamburg - XZW 13.05.2019
-        samples.append( SampleInfo('ZZ_4l',          'ZZTo4L_13TeV_powheg_pythia8',                      1.212,   year, in_dir, 'Bkg') ) ## https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns
-        samples.append( SampleInfo('ZZ_4l_gg_2e2mu', 'GluGluToContinToZZTo2e2mu_13TeV_MCFM701_pythia8',  0.00319, year, in_dir, 'Bkg') ) ## From AN-2018/340
-        samples.append( SampleInfo('ZZ_4l_gg_4mu',   'GluGluToContinToZZTo4mu_13TeV_MCFM701_pythia8',    0.00159, year, in_dir, 'Bkg') ) ## From AN-2018/340
 
     ## Triboson
-    if (year == 2016): WWZ_str = 'WWZ'
+    if (year != 2017): WWZ_str = 'WWZ'
     if (year == 2017): WWZ_str = 'WWZ_4F'
-    if (year == 2018): WWZ_str = 'WWZ_4F'
 
     samples.append( SampleInfo('WWW', 'WWW_4F'+py_tune+'13TeV-amcatnlo-pythia8', 0.2086,  year, in_dir, 'Bkg') ) ## From AN-2017/277
     samples.append( SampleInfo('WWZ', WWZ_str+py_tune+'13TeV-amcatnlo-pythia8',  0.1651,  year, in_dir, 'Bkg') ) ## From AN-2017/277
