@@ -36,8 +36,8 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 #MACRO = 'macros/ReadNTupleChain.C'
 #MACRO = 'macros/MC_data_comparison.C'
 #MACRO = 'macros/ggH_VBF_2l.C'
-#MACRO = 'macros/WH_lep.C'
-MACRO = 'macros/ttH_3l.C'
+MACRO = 'macros/WH_lep.C'
+#MACRO = 'macros/ttH_3l.C'
 #MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/MiniNTupliser_4l_cat.C'
 #MACRO = 'macros/MiniNTupliser_WH_all_comb.C'
@@ -48,8 +48,8 @@ MACRO = 'macros/ttH_3l.C'
 #LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
 #LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
 LOC   = 'CERN_lepMVA_3l_test_v1'
-YEAR   = 2017    ## Dataset year (2016 or 2017)
-LUMI   = 41500   ## 36814 for 2016, 41500 for 2017
+YEAR   = 2017    ## Dataset year (2016, 2017, or 2018)
+LUMI   = 41500   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
 IN_DIR = ''
@@ -60,8 +60,8 @@ if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%d/Hi
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%d/Histograms' % YEAR
 
 #LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
-#LABEL = 'WH_lep_AWB_2019_06_24_v1'
-LABEL = 'ttH_3l_AWB_2019_06_24_v1'
+LABEL = 'WH_lep_AWB_2019_06_25_v1'
+#LABEL = 'ttH_3l_AWB_2019_06_25_v1'
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'
@@ -71,8 +71,8 @@ LABEL = 'ttH_3l_AWB_2019_06_24_v1'
 #LABEL = 'WH_mu_med_ID_loose_iso_v1'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
-JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
-# JOBSIZE =  200  ## Size of input NTuples in MB, per job (WH with multiple categories)
+# JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
+JOBSIZE =  200  ## Size of input NTuples in MB, per job (WH with multiple categories)
 # JOBSIZE =   50  ## Size of input NTuples in MB, per job (ttH with BDT reconstruction)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
@@ -144,9 +144,9 @@ def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_
     sub_files[-1].write( 'output      = $(out_dir)/out/sub_%d_%s.out\n' % (job_num, samp_name) )
     sub_files[-1].write( 'error       = $(out_dir)/err/sub_%d_%s.err\n' % (job_num, samp_name) )
     sub_files[-1].write( 'log         = $(out_dir)/log/sub_%d_%s.log\n' % (job_num, samp_name) )
-    sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
-    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*5) )  ## Use for WH_lep with more categories
-    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*20) )  ## Use for ttH with BDT reconstruction
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
+    sub_files[-1].write( '+MaxRuntime = %d\n' % max(2400, job_size*5) )  ## Use for WH_lep with more categories
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(3600, job_size*20) )  ## Use for ttH with BDT reconstruction
     sub_files[-1].write( 'queue\n' )
     sub_files[-1].close()
     # print 'Wrote file %s' % sub_files[-1].name
@@ -256,7 +256,8 @@ def main():
         hadd_files[cat].write('\nout_dir="%s/files"\n' % out_dir)
         hadd_files[cat].write('\necho "\nNavigating to ${out_dir}"')
         hadd_files[cat].write('\ncd ${out_dir}\n\n')
-        hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
+        if (YEAR == 2017): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
+        if (YEAR == 2018): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_11_patch1/external/slc6_amd64_gcc700/bin/hadd -f')
         hadd_files[cat].write( ' HADD/histos_%s.root' % cat)
 
     run_files = [] ## Separate submission script for each job
