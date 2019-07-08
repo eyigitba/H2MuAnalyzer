@@ -50,6 +50,7 @@ LOC  = 'CERN_3l'  ## Location of input files ('CERN', 'CERN_hiM', 'CERN_3l', or 
 #LOC  = 'CERN_lepMVA_3l_test_v1'
 YEAR = 2018    ## Dataset year (2016, 2017, or 2018)
 LUMI = 59100   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
 IN_DIR = ''
