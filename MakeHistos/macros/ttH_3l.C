@@ -21,14 +21,13 @@
 #include "H2MuAnalyzer/MakeHistos/interface/MiniNTupleHelper.h"   // "PlantTree" and "BookBranch" functions
 #include "H2MuAnalyzer/MakeHistos/interface/ReadMVA.h"            // Read and evaluate XMLs for MVA
 
-// #include "H2MuAnalyzer/MakeHistos/interface/SampleDatabase2016.h" // Input data and MC samples
 
 // const std::string YEAR = "2017";
 // // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
 // R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
 
-const std::string YEAR = "2016";
-// const std::string YEAR = "2018";
+// const std::string YEAR = "2016";
+const std::string YEAR = "2018";
 // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
 R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
 
@@ -43,8 +42,8 @@ const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/ttHToMuMu_M125_TuneCP5_PSweights_13TeV-powheg-pythia8/H2Mu_ttH_125/190625_204318/0000";
-const TString SAMPLE = "H2Mu_ttH_125";
+// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/ttHToMuMu_M125_TuneCP5_PSweights_13TeV-powheg-pythia8/H2Mu_ttH_125/190625_204318/0000";
+// const TString SAMPLE = "H2Mu_ttH_125";
 
 // const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8/H2Mu_ttH_125";
 // const TString SAMPLE = "H2Mu_ttH_125";
@@ -55,8 +54,8 @@ const TString SAMPLE = "H2Mu_ttH_125";
 // const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 // const TString SAMPLE = "SingleMu";
 
-// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/ttHToMuMu_M125_TuneCP5_PSweights_13TeV-powheg-pythia8/H2Mu_ttH_125/190528_111755/0000";
-// const TString SAMPLE = "H2Mu_ttH_125";
+const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/ttHToMuMu_M125_TuneCP5_PSweights_13TeV-powheg-pythia8/H2Mu_ttH_125/190528_111755/0000";
+const TString SAMPLE = "H2Mu_ttH_125";
 // const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/SingleMuon/SingleMu_2018D/190528_111415/0000";
 // const TString SAMPLE = "SingleMu";
 

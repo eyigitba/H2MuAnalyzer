@@ -36,8 +36,8 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 #MACRO = 'macros/ReadNTupleChain.C'
 #MACRO = 'macros/MC_data_comparison.C'
 #MACRO = 'macros/ggH_VBF_2l.C'
-MACRO = 'macros/WH_lep.C'
-#MACRO = 'macros/ttH_3l.C'
+#MACRO = 'macros/WH_lep.C'
+MACRO = 'macros/ttH_3l.C'
 #MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/MiniNTupliser_4l_cat.C'
 #MACRO = 'macros/MiniNTupliser_WH_all_comb.C'
@@ -46,8 +46,11 @@ MACRO = 'macros/WH_lep.C'
 #MACRO = 'macros/lepMVA_variables.C'
 
 LOC  = 'CERN_3l'  ## Location of input files ('CERN', 'CERN_hiM', 'CERN_3l', or 'UF')
-YEAR = '2016'     ## Dataset year (2016, 2017, or 2018)
-LUMI = 36814      ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+#LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
+#LOC  = 'CERN_lepMVA_3l_test_v1'
+YEAR = 2018    ## Dataset year (2016, 2017, or 2018)
+LUMI = 59100   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
 IN_DIR = ''
@@ -70,8 +73,8 @@ LABEL = 'WH_lep_AWB_2019_07_05_test_v1'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 # JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
-JOBSIZE =  200  ## Size of input NTuples in MB, per job (WH with multiple categories)
-# JOBSIZE =   50  ## Size of input NTuples in MB, per job (ttH with BDT reconstruction)
+# JOBSIZE =  200  ## Size of input NTuples in MB, per job (WH with multiple categories)
+JOBSIZE =   50  ## Size of input NTuples in MB, per job (ttH with BDT reconstruction)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
 PRT_EVT = 10000  ## Print every Nth event in each job
@@ -143,8 +146,8 @@ def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_
     sub_files[-1].write( 'error       = $(out_dir)/err/sub_%d_%s.err\n' % (job_num, samp_name) )
     sub_files[-1].write( 'log         = $(out_dir)/log/sub_%d_%s.log\n' % (job_num, samp_name) )
     # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
-    sub_files[-1].write( '+MaxRuntime = %d\n' % max(2400, job_size*5) )  ## Use for WH_lep with more categories
-    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(3600, job_size*20) )  ## Use for ttH with BDT reconstruction
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(2400, job_size*5) )  ## Use for WH_lep with more categories
+    sub_files[-1].write( '+MaxRuntime = %d\n' % max(3600, job_size*20) )  ## Use for ttH with BDT reconstruction
     sub_files[-1].write( 'queue\n' )
     sub_files[-1].close()
     # print 'Wrote file %s' % sub_files[-1].name
