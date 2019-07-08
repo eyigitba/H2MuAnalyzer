@@ -21,12 +21,12 @@
 #include "H2MuAnalyzer/MakeHistos/interface/MiniNTupleHelper.h"   // "PlantTree" and "BookBranch" functions
 #include "H2MuAnalyzer/MakeHistos/interface/ReadMVA.h"            // Read and evaluate XMLs for MVA
 
-// #include "H2MuAnalyzer/MakeHistos/interface/SampleDatabase2016.h" // Input data and MC samples
 
 // const std::string YEAR = "2017";
 // // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
 // R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
 
+// const std::string YEAR = "2016";
 const std::string YEAR = "2018";
 // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
 R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
@@ -36,11 +36,14 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
 const int MIN_FILE = 1;    // Minimum index of input files to process
 const int MAX_FILE = 1;    // Maximum index of input files to process
-const int MAX_EVT  = 1000; // Maximum number of events to process
+const int MAX_EVT  = 2000; // Maximum number of events to process
 const int PRT_EVT  = 100;  // Print every N events
 const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
+
+// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/ttHToMuMu_M125_TuneCP5_PSweights_13TeV-powheg-pythia8/H2Mu_ttH_125/190625_204318/0000";
+// const TString SAMPLE = "H2Mu_ttH_125";
 
 // const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8/H2Mu_ttH_125";
 // const TString SAMPLE = "H2Mu_ttH_125";
@@ -57,7 +60,7 @@ const TString SAMPLE = "H2Mu_ttH_125";
 // const TString SAMPLE = "SingleMu";
 
 
-const std::string SLIM  = (YEAR == "2018" ? "notSlim" : "Slim");  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
+const std::string SLIM  = (YEAR != "2017" ? "notSlim" : "Slim");  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR   = "plots";
 const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both
 
@@ -101,7 +104,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
     in_file_names.push_back(in_file_name);
   }
   if (in_files.size() == 0) {
-    if (YEAR == "2018") {
+    if (YEAR != "2017") {
       for (int i = MIN_FILE; i <= MAX_FILE; i++) {
 	in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
 	std::cout << "Adding file " << in_file_name.Data() << std::endl;
@@ -302,8 +305,8 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
     }
 
     // Initialize the selected Higgs candidate dimuon pair
-    MuPairInfo        H_pair;     // When filling histograms, have only one candidate pair at a time
-    TLorentzVector    H_pair_vec;
+    MuPairInfo     H_pair;  // When filling histograms, have only one candidate pair at a time
+    TLorentzVector H_pair_vec(0,0,0,0);
 
     bool MU = false;  // Says whether event has 3 muons or 1 electron + 2 muons
 
@@ -435,21 +438,21 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  MuonInfo   muSS2;   // Same-sign muon with lower pT
 	  MuonInfo   muOS;    // Opposite-sign muon
 
-	  TLorentzVector H_GEN_vec;
-	  TLorentzVector Z_GEN_vec;
-	  TLorentzVector H_true_vec;
-	  TLorentzVector Z_true_vec;
-	  TLorentzVector muH1_vec;
-	  TLorentzVector muH2_vec;
-	  TLorentzVector lep_vec;      // Lepton not chosen to be in Higgs candidate pair
-	  TLorentzVector lep_vecT;     // Transverse component only (eta = 0, pZ = 0, mass = 0)
-	  TLorentzVector OS_pair_vec;  // OS lepton pair not chosen as Higgs candidate (mu-mu or ele-mu)
-	  TLorentzVector lepSS1_vec;   // SS lepton with higher pT
-	  TLorentzVector lepSS2_vec;   // SS lepton with lower pT
-	  TLorentzVector muSS_vec;     // SS muon from the chosen Higgs candidate pair
-	  TLorentzVector muSS_vecT;    // Transverse component only (eta = 0, pZ = 0, mass = 0)
-	  TLorentzVector muOS_vec;     // OS muon
-	  TLorentzVector muOS_vecT;    // Transverse component only (eta = 0, pZ = 0, mass = 0)
+	  TLorentzVector H_GEN_vec(0,0,0,0);
+	  TLorentzVector Z_GEN_vec(0,0,0,0);
+	  TLorentzVector H_true_vec(0,0,0,0);
+	  TLorentzVector Z_true_vec(0,0,0,0);
+	  TLorentzVector muH1_vec(0,0,0,0);
+	  TLorentzVector muH2_vec(0,0,0,0);
+	  TLorentzVector lep_vec(0,0,0,0);      // Lepton not chosen to be in Higgs candidate pair
+	  TLorentzVector lep_vecT(0,0,0,0);     // Transverse component only (eta = 0, pZ = 0, mass = 0)
+	  TLorentzVector OS_pair_vec(0,0,0,0);  // OS lepton pair not chosen as Higgs candidate (mu-mu or ele-mu)
+	  TLorentzVector lepSS1_vec(0,0,0,0);   // SS lepton with higher pT
+	  TLorentzVector lepSS2_vec(0,0,0,0);   // SS lepton with lower pT
+	  TLorentzVector muSS_vec(0,0,0,0);     // SS muon from the chosen Higgs candidate pair
+	  TLorentzVector muSS_vecT(0,0,0,0);    // Transverse component only (eta = 0, pZ = 0, mass = 0)
+	  TLorentzVector muOS_vec(0,0,0,0);     // OS muon
+	  TLorentzVector muOS_vecT(0,0,0,0);    // Transverse component only (eta = 0, pZ = 0, mass = 0)
 
 	  muH1     = br.muons->at(H_pair.iMu1);
 	  muH2     = br.muons->at(H_pair.iMu2);
@@ -694,14 +697,42 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  TLorentzVector MET_vec     = FourVec(*br.met);
 	  TLorentzVector lep_MET_vec = lep_vecT + MET_vec;
 	  TLorentzVector evt_vec     = FourVec(muons, PTC, eles, jets);
-	  TLorentzVector MHT_vec     = FourVec(muons, PTC, eles, jets, "T");
+	  TLorentzVector MHT_vec     = FourVec(muons, PTC, eles, jetsCent, "T");
 	  MHT_vec.RotateZ(TMath::Pi());
 	  TLorentzVector lep_MHT_vec = lep_vecT + MHT_vec;
 
+	  // Transverse mass and sum of pT variables
+	  TLorentzVector HT_lep_vec = lep_vecT + muSS_vecT + muOS_vecT;
+	  float HT_lep_sum = lep_vecT.Pt() + muSS_vecT.Pt() + muOS_vecT.Pt();
+	  TLorentzVector HT_jet_vec(0,0,0,0);
+	  float HT_jet_sum = 0;
+	  for (const auto & jet : jetsCent) {
+	    HT_jet_vec += FourVec(jet, "T");
+	    HT_jet_sum += jet.pt;
+	  }
+
+	  // Variables from ttH leptonic search (http://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-17-018)
+	  float min_lep_jet_dR  = 99.;
+	  float min_muSS_jet_dR = 99.;
+	  float min_muOS_jet_dR = 99.;
+	  float sum_jet_dR = 0;
+	  int     n_jet_dR = 0;
+	  for (int iJet = 0; iJet < jetsCent.size(); iJet++) {
+	    min_lep_jet_dR  = min(min_lep_jet_dR,  lep_vec.DeltaR( FourVec(jetsCent.at(iJet)) ) );
+	    min_muSS_jet_dR = min(min_muSS_jet_dR, lep_vec.DeltaR( FourVec(jetsCent.at(iJet)) ) );
+	    min_muOS_jet_dR = min(min_muOS_jet_dR, lep_vec.DeltaR( FourVec(jetsCent.at(iJet)) ) );
+	    for (int jJet = iJet+1; jJet < jetsCent.size(); jJet++) {
+	      sum_jet_dR += FourVec(jetsCent.at(iJet)).DeltaR( FourVec(jetsCent.at(jJet)) );
+	      n_jet_dR += 1;
+	    }
+	  }
+	  float avg_jet_dR = sum_jet_dR / n_jet_dR;
+
+
 	  // Leptons ordered by pT
-	  TLorentzVector lep1_vec;
-	  TLorentzVector lep2_vec;
-	  TLorentzVector lep3_vec;
+	  TLorentzVector lep1_vec(0,0,0,0);
+	  TLorentzVector lep2_vec(0,0,0,0);
+	  TLorentzVector lep3_vec(0,0,0,0);
 
 	  if ( lepSS1_vec.Pt() > muOS_vec.Pt() ) {
 	    lep1_vec = lepSS1_vec;
@@ -764,8 +795,8 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  int   bjet2_idx = -99;
 	  float bjet1_CSV = -99;
 	  float bjet2_CSV = -99;
-	  TLorentzVector bjet1_vec;
-	  TLorentzVector bjet2_vec;
+	  TLorentzVector bjet1_vec(0,0,0,0);
+	  TLorentzVector bjet2_vec(0,0,0,0);
 
 	  for (int i = 0; i < jets.size(); i++) {
 	    if (JetCSV(jets.at(i)) > bjet1_CSV) {
@@ -797,13 +828,13 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  float MAN_top2_b_CSV = -99;
 	  float MAN_topH_b_CSV = -99;
 
-	  TLorentzVector MAN_top1_b_vec;
-	  TLorentzVector MAN_top2_b_vec;
-	  TLorentzVector MAN_topH_b_vec;
-	  TLorentzVector MAN_W_jet1_vec;
-	  TLorentzVector MAN_W_jet2_vec;
-	  TLorentzVector MAN_W_jj_vec;
-	  TLorentzVector MAN_topH_vec;
+	  TLorentzVector MAN_top1_b_vec(0,0,0,0);
+	  TLorentzVector MAN_top2_b_vec(0,0,0,0);
+	  TLorentzVector MAN_topH_b_vec(0,0,0,0);
+	  TLorentzVector MAN_W_jet1_vec(0,0,0,0);
+	  TLorentzVector MAN_W_jet2_vec(0,0,0,0);
+	  TLorentzVector MAN_W_jj_vec(0,0,0,0);
+	  TLorentzVector MAN_topH_vec(0,0,0,0);
 
 	  // Associate loose b-tagged jets with top quark decays
 	  if (bjet1_CSV > obj_sel.jet_btag_cuts.at(0)) {
@@ -923,10 +954,10 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 		  if (ij2 >= 0 && ij1 < 0) continue;                                                 // Second jet from W cannot be present if first is absent
 		  if ((ibL < 0) + (ibH < 0) + (ij1 < 0) + (ij2 < 0) > 1) continue;                   // Require at least 3 matched jets
 
-		  TLorentzVector W_jj_vec;
+		  TLorentzVector W_jj_vec(0,0,0,0);
 		  if (ij1 >= 0) W_jj_vec += FourVec(jetsCent.at(ij1));
 		  if (ij2 >= 0) W_jj_vec += FourVec(jetsCent.at(ij2));
-		  TLorentzVector topH_vec;
+		  TLorentzVector topH_vec(0,0,0,0);
 		  if (ibH >= 0) topH_vec += FourVec(jetsCent.at(ibH));
 		  if (ij1 >= 0) topH_vec += W_jj_vec;
 
@@ -971,7 +1002,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  float BDT_topL_b_CSV = (BDT_topL_b_idx < 0 ? -99 : JetCSV(jetsCent.at(BDT_topL_b_idx)));
 	  float BDT_topH_b_CSV = (BDT_topH_b_idx < 0 ? -99 : JetCSV(jetsCent.at(BDT_topH_b_idx)));
 
-	  TLorentzVector zero_vec;
+	  TLorentzVector zero_vec(0,0,0,0);
 	  TLorentzVector BDT_topL_b_vec = (BDT_topL_b_idx < 0 ? zero_vec : FourVec(jetsCent.at(BDT_topL_b_idx)));
 	  TLorentzVector BDT_topH_b_vec = (BDT_topH_b_idx < 0 ? zero_vec : FourVec(jetsCent.at(BDT_topH_b_idx)));
 	  TLorentzVector BDT_W_jet1_vec = (BDT_W_jet1_idx < 0 ? zero_vec : FourVec(jetsCent.at(BDT_W_jet1_idx)));
@@ -1045,6 +1076,21 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "MET",  20, 0,  200, MET_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "MHT",  20, 0,  200, MHT_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "MASS", 20, 0, 2000, evt_vec.M(),  cat_evt_wgt );
+
+	  BookAndFill(tupF, "HT_jet",       25, 0, 1000, HT_jet_sum,                             cat_evt_wgt );
+	  BookAndFill(tupF, "HT_lep",       24, 0,  600, HT_lep_sum,                             cat_evt_wgt );
+	  BookAndFill(tupF, "HT_jetLep",    24, 0, 1200, HT_jet_sum + HT_lep_sum,                cat_evt_wgt );
+	  BookAndFill(tupF, "HT_jetLepMHT", 30, 0, 1500, HT_jet_sum + HT_lep_sum + MHT_vec.Pt(), cat_evt_wgt );
+
+	  BookAndFill(tupF, "MT_jet",       20, 0,  800,  HT_jet_vec.M(),                         cat_evt_wgt );
+	  BookAndFill(tupF, "MT_lep",       20, 0,  400,  HT_lep_vec.M(),                         cat_evt_wgt );
+	  BookAndFill(tupF, "MT_jetLep",    24, 0, 1200, (HT_jet_vec + HT_lep_vec).M(),           cat_evt_wgt );
+	  BookAndFill(tupF, "MT_jetLepMHT", 30, 0, 1500, (HT_jet_vec + HT_lep_vec + MHT_vec).M(), cat_evt_wgt );
+
+	  float min_lep_jet_dR  = 99.;
+	  float min_muSS_jet_dR = 99.;
+	  float min_muOS_jet_dR = 99.;
+	  float avg_jet_dR = 1/0;
 
 	  BookAndFill(tupF, "lep1_pt", 30, 0, 300, lep1_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "lep2_pt", 20, 0, 200, lep2_vec.Pt(), cat_evt_wgt );
