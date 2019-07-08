@@ -3,7 +3,7 @@
 // Configure constants related to object selection
 void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _year, const std::string _opt ) {
 
-  if (_year == "2016") {
+  if (_year == "Legacy2016") {
     cfg.year = _year;
 
     // Muon selection
@@ -29,9 +29,9 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
 
     // Higgs candidate selection
     cfg.muPair_Higgs = "sort_OS_sum_muon_pt";
-  } // End if (_year == "2016")
+  } // End if (_year == "Legacy2016")
 
-  else if (_year == "2017" || _year == "2018") {
+  else if (_year == "2016" || _year == "2017" || _year == "2018") {
     cfg.year = _year;
 
     // Muon selection
@@ -59,12 +59,14 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     cfg.ele_CSV_max = "NONE";   // Veto electrons with pT < 20 GeV with matching jet passing b-tag threshold
 
     // Jet selection
-    cfg.jet_pt_min     = 30.0;   // Minimum jet pT
-    cfg.jet_eta_max    =  4.7;   // Maximum jet |eta|
-    cfg.jet_mu_dR_min  =  0.4;   // Minimum dR(jet, muon)
-    cfg.jet_ele_dR_min =  0.4;   // Minimum dR(jet, electron)
-    cfg.jet_btag_cuts  = {0.1522, 0.4941, 0.8001}; // DeepCSV recommendation from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+    cfg.jet_pt_min     = 30.0;    // Minimum jet pT
+    cfg.jet_eta_max    =  4.7;    // Maximum jet |eta|
+    cfg.jet_mu_dR_min  =  0.4;    // Minimum dR(jet, muon)
+    cfg.jet_ele_dR_min =  0.4;    // Minimum dR(jet, electron)
     cfg.jet_PU_ID_cut  = "loose"; // Jet passes PU ID cut
+    if (_year == "2016") cfg.jet_btag_cuts  = {0.2217, 0.6321, 0.8953}; // DeepCSV recommendation from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
+    if (_year == "2017") cfg.jet_btag_cuts  = {0.1522, 0.4941, 0.8001}; // DeepCSV recommendation from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+    if (_year == "2018") cfg.jet_btag_cuts  = {0.1241, 0.4184, 0.7527}; // DeepCSV recommendation from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
 
     // Higgs candidate selection
     cfg.muPair_Higgs = "sort_OS_sum_muon_pt";
@@ -82,7 +84,7 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
       cfg.jet_pt_min  = 20.0;     // Lower minimum jet pT for higher acceptance
     }
 
-  } // End if (_year == "2017" || _year == "2018")
+  } // End if (_year == "2016" || _year == "2017" || _year == "2018")
 
   else {
     std::cout << "Inside ConfigureEventWeight, invalid year = " << _year << std::endl;
@@ -165,7 +167,7 @@ bool JetPass( const ObjectSelectionConfig & cfg, const JetInfo & jet, const NTup
   if (verbose) std::cout << "  * Jet pT = " << jet.pt << ", eta = " << jet.eta << ", phi = " << jet.phi
                          << ", puID = " << jet.puID << ", CSV = " << JetCSV(jet, "CSVv2") << ", deepCSV = " << JetCSV(jet) << std::endl;
 
-  float jet_CSV = JetCSV(jet, (cfg.year == "2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+  float jet_CSV = JetCSV(jet, (cfg.year == "Legacy2016" ? "CSVv2" : "deepCSV"));
 
   if ( jet.pt         < cfg.jet_pt_min     )         return false;
   if ( fabs(jet.eta)  > cfg.jet_eta_max    )         return false;
@@ -215,7 +217,7 @@ int JetMuonClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const 
     jetPass = false;
   } else {                         // Remove leptons with pT < 20 matched to b-tagged jets
     assert(cfg.mu_CSV_max == "loose");
-    float jet_CSV = JetCSV(jet, (cfg.year == "2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+    float jet_CSV = JetCSV(jet, (cfg.year == "Legacy2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
     if (vLep.Pt() > 20 || jet_CSV < cfg.jet_btag_cuts.at(0)) {
       jetPass = false;
     } else {
@@ -254,7 +256,7 @@ int JetEleClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const E
     jetPass = false;
   } else {                         // Remove leptons with pT < 20 matched to b-tagged jets
     assert(cfg.ele_CSV_max == "loose");
-    float jet_CSV = JetCSV(jet, (cfg.year == "2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+    float jet_CSV = JetCSV(jet, (cfg.year == "Legacy2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
     if (vLep.Pt() > 20 || jet_CSV < cfg.jet_btag_cuts.at(0)) {
       jetPass = false;
     } else {

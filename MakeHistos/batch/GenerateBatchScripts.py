@@ -46,19 +46,19 @@ MACRO = 'macros/WH_lep.C'
 #MACRO = 'macros/lepMVA_variables.C'
 
 LOC  = 'CERN_3l'  ## Location of input files ('CERN', 'CERN_hiM', 'CERN_3l', or 'UF')
-YEAR = 2017       ## Dataset year (2016, 2017, or 2018)
-LUMI = 41500      ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+YEAR = '2016'     ## Dataset year (2016, 2017, or 2018)
+LUMI = 36814      ## 36814 for 2016, 41500 for 2017, 59100 for 2018
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
 IN_DIR = ''
 HADD_IN = False   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
 
 ## Directory for logs and output root files
-if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%d/Histograms' % YEAR
-if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%d/Histograms' % YEAR
+if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%s/Histograms' % YEAR
+if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%s/Histograms' % YEAR
 
 #LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
-LABEL = 'WH_lep_AWB_2019_06_25_v1'
+LABEL = 'WH_lep_AWB_2019_07_05_test_v1'
 #LABEL = 'ttH_3l_AWB_2019_06_25_v1'
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
@@ -254,8 +254,9 @@ def main():
         hadd_files[cat].write('\nout_dir="%s/files"\n' % out_dir)
         hadd_files[cat].write('\necho "\nNavigating to ${out_dir}"')
         hadd_files[cat].write('\ncd ${out_dir}\n\n')
-        if (YEAR == 2017): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
-        if (YEAR == 2018): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_11_patch1/external/slc6_amd64_gcc700/bin/hadd -f')
+        if (YEAR == '2016'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_15_patch2/external/slc6_amd64_gcc700/bin/hadd -f')
+        if (YEAR == '2017'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
+        if (YEAR == '2018'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_11_patch1/external/slc6_amd64_gcc700/bin/hadd -f')
         hadd_files[cat].write( ' HADD/histos_%s.root' % cat)
 
     run_files = [] ## Separate submission script for each job
@@ -270,7 +271,7 @@ def main():
     ## Loop over available samples
     for samp in samples:
 
-        # if (YEAR == 2017 and LOC == 'CERN'):  ## Some samples not yet available for 2017 - AWB 17.08.2018
+        # if (YEAR == '2017' and LOC == 'CERN'):  ## Some samples not yet available for 2017 - AWB 17.08.2018
         #     if ('_120' in samp.name or '_130' in samp.name): continue
         #     if ('ZJets' in samp.name):
         #         if not (samp.name == 'ZJets_AMC' or samp.name == 'ZJets_AMC_2' or samp.name == 'ZJets_m_10_50'): continue

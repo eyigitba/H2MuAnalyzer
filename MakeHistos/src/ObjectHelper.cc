@@ -32,7 +32,7 @@ bool LepMVA( const EleInfo & ele, const std::string year, const std::string cut 
 
 // Return if muon fired HLT trigger
 bool MuonTrig ( const MuonInfo & muon, const std::string year, const std::vector<std::string> trigNames ) {
-  if        ( year == "2016" ) {
+  if        ( year == "2016" || year == "Legacy2016" ) {
     for (uint i = 0; i < trigNames.size(); i++) {
       // Unprescaled triggers in 2016 : https://cmswbm.web.cern.ch/cmswbm/cmsdb/servlet/TriggerMode?KEY=l1_hlt_collisions2016/v450
       if ( trigNames.at(i) == "HLT_IsoMu22_eta2p1" || trigNames.at(i) == "HLT_IsoTkMu22_eta2p1" ||
@@ -265,7 +265,7 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
 
   float puID_cut = 999;  // Minimum puID value to pass cut
 
-  if (year == "2016") return true;
+  if (year == "Legacy2016" || year == "2016") return true; // What is the true PU ID for 2016? - AWB 01.07.2019
   
   else if (year == "2017" || year == "2018") { // What is the true PU ID for 2018? - AWB 03.05.2019
 
@@ -307,7 +307,7 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
       else { std::cout << "Inside JetPUID, invalid jet eta = " << jet.eta << std::endl; assert(false); }
     }
 
-  } // End conditional: if (year == "2017")
+  } // End conditional: if (year == "2017" || year == "2018")
 
   else { std::cout << "Inside JetPUID, invalid year = " << year << std::endl; assert(false); }
 
