@@ -17,7 +17,9 @@ void ConfigureEventSelection( EventSelectionConfig & cfg, std::string _year ) {
     cfg.year = _year;
 
     // Muon selection requirements
-    cfg.mu_trig_pt_min    = 30.0;  // Minmum triggering muon pT (or lead muon if no trigger required)
+    if (_year == "2016") cfg.mu_trig_pt_min = 26.0;  // Minmum triggering muon pT (or lead muon if no trigger required)
+    if (_year == "2017") cfg.mu_trig_pt_min = 29.0;  // Minmum triggering muon pT (or lead muon if no trigger required)
+    if (_year == "2018") cfg.mu_trig_pt_min = 26.0;  // Minmum triggering muon pT (or lead muon if no trigger required)
     cfg.mu_trig_HLT_match = true;  // Require muon to match HLT trigger
     cfg.muPair_mass_min   = 60.0;  // Minimum invariant mass
     cfg.muPair_OS         = true;  // Require opposite-sign pair
