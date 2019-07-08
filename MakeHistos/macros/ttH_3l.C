@@ -23,33 +23,39 @@
 
 // #include "H2MuAnalyzer/MakeHistos/interface/SampleDatabase2016.h" // Input data and MC samples
 
-const std::string YEAR = "2017";
-// Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
-R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
-
-// const std::string YEAR = "2018";
+// const std::string YEAR = "2017";
 // // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
-// R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
+// R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
+
+const std::string YEAR = "2018";
+// Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
+R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
 
 
 // Hard-coded options for running locally / manually
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
-const int MIN_FILE = 1;     // Minimum index of input files to process
-const int MAX_FILE = 1;     // Maximum index of input files to process
-const int MAX_EVT  = 10000; // Maximum number of events to process
-const int PRT_EVT  = 1000;  // Print every N events
+const int MIN_FILE = 1;    // Minimum index of input files to process
+const int MAX_FILE = 1;    // Maximum index of input files to process
+const int MAX_EVT  = 1000; // Maximum number of events to process
+const int PRT_EVT  = 100;  // Print every N events
 const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8/H2Mu_ttH_125";
-const TString SAMPLE   = "H2Mu_ttH_125";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/tt_ll_MG";
-// const TString SAMPLE   = "tt_ll_MG";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTWJetsToLNu_TuneCP5_PSweights_13TeV-amcatnloFXFX-madspin-pythia8/ttW";
-// const TString SAMPLE   = "ttW";
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
-// const TString SAMPLE   = "SingleMu";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ttHToMuMu_M125_TuneCP5_13TeV-powheg-pythia8/H2Mu_ttH_125";
+// const TString SAMPLE = "H2Mu_ttH_125";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/tt_ll_MG";
+// const TString SAMPLE = "tt_ll_MG";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/TTWJetsToLNu_TuneCP5_PSweights_13TeV-amcatnloFXFX-madspin-pythia8/ttW";
+// const TString SAMPLE = "ttW";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
+// const TString SAMPLE = "SingleMu";
+
+const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/ttHToMuMu_M125_TuneCP5_PSweights_13TeV-powheg-pythia8/H2Mu_ttH_125/190528_111755/0000";
+const TString SAMPLE = "H2Mu_ttH_125";
+// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/SingleMuon/SingleMu_2018D/190528_111415/0000";
+// const TString SAMPLE = "SingleMu";
+
 
 const std::string SLIM  = (YEAR == "2018" ? "notSlim" : "Slim");  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR   = "plots";
@@ -58,13 +64,13 @@ const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output
 // Cuts which every event must pass, applied in sequence
 const std::vector<std::string> SEL_CUTS = {"PreselRun2"};
 // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> OPT_CUTS = {"3lep", "3lep_allMass"};
+// const std::vector<std::string> OPT_CUTS = {"3lep", "3lep_allMass"};
+const std::vector<std::string> OPT_CUTS = {"3lep"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
 const std::vector<std::string> CAT_CUTS = { "looseLepMVA_ge2j_btag",
-					    "medLepMVA_noZ5_ge2j_btag",
-					    "hiPt_lepW20_medLepMVA_noZ10_ge2j_btag",
-					    "hiPt_lepW20_medLepMVA_onZ10_ge2j_btag" };
+					    "medLepMVA_noZ10_ge2j_btag",
+                                            "hiPt_lepW20_medLepMVA_noZ10_ge2j_btag" };
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -221,6 +227,31 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
   MVA BDT_ttH_reco( "data/XMLs/ttH_3l/Charlie/2017_01_25/ttH_HtoWW_SS2l_reconstruction/",
 		    "weights/TMVAClassification_bloose_BDTG.weights.xml",
 		    "BDTG" );
+  
+  MVA BDT_v1_all_withMass( "data/XMLs/ttH_3l/Andrew/2019_07_04/f_Opt_2019_07_04_varsAll_withMass_all_sig_all_bkg_withMass/",
+			   "weights/f_Opt_2019_07_04_varsAll_withMass_all_sig_all_bkg_withMass_BDTG_AWB_lite.weights.xml",
+			   "BDTG_AWB_lite" );
+  
+  MVA BDT_v1_all( "data/XMLs/ttH_3l/Andrew/2019_07_04/f_Opt_2019_07_04_varsAll_resWgt_all_sig_all_bkg_resWgt/",
+	       "weights/f_Opt_2019_07_04_varsAll_resWgt_all_sig_all_bkg_resWgt_BDTG_AWB_lite.weights.xml",
+	       "BDTG_AWB_lite" );
+
+  MVA BDT_v1_med( "data/XMLs/ttH_3l/Andrew/2019_07_04/f_Opt_2019_07_04_varsM_resWgt_all_sig_all_bkg_resWgt/",
+	       "weights/f_Opt_2019_07_04_varsM_resWgt_all_sig_all_bkg_resWgt_BDTG_AWB_lite.weights.xml",
+	       "BDTG_AWB_lite" );
+  
+  MVA BDT_v1_med_noBDT( "data/XMLs/ttH_3l/Andrew/2019_07_04/f_Opt_2019_07_04_varsM_noBDT_resWgt_all_sig_all_bkg_resWgt/",
+		     "weights/f_Opt_2019_07_04_varsM_noBDT_resWgt_all_sig_all_bkg_resWgt_BDTG_AWB_lite.weights.xml",
+		     "BDTG_AWB_lite" );
+  
+  MVA BDT_v1_tight( "data/XMLs/ttH_3l/Andrew/2019_07_04/f_Opt_2019_07_04_varsT_resWgt_all_sig_all_bkg_resWgt/",
+		 "weights/f_Opt_2019_07_04_varsT_resWgt_all_sig_all_bkg_resWgt_BDTG_AWB_lite.weights.xml",
+		 "BDTG_AWB_lite" );
+  
+  MVA BDT_v1_tight_noBDT( "data/XMLs/ttH_3l/Andrew/2019_07_04/f_Opt_2019_07_04_varsT_noBDT_resWgt_all_sig_all_bkg_resWgt/",
+		       "weights/f_Opt_2019_07_04_varsT_noBDT_resWgt_all_sig_all_bkg_resWgt_BDTG_AWB_lite.weights.xml",
+		       "BDTG_AWB_lite" );
+  
 
 
   std::cout << "\n******* About to enter the loop over " << in_chain->GetEntries() << " events *******" << std::endl;
@@ -598,11 +629,11 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    CAT_UNCUT.erase( CAT_UNCUT.find("tightLepCut"), std::string("tightLepCut").length() );
 	  }
 	  if ( CAT_CUT.find("ge2j") != std::string::npos ) {
-	    if ( SelectedJets(obj_sel, br).size() < 2 )               { pass_cat_cut = false; continue; }
+	    if ( SelectedJets(obj_sel, br, "Central").size() < 2 )    { pass_cat_cut = false; continue; }
 	    CAT_UNCUT.erase( CAT_UNCUT.find("ge2j"), std::string("ge2j").length() );
 	  }
 	  if ( CAT_CUT.find("ge3j") != std::string::npos ) {
-	    if ( SelectedJets(obj_sel, br).size() < 3 )               { pass_cat_cut = false; continue; }
+	    if ( SelectedJets(obj_sel, br, "Central").size() < 3 )    { pass_cat_cut = false; continue; }
 	    CAT_UNCUT.erase( CAT_UNCUT.find("ge3j"), std::string("ge3j").length() );
 	  }
 	  if ( CAT_CUT.find("btag") != std::string::npos ) {
@@ -1161,6 +1192,88 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "bjet1_lep_pt",    30, 0, 300, (bjet1_idx > 0 ?  (lep_vec+bjet1_vec).Pt()  : -9), cat_evt_wgt, false);
 	  BookAndFill(tupF, "bjet1_muSS_mass", 30, 0, 300, (bjet1_idx > 0 ? (muSS_vec+bjet1_vec).M()   : -9), cat_evt_wgt, false);
 	  BookAndFill(tupF, "bjet1_lep_mass",  30, 0, 300, (bjet1_idx > 0 ?  (lep_vec+bjet1_vec).M()   : -9), cat_evt_wgt, false);
+
+          // Extra variables especially for Andrew's BDTs
+          BookAndFill( b_map_flt, out_tree, h_pre, "muH1_eta_abs", abs(b_map_flt["muH1_eta"]) );
+          BookAndFill( b_map_flt, out_tree, h_pre, "muH2_eta_abs", abs(b_map_flt["muH2_eta"]) );
+
+	  // Evaluate MVA output values
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_v1_all_withMass", BDT_v1_all_withMass.Evaluate(b_map_flt, b_map_int) );
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_v1_all",          BDT_v1_all         .Evaluate(b_map_flt, b_map_int) );
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_v1_med",          BDT_v1_med         .Evaluate(b_map_flt, b_map_int) );
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_v1_med_noBDT",    BDT_v1_med_noBDT   .Evaluate(b_map_flt, b_map_int) );
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_v1_tight",        BDT_v1_tight       .Evaluate(b_map_flt, b_map_int) );
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_v1_tight_noBDT",  BDT_v1_tight_noBDT .Evaluate(b_map_flt, b_map_int) );
+
+	  // Use only even-numbered MC events to fill histograms
+	  if ( (b_map_int["event"] % 2) == 0 || isData ) {
+            float two = (isData ? 1.0 : 2.0);  // Scale MC by a factor of 2
+
+	    BookAndFill(tupF, "BDT_v1_all_withMass", 40, -1, 1, b_map_flt["BDT_v1_all_withMass"], cat_evt_wgt*two);
+	    BookAndFill(tupF, "BDT_v1_all",          20, -1, 1, b_map_flt["BDT_v1_all"],          cat_evt_wgt*two);
+	    BookAndFill(tupF, "BDT_v1_med",          20, -1, 1, b_map_flt["BDT_v1_med"],          cat_evt_wgt*two);
+	    BookAndFill(tupF, "BDT_v1_med_noBDT",    20, -1, 1, b_map_flt["BDT_v1_med_noBDT"],    cat_evt_wgt*two);
+	    BookAndFill(tupF, "BDT_v1_tight",        20, -1, 1, b_map_flt["BDT_v1_tight"],        cat_evt_wgt*two);
+	    BookAndFill(tupF, "BDT_v1_tight_noBDT",  20, -1, 1, b_map_flt["BDT_v1_tight_noBDT"],  cat_evt_wgt*two);
+
+	    // Write dimuon mass histogram in different no-mass BDT bins
+	    if      ( b_map_flt["BDT_v1_all"] >  0.5 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_all_p05_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_all"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_all_p02_p05_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    if      ( b_map_flt["BDT_v1_all"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_all_p02_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_all"] > -0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_all_n02_p02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_all_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+
+	    if      ( b_map_flt["BDT_v1_med"] >  0.5 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_p05_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_med"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_p02_p05_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    if      ( b_map_flt["BDT_v1_med"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_p02_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_med"] > -0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_n02_p02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+
+	    if      ( b_map_flt["BDT_v1_med_noBDT"] >  0.5 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_noBDT_p05_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_med_noBDT"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_noBDT_p02_p05_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    if      ( b_map_flt["BDT_v1_med_noBDT"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_noBDT_p02_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_med_noBDT"] > -0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_noBDT_n02_p02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_noBDT_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+
+	    if      ( b_map_flt["BDT_v1_tight"] >  0.5 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_p05_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_tight"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_p02_p05_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    if      ( b_map_flt["BDT_v1_tight"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_p02_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_tight"] > -0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_n02_p02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+
+	    if      ( b_map_flt["BDT_v1_tight_noBDT"] >  0.5 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_p05_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_tight_noBDT"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_p02_p05_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    if      ( b_map_flt["BDT_v1_tight_noBDT"] >  0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_p02_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_tight_noBDT"] > -0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_n02_p02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+
+	  } // End conditional: if ( (b_map_int["event"] % 2) == 0 || isData )
+
 
 	} // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
       } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)

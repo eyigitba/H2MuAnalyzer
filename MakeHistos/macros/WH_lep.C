@@ -23,13 +23,13 @@
 
 // #include "H2MuAnalyzer/MakeHistos/interface/SampleDatabase2016.h" // Input data and MC samples
 
-const std::string YEAR = "2017";
-// Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
-R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
-
-// const std::string YEAR = "2018";
+// const std::string YEAR = "2017";
 // // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
-// R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
+// R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
+
+const std::string YEAR = "2018";
+// Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
+R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
 
 
 // Hard-coded options for running locally / manually
@@ -42,8 +42,8 @@ const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
-const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WplusH_HToMuMu_WToAll_M125_13TeV_powheg_pythia8/H2Mu_WH_pos_125";
-const TString SAMPLE = "H2Mu_WH_pos_125";
+// const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WplusH_HToMuMu_WToAll_M125_13TeV_powheg_pythia8/H2Mu_WH_pos_125";
+// const TString SAMPLE = "H2Mu_WH_pos_125";
 // const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZJets_MG_1";
 // const TString SAMPLE = "ZJets_MG_1";
 // const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/WZ_3l";
@@ -51,8 +51,8 @@ const TString SAMPLE = "H2Mu_WH_pos_125";
 // const TString IN_DIR = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/SingleMuon/SingleMu_2017D";
 // const TString SAMPLE = "SingleMu";
 
-// const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/WplusH_HToMuMu_WToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_WH_pos_125/190528_111606/0000";
-// const TString SAMPLE = "H2Mu_WH_pos_125";
+const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/WplusH_HToMuMu_WToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_WH_pos_125/190528_111606/0000";
+const TString SAMPLE = "H2Mu_WH_pos_125";
 // const TString IN_DIR = "/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l/SingleMuon/SingleMu_2018D/190528_111415/0000";
 // const TString SAMPLE = "SingleMu";
 
@@ -63,13 +63,14 @@ const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output
 // Cuts which every event must pass, applied in sequence
 const std::vector<std::string> SEL_CUTS = {"PreselRun2"};
 // Multiple selection cuts, applied independently in parallel
-const std::vector<std::string> OPT_CUTS = {"3lep", "3mu", "e2mu", "3lep_allMass", "3mu_allMass", "e2mu_allMass"};
+// const std::vector<std::string> OPT_CUTS = {"3lep", "3mu", "e2mu", "3lep_allMass", "3mu_allMass", "e2mu_allMass"};
+const std::vector<std::string> OPT_CUTS = {"3lep"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
 const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ5_noBtag",
 					    "medLepMVA_noZ10_noBtag",
-					    "hiPt_lepW20_medLepMVA_noZ10_noBtag",
-					    "hiPt_lepW20_medLepMVA_onZ10_noBtag" };
+					    "hiPt_lepW20_medLepMVA_noZ10_noBtag" };
+                                            // "hiPt_lepW20_medLepMVA_onZ10_noBtag" };
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
