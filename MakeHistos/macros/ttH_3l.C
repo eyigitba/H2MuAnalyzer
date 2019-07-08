@@ -712,21 +712,21 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  }
 
 	  // Variables from ttH leptonic search (http://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-17-018)
-	  float min_lep_jet_dR  = 99.;
-	  float min_muSS_jet_dR = 99.;
-	  float min_muOS_jet_dR = 99.;
-	  float sum_jet_dR = 0;
+	  double min_lep_jet_dR  = 9.;
+	  double min_muSS_jet_dR = 9.;
+	  double min_muOS_jet_dR = 9.;
+	  double sum_jet_dR = 0;
 	  int     n_jet_dR = 0;
 	  for (int iJet = 0; iJet < jetsCent.size(); iJet++) {
-	    min_lep_jet_dR  = min(min_lep_jet_dR,  lep_vec.DeltaR( FourVec(jetsCent.at(iJet)) ) );
-	    min_muSS_jet_dR = min(min_muSS_jet_dR, lep_vec.DeltaR( FourVec(jetsCent.at(iJet)) ) );
-	    min_muOS_jet_dR = min(min_muOS_jet_dR, lep_vec.DeltaR( FourVec(jetsCent.at(iJet)) ) );
+	    min_lep_jet_dR  = min(min_lep_jet_dR,  lep_vec .DeltaR( FourVec(jetsCent.at(iJet)) ) );
+	    min_muSS_jet_dR = min(min_muSS_jet_dR, muSS_vec.DeltaR( FourVec(jetsCent.at(iJet)) ) );
+	    min_muOS_jet_dR = min(min_muOS_jet_dR, muOS_vec.DeltaR( FourVec(jetsCent.at(iJet)) ) );
 	    for (int jJet = iJet+1; jJet < jetsCent.size(); jJet++) {
 	      sum_jet_dR += FourVec(jetsCent.at(iJet)).DeltaR( FourVec(jetsCent.at(jJet)) );
 	      n_jet_dR += 1;
 	    }
 	  }
-	  float avg_jet_dR = sum_jet_dR / n_jet_dR;
+	  double avg_jet_dR = sum_jet_dR / max(n_jet_dR, 1);
 
 
 	  // Leptons ordered by pT
@@ -1087,10 +1087,10 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "MT_jetLep",    24, 0, 1200, (HT_jet_vec + HT_lep_vec).M(),           cat_evt_wgt );
 	  BookAndFill(tupF, "MT_jetLepMHT", 30, 0, 1500, (HT_jet_vec + HT_lep_vec + MHT_vec).M(), cat_evt_wgt );
 
-	  float min_lep_jet_dR  = 99.;
-	  float min_muSS_jet_dR = 99.;
-	  float min_muOS_jet_dR = 99.;
-	  float avg_jet_dR = 1/0;
+	  BookAndFill(tupF, "min_lep_jet_dR",  20, 0, 4.0, min_lep_jet_dR,  cat_evt_wgt );
+	  BookAndFill(tupF, "min_muSS_jet_dR", 20, 0, 4.0, min_muSS_jet_dR, cat_evt_wgt );
+	  BookAndFill(tupF, "min_muOS_jet_dR", 20, 0, 4.0, min_muOS_jet_dR, cat_evt_wgt );
+	  BookAndFill(tupF, "avg_jet_dR",      20, 0, 4.0, avg_jet_dR,      cat_evt_wgt );
 
 	  BookAndFill(tupF, "lep1_pt", 30, 0, 300, lep1_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "lep2_pt", 20, 0, 200, lep2_vec.Pt(), cat_evt_wgt );
@@ -1274,6 +1274,12 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    else
 	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_all_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
 
+	    if      ( b_map_flt["BDT_v1_med"] >  0.7 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_p06_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_med"] >  0.6 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_p06_p07_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_med"] >  0.5 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_p05_p06_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
 	    if      ( b_map_flt["BDT_v1_med"] >  0.5 )
 	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_med_p05_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
 	    else if ( b_map_flt["BDT_v1_med"] >  0.2 )
@@ -1307,6 +1313,12 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    else
 	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
 
+	    if      ( b_map_flt["BDT_v1_tight_noBDT"] >  0.7 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_p06_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_tight_noBDT"] >  0.6 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_p06_p07_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_v1_tight_noBDT"] >  0.5 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_p05_p06_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
 	    if      ( b_map_flt["BDT_v1_tight_noBDT"] >  0.5 )
 	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_v1_tight_noBDT_p05_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
 	    else if ( b_map_flt["BDT_v1_tight_noBDT"] >  0.2 )
