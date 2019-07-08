@@ -232,32 +232,15 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
   lepSF["ele_L"] = LoadSFsLepMVA(YEAR, "ele", "L");
 
   std::cout << "\n******* About to load XML files for signal-background BDTs *******" << std::endl;
-  // MVA BDT_XWZ_noMass( "data/XMLs/WH_3l/Xunwu/2019_05_12/2017_WH_ele_against_inclu_trimvar_all_sig_all_bkg_ge0j/",
-  // 		      "weights/2017_WH_ele_against_inclu_trimvar_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
-  // 		      "BDTG_UF_v2" );
-  // MVA BDT_XWZ_withMass  ( "data/XMLs/WH_3l/Xunwu/2019_05_12/2017_WH_ele_against_inclu_trimvar_with_mass_all_sig_all_bkg_ge0j/",
-  // 			  "weights/2017_WH_ele_against_inclu_trimvar_with_mass_all_sig_all_bkg_ge0j_BDTG_UF_v2.weights.xml",
-  // 			  "BDTG_UF_v2" );
-
-  // MVA BDT_AWB_2_noMass( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_AWB_noMass_v2_all_sig_all_bkg_ge0j/",
-  // 			"weights/f_Opt_AWB_noMass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
-  // 			"BDTG_UF_v1" );
-  // MVA BDT_AWB_2_withMass( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_AWB_withMass_v2_all_sig_all_bkg_ge0j/",
-  // 			  "weights/f_Opt_AWB_withMass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
-  // 			  "BDTG_UF_v1" );
-  // MVA BDT_AWB_2_retrain( "data/XMLs/WH_3l/Andrew/2019_05_15/f_Opt_noMassBDT_mass_v2_all_sig_all_bkg_ge0j/",
-  // 			 "weights/f_Opt_noMassBDT_mass_v2_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
-  // 			 "BDTG_UF_v1" );
-
   MVA BDT_AWB_3_noMass( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_AWB_noMass_v3_resWgt_all_sig_all_bkg_resWgt/",
 			"weights/f_Opt_AWB_noMass_v3_resWgt_all_sig_all_bkg_resWgt_BDTG_UF_v1.weights.xml",
 			"BDTG_UF_v1" );
-  // MVA BDT_AWB_3_withMass( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_AWB_withMass_v3_all_sig_all_bkg_/",
-  // 			  "weights/f_Opt_AWB_withMass_v3_all_sig_all_bkg__BDTG_UF_v1.weights.xml",
-  // 			  "BDTG_UF_v1" );
-  // MVA BDT_AWB_3_retrain( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_noMassBDT_mass_v3_all_sig_all_bkg_ge0j/",
-  // 			 "weights/f_Opt_noMassBDT_mass_v3_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
-  // 			 "BDTG_UF_v1" );
+  MVA BDT_AWB_3_withMass( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_AWB_withMass_v3_all_sig_all_bkg_/",
+  			  "weights/f_Opt_AWB_withMass_v3_all_sig_all_bkg__BDTG_UF_v1.weights.xml",
+  			  "BDTG_UF_v1" );
+  MVA BDT_AWB_3_retrain( "data/XMLs/WH_3l/Andrew/2019_05_20/f_Opt_noMassBDT_mass_v3_all_sig_all_bkg_ge0j/",
+  			 "weights/f_Opt_noMassBDT_mass_v3_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml",
+  			 "BDTG_UF_v1" );
 
 
   std::cout << "\n******* About to enter the loop over " << in_chain->GetEntries() << " events *******" << std::endl;
@@ -915,116 +898,84 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill( b_map_flt, out_tree, h_pre, "muH1_eta_abs", abs(b_map_flt["muH1_eta"]) );
 	  BookAndFill( b_map_flt, out_tree, h_pre, "muH2_eta_abs", abs(b_map_flt["muH2_eta"]) );
 
-	  // // Evaluate MVA output values
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDT_XWZ_noMass",      BDT_XWZ_noMass  .Evaluate(b_map_flt, b_map_int) );
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDT_XWZ_withMass",    BDT_XWZ_withMass.Evaluate(b_map_flt, b_map_int) );
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v2_noMass",   BDT_AWB_2_noMass  .Evaluate(b_map_flt, b_map_int) );
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v2_withMass", BDT_AWB_2_withMass.Evaluate(b_map_flt, b_map_int) );
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDTG_UF_v1",          b_map_flt["BDT_AWB_v2_noMass"] );  // Needed for re-trained noMassBDT vs. mass
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v2_retrain",  BDT_AWB_2_retrain .Evaluate(b_map_flt, b_map_int) );
+	  // Evaluate MVA output values
 	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v3_noMass",   BDT_AWB_3_noMass  .Evaluate(b_map_flt, b_map_int) );
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v3_withMass", BDT_AWB_3_withMass.Evaluate(b_map_flt, b_map_int) );
-	  // b_map_flt["BDTG_UF_v1"] = b_map_flt["BDT_AWB_v3_noMass"];  // Reset input value for v3 re-trained noMassBDT vs. mass
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v3_retrain",  BDT_AWB_3_retrain .Evaluate(b_map_flt, b_map_int) );
-	  // b_map_flt["BDTG_UF_v1"] = b_map_flt["BDT_AWB_v2_noMass"];  // ... and re-reset to avoid run-time errors
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v3_withMass", BDT_AWB_3_withMass.Evaluate(b_map_flt, b_map_int) );
+	  b_map_flt["BDTG_UF_v1"] = b_map_flt["BDT_AWB_v3_noMass"];  // Reset input value for v3 re-trained noMassBDT vs. mass
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v3_retrain",  BDT_AWB_3_retrain .Evaluate(b_map_flt, b_map_int) );
+	  b_map_flt["BDTG_UF_v1"] = b_map_flt["BDT_AWB_v2_noMass"];  // ... and re-reset to avoid run-time errors
 
-	  // // Combine non-mass and with-mass BDT distributions into one plot
-	  // // Compress and shift non-mass BDT distribution from [-0.8, 0.9] to [-1.0, 0.4]
-	  // double noMass = (b_map_flt["BDT_AWB_v3_noMass"] * 0.8) - 0.3;
-	  // noMass = std::max(-0.999, std::min(0.399, noMass));
-	  // double withMass = b_map_flt["BDT_AWB_v3_withMass"];
-	  // BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v3_combo", withMass > 0.4 ? withMass : noMass );
+	  // Combine non-mass and with-mass BDT distributions into one plot
+	  // Compress and shift non-mass BDT distribution from [-0.8, 0.9] to [-1.0, 0.4]
+	  double noMass = (b_map_flt["BDT_AWB_v3_noMass"] * 0.8) - 0.3;
+	  noMass = std::max(-0.999, std::min(0.399, noMass));
+	  double withMass = b_map_flt["BDT_AWB_v3_withMass"];
+	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_AWB_v3_combo", withMass > 0.4 ? withMass : noMass );
 
 	  // Use only even-numbered MC events to fill histograms
 	  if ( (b_map_int["event"] % 2) == 0 || isData ) {
 	    float two = (isData ? 1.0 : 2.0);  // Scale MC by a factor of 2
-	    // BookAndFill( h_map_1D, h_pre+"BDT_XWZ_noMass",      20, -1, 1, b_map_flt["BDT_XWZ_noMass"],      cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_XWZ_withMass",    20, -1, 1, b_map_flt["BDT_XWZ_withMass"],    cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v2_noMass",   20, -1, 1, b_map_flt["BDT_AWB_v2_noMass"],   cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v2_withMass", 20, -1, 1, b_map_flt["BDT_AWB_v2_withMass"], cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v2_retrain",  20, -1, 1, b_map_flt["BDT_AWB_v2_retrain"],  cat_evt_wgt*two );
 	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_noMass",   20, -1, 1, b_map_flt["BDT_AWB_v3_noMass"],   cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass", 20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_retrain",  20, -1, 1, b_map_flt["BDT_AWB_v3_retrain"],  cat_evt_wgt*two );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass", 20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_retrain",  20, -1, 1, b_map_flt["BDT_AWB_v3_retrain"],  cat_evt_wgt*two );
 
-	    // BookAndFill( h_map_1D, h_pre+"BDT_XWZ_noMass_zoom",      100, -1, 1, b_map_flt["BDT_XWZ_noMass"],      cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_XWZ_withMass_zoom",    100, -1, 1, b_map_flt["BDT_XWZ_withMass"],    cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v2_noMass_zoom",   100, -1, 1, b_map_flt["BDT_AWB_v2_noMass"],   cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v2_withMass_zoom", 100, -1, 1, b_map_flt["BDT_AWB_v2_withMass"], cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v2_retrain_zoom",  100, -1, 1, b_map_flt["BDT_AWB_v2_retrain"],  cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_noMass_zoom",   100, -1, 1, b_map_flt["BDT_AWB_v3_noMass"],   cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_zoom", 100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_retrain_zoom",  100, -1, 1, b_map_flt["BDT_AWB_v3_retrain"],  cat_evt_wgt*two );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_noMass_zoom",   100, -1, 1, b_map_flt["BDT_AWB_v3_noMass"],   cat_evt_wgt*two );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_zoom", 100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_retrain_zoom",  100, -1, 1, b_map_flt["BDT_AWB_v3_retrain"],  cat_evt_wgt*two );
 
-	    // std::vector<float> combo_bins;
-	    // // Fill with 0.2 wide bins from -1.0 to 1.4, width 0.01 after
-	    // for (int i = 0; i < 201; i++) if (i > 140 || (i % 20) == 0) combo_bins.push_back(-1 + i*0.01);
-	    // int nBins = combo_bins.size() - 1;
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo",              20, -1, 1, b_map_flt["BDT_AWB_v3_combo"], cat_evt_wgt*two );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_zoom", nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"], cat_evt_wgt*two );
+	    std::vector<float> combo_bins;
+	    // Fill with 0.2 wide bins from -1.0 to 1.4, width 0.01 after
+	    for (int i = 0; i < 201; i++) if (i > 140 || (i % 20) == 0) combo_bins.push_back(-1 + i*0.01);
+	    int nBins = combo_bins.size() - 1;
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo",              20, -1, 1, b_map_flt["BDT_AWB_v3_combo"], cat_evt_wgt*two );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_zoom", nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"], cat_evt_wgt*two );
 
-	    // // Write histograms with 20% systematic shift on no-mass BDT shape
-	    // float sysUp   = (isData ? 1.0 : 1 + b_map_flt["BDT_AWB_v3_noMass"] * 0.2);
-	    // float sysDown = (isData ? 1.0 : 1 - b_map_flt["BDT_AWB_v3_noMass"] * 0.2);
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_UP",           20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two*sysUp );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_zoom_UP",     100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two*sysUp );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_UP",              20, -1, 1, b_map_flt["BDT_AWB_v3_combo"],    cat_evt_wgt*two*sysUp );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_zoom_UP", nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],    cat_evt_wgt*two*sysUp );
+	    // Write histograms with 20% systematic shift on no-mass BDT shape
+	    float sysUp   = (isData ? 1.0 : 1 + b_map_flt["BDT_AWB_v3_noMass"] * 0.2);
+	    float sysDown = (isData ? 1.0 : 1 - b_map_flt["BDT_AWB_v3_noMass"] * 0.2);
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_UP",           20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two*sysUp );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_zoom_UP",     100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two*sysUp );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_UP",              20, -1, 1, b_map_flt["BDT_AWB_v3_combo"],    cat_evt_wgt*two*sysUp );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_zoom_UP", nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],    cat_evt_wgt*two*sysUp );
 
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_DOWN",           20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two*sysDown );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_zoom_DOWN",     100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two*sysDown );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_DOWN",              20, -1, 1, b_map_flt["BDT_AWB_v3_combo"],    cat_evt_wgt*two*sysDown );
-	    // BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_zoom_DOWN", nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],    cat_evt_wgt*two*sysDown );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_DOWN",           20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two*sysDown );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_zoom_DOWN",     100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"], cat_evt_wgt*two*sysDown );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_DOWN",              20, -1, 1, b_map_flt["BDT_AWB_v3_combo"],    cat_evt_wgt*two*sysDown );
+	    BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_zoom_DOWN", nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],    cat_evt_wgt*two*sysDown );
 
-	    // // Write histograms also with tighter selection cuts
-	    // if ( lep_vec.Pt() > 20 ) {
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_lepW_pt20",                 20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_lepW_pt20_zoom",           100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_lepW_pt20_zoom",       nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
-	    // } if ( muH1_vec.Pt() > 20 && muH2_vec.Pt() > 20 && lep_vec.Pt() > 20 ) {
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_allLep_pt20",               20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_allLep_pt20_zoom",         100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_allLep_pt20_zoom",     nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
-	    // } if ( LepMVA(muSS1, YEAR, "T") && (MU ? LepMVA(muSS2, YEAR, "T") : LepMVA(ele, YEAR, "T")) ) {
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_lepMVA_tight_SS",           20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_lepMVA_tight_SS_zoom",     100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_lepMVA_tight_SS_zoom", nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
-	    // } if ( LepMVA(muOS, YEAR, "T") && LepMVA(muSS1, YEAR, "T") && (MU ? LepMVA(muSS2, YEAR, "T") : LepMVA(ele, YEAR, "T")) ) {
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_lepMVA_tight",              20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_lepMVA_tight_zoom",        100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_lepMVA_tight_zoom",    nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
-	    // } if ( (!MU) || (H_pair_vec.Pt() > OS_pair_vec.Pt()) || OS_pair_vec.Pt() < 110 || OS_pair_vec.Pt() > 160 ) {
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_hiPt_Higgs",                20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_hiPt_Higgs_zoom",          100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_hiPt_Higgs_zoom",      nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
-	    // } if ( (!MU) || (H_pair_vec.Pt() > OS_pair_vec.Pt()) ) {
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_onlyHiPt_Higgs",            20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_onlyHiPt_Higgs_zoom",      100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_onlyHiPt_Higgs_zoom",  nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
-	    // } if ( (!MU) || abs(OS_pair_vec.M() - 91) > 10 ) {
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_noZ10",                     20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_noZ10_zoom",               100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
-	    //   BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_noZ10_zoom",           nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
-	    // }
+	    // Write histograms also with tighter selection cuts
+	    if ( muH1_vec.Pt() > 20 && muH2_vec.Pt() > 20 && lep_vec.Pt() > 20 ) {
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_allLep_pt20",               20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_allLep_pt20_zoom",         100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_allLep_pt20_zoom",     nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
+	    } if ( LepMVA(muOS, YEAR, "T") && LepMVA(muSS1, YEAR, "T") && (MU ? LepMVA(muSS2, YEAR, "T") : LepMVA(ele, YEAR, "T")) ) {
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_lepMVA_tight",              20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_lepMVA_tight_zoom",        100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_lepMVA_tight_zoom",    nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
+	    } if ( (!MU) || (H_pair_vec.Pt() > OS_pair_vec.Pt()) ) {
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_onlyHiPt_Higgs",            20, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_withMass_onlyHiPt_Higgs_zoom",      100, -1, 1, b_map_flt["BDT_AWB_v3_withMass"],  cat_evt_wgt*two );
+	      BookAndFill( h_map_1D, h_pre+"BDT_AWB_v3_combo_onlyHiPt_Higgs_zoom",  nBins, combo_bins, b_map_flt["BDT_AWB_v3_combo"],     cat_evt_wgt*two );
+	    }
 
-	    // // Write dimuon mass histogram in different no-mass BDT bins
-	    //      if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.6 )
-	    //   BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p06_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
-	    // else if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.2 )
-	    //   BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p02_p06_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
-	    // else if ( b_map_flt["BDT_AWB_v3_noMass"] > -0.2 )
-	    //   BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_n02_p02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
-	    // else
-	    //   BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    // Write dimuon mass histogram in different no-mass BDT bins
+	         if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.6 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p06_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p02_p06_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_AWB_v3_noMass"] > -0.2 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_n02_p02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_n10_n02_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
 
-	    //      if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.76 )
-	    //   BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p076_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
-	    // else if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.68 )
-	    //   BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p068_p076_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
-	    // else if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.60 )
-	    //   BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p060_p068_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
-	    // else
-	    //   BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_n100_p060_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	         if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.76 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p076_p10_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.68 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p068_p076_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else if ( b_map_flt["BDT_AWB_v3_noMass"] > 0.60 )
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_p060_p068_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
+	    else
+	      BookAndFill( h_map_1D, h_pre+"H_pair_mass_BDT_n100_p060_zoomH", 100, 110, 160, b_map_flt["H_pair_mass"], cat_evt_wgt*two );
 
 	  } // End conditional: if ( (b_map_int["event"] % 2) == 0 || isData )
 
