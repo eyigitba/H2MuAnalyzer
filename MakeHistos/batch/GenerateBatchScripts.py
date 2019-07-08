@@ -48,7 +48,7 @@ MACRO = 'macros/ttH_3l.C'
 LOC  = 'CERN_3l'  ## Location of input files ('CERN', 'CERN_hiM', 'CERN_3l', or 'UF')
 #LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
 #LOC  = 'CERN_lepMVA_3l_test_v1'
-YEAR = 2018    ## Dataset year (2016, 2017, or 2018)
+YEAR = '2018'  ## Dataset year (2016, 2017, or 2018)
 LUMI = 59100   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
 
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
@@ -61,8 +61,8 @@ if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%s/Hi
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%s/Histograms' % YEAR
 
 #LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
-LABEL = 'WH_lep_AWB_2019_07_05_test_v1'
-#LABEL = 'ttH_3l_AWB_2019_06_25_v1'
+#LABEL = 'WH_lep_AWB_2019_07_05_test_v1'
+LABEL = 'ttH_3l_AWB_2019_07_08_signal_v1'
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'

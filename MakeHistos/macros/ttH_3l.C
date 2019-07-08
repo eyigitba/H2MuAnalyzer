@@ -36,7 +36,7 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
 const int MIN_FILE = 1;    // Minimum index of input files to process
 const int MAX_FILE = 1;    // Maximum index of input files to process
-const int MAX_EVT  = 2000; // Maximum number of events to process
+const int MAX_EVT  = 1000; // Maximum number of events to process
 const int PRT_EVT  = 100;  // Print every N events
 const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1

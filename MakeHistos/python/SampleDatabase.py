@@ -51,7 +51,7 @@ def GetSamples(location = 'CERN', year = '2017'):
         elif (year == '2017'):
             in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1'
         elif (year == '2018'):
-            in_dir = '/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l'
+            in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18.1.6.skim3l'
         else:
             print 'Invalid location (%s) and/or year (%s)!!!  Exiting.' % (location, year)
             sys.exit
