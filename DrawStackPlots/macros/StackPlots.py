@@ -48,7 +48,18 @@ if USER == 'abrinke1':
     RATIO_MIN = 0.0   ## Minimum value in ratio plot
     RATIO_MAX = 2.0   ## Maximum value in ratio plot
 elif USER == 'xzuo':
-    PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
+    YEAR = '2018'
+    PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%s/Histograms' %YEAR
+
+    CONFIG   = 'WH_lep'
+    LABEL    = 'WH_lep_AWB_2018_data_from_skim'
+    CATEGORY = '3lep_medLepMVA_noZ_noBtag_mass12'
+
+    IN_FILE  = 'histos_Presel2017_%s.root' %CATEGORY
+    SCALE    = 'lin' ## 'log' or 'lin' scaling of y-axis
+    RATIO_MIN = 0.0   ## Minimum value in ratio plot
+    RATIO_MAX = 2.0   ## Maximum value in ratio plot
+
 elif USER == 'bortigno':
     PLOT_DIR = 'NONE'
 else: print 'Invalid USER = %s' % USER
@@ -165,6 +176,7 @@ def main():
     #######################################
 
     if USER == 'abrinke1': in_file_dir = PLOT_DIR+'/'+LABEL+'/files/HADD'
+    if USER == 'xzuo': 	   in_file_dir = PLOT_DIR+'/'+LABEL+'/files/HADD'
     else:                  in_file_dir = PLOT_DIR+'/'+LABEL+'/files/sum'
 
     in_file_name  = in_file_dir+'/'+IN_FILE
@@ -354,6 +366,14 @@ def main():
                             if 'ZJets_hiM_MG'  in samp: hist.Scale(0.5)
                             if 'tt_ll_POW'     in samp: hist.Scale(0.7)
                             if 'tt_ll_MG'      in samp: hist.Scale(0.3)
+			if YEAR == '2018':
+			    if 'ZJets_AMC'     in samp: hist.Scale(0.0)  ## not enough low mass AMC for now
+                            if 'ZJets_MG'      in samp: hist.Scale(1.0)  ## only MG_1
+                            if 'ZJets_hiM_AMC' in samp: hist.Scale(0.5)
+                            if 'ZJets_hiM_MG'  in samp: hist.Scale(0.5)
+                            if 'tt_ll_POW'     in samp: hist.Scale(0.5)
+                            if 'tt_ll_MG'      in samp: hist.Scale(0.5)  ## check to make sure
+
 
                         if not group in group_hist.keys():
                             group_hist[group] = hist.Clone('hist_'+dist+'_'+group)

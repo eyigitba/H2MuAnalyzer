@@ -21,9 +21,9 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms'
 if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms'
 
-LABEL = 'MassCal/mu1_pt'
-nameX = "mu1_pt"
-
+LABEL = 'MassCal_KinRoch_approx/d0_diff_KinRoch_by_eta'
+nameX = "d0_diff"
+CAT   = "NONE_NONE"
 
 def main():
     file_dir = PLOT_DIR+"/"+LABEL
@@ -36,9 +36,11 @@ def main():
     fit_dir  = out_file.mkdir("fits_specifics")
 
     samples = ["ZJets_MG_1", "data"]
-    pt_cals = ["PF", "Roch", "Kinfit"]
+#    pt_cals = ["PF", "Kinfit", "good_Kinfit", "Kin_vs_d0kin"]
+    pt_cals = ["Kin_vs_d0kin", "Kin_vs_d0kin_BB", "Kin_vs_d0kin_BE", "Kin_vs_d0kin_EE"]
+#    pt_cals = ["Kin_vs_d0kin_d0PV_N50_N15", "Kin_vs_d0kin_d0PV_N15_N05", "Kin_vs_d0kin_d0PV_P05_P15", "Kin_vs_d0kin_d0PV_P15_P50"]
 
-    summary_info = in_file.Get( pt_cals[0] + "/summary_" + samples[0] + "_" + pt_cals[0]).Clone()
+    summary_info = in_file.Get( pt_cals[0] + "/summary_" + samples[0] + "_" + CAT + "_" + pt_cals[0]).Clone()
     binningX = summary_info.GetXaxis().GetXbins()  ## return type is TArrayD
 
     mean_plots = {}
@@ -85,8 +87,8 @@ def main():
     WriteOverlay(reso_plots, "reso", samples, pt_cals)
 
     sum_dir.cd()
-    WriteSummary(mean_plots, "mean", nameX, samples, pt_cals)
-    WriteSummary(reso_plots, "reso", nameX, samples, pt_cals)
+    WriteSummary(mean_plots, "mean", nameX, samples, pt_cals, file_dir)
+    WriteSummary(reso_plots, "reso", nameX, samples, pt_cals, file_dir)
 
 
 

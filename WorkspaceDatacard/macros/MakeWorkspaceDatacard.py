@@ -52,9 +52,17 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 # CONFIGS = ['WH_lep_AWB_2019_05_20_v1_shape']
 
 #====== XWZ CONGIF
-CONFIGS = ['ZH_lep_XWZ_mass_05_23_MVAp04_v1']
+#CONFIGS = ['WH_2018_3lep_AWB_mass_06_19_med']
+#CONFIGS = ['WH_2018_3lep_AWB_BDT_06_19_med']
+#CONFIGS = ['WH_1718_3lep_AWB_mass_06_25']
+#CONFIGS = ['WH_1718_3lep_AWB_BDT_06_25_med']
+#CONFIGS = ['WH_1718_3lep_AWB_Bernstein_mass_07_03', 'WH_1718_3lep_AWB_template_mass_07_03']
+#CONFIGS = ['ZH_lep_XWZ_mass_05_23_MVAp04_v1']
 # CONFIGS = ['WH_lep_XWZ_2019_05_14_TMVA_out_v1']
-
+#CONFIGS = ['ttH_1718_3lep_AWB_mass_07_04']
+#CONFIGS = ['ttH_1718_3lep_AWB_mass_med_07_08']
+#CONFIGS = ['WH_Run2_3lep_AWB_mass_07_10']
+CONFIGS = ['ttH_Run2_3lep_AWB_mass_07_10']
 
 #============================================
 # Main code

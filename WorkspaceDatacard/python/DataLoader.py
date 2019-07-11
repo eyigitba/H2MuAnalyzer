@@ -5,6 +5,8 @@ import os
 import sys
 import array
 
+from HistTreatments import Hist_RobustUncert, Hist_SmoothShape
+
 import ROOT as R
 
 sys.path.insert(1, '%s/../AutoCat/python' % os.getcwd())
@@ -97,8 +99,12 @@ class DataLoader:
 
         ## Configuration from Andrew's StackPlots.root files
         if (self.source == 'abrinke1'):
+
             print '  * Loading %s_Net_Data, %s_Net_Sig, and %s_Net_Bkg' % (self.dist, self.dist, self.dist)
-            self.data_hist =      self.in_file.Get(self.dist+'_Net_Data').Clone('Net_Data')
+	    if not self.in_file.GetListOfKeys().Contains( self.dist+'_Net_Data' ):
+		self.data_hist = self.in_file.Get(self.dist+'_Net_Bkg').Clone('Net_Data')
+	    else:
+                self.data_hist = self.in_file.Get(self.dist+'_Net_Data').Clone('Net_Data')
             self.sig_hists.append(self.in_file.Get(self.dist+'_Net_Sig').Clone('Net_Sig'))
             self.bkg_hists.append(self.in_file.Get(self.dist+'_Net_Bkg').Clone('Net_Bkg'))
             ## Load systematic-shifted version of plots
@@ -113,6 +119,7 @@ class DataLoader:
             for hist in R.gDirectory.GetListOfKeys():
                 hstr = hist.GetName()
                 if hstr.startswith(self.dist) and not hstr.startswith(self.dist+'_zoom'):
+		    if "pt20" in hstr or "hiPt" in hstr or "HiPt" in hstr or "lepMVA" in hstr or "Z10" in hstr: continue
                     if ('_UP' in hstr or '_DOWN' in hstr):
                         print '    - Loading systematic %s' % hstr
                         self.hists_sys.append(self.in_file.Get('groups/'+hstr).Clone())

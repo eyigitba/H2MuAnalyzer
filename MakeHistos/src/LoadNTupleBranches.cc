@@ -188,6 +188,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
       ch->SetBranchAddress("IsoMu_SF_bug", &(br.IsoMu_SF_bug));
       ch->SetBranchAddress("IsoMu_SF_bug_up", &(br.IsoMu_SF_bug_up));
       ch->SetBranchAddress("IsoMu_SF_bug_down", &(br.IsoMu_SF_bug_down));
+// not present in 2016 samples. commented out by Xunwu 2019.07.07
     }
 
   }

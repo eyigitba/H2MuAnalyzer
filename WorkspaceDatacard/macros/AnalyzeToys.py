@@ -24,12 +24,18 @@ import ROOT as R
 #           'T400_syst_0p3_fit_autoMCStats0',
 #           'T400_syst_0p3_fit']
 # LABELS = ['test_BDT_mass_rebin_v1']
-LABELS = ['test_XWZ_BDT_temp_v1']
+#LABELS = ['test_XWZ_BDT_temp_v1']
+#LABELS = ['test_T2500_bias_dev']
+#LABELS = ['test_6cats_T2500']
+#LABELS = ['Bern3_inc_fixShapeMC_T2500']
+#LABELS = ['WH_mass_template_T2500']
+LABELS= ['BWZ_against_Bern3']
 
 ## Print additional debugging info
 VERBOSE = False
 ## Small offset for edges of histograms
 BIT = 0.001
+
 
 
 def AnalyzeToys(label):
@@ -62,6 +68,10 @@ def AnalyzeToys(label):
     if VERBOSE: print '\nCreating output file AnalyzerToys.root\n'
     out_file = R.TFile('AnalyzerToys_%s.root' % label, 'recreate')
 
+    ## name of the observable in the toys
+    obs_name = 'dimu_mass'
+    if 'BDT' in label or 'template' in label:
+	obs_name = 'CMS_th1x'
 
     ## ********************************* ##
     ##  Set binning and book histograms  ##
@@ -69,12 +79,12 @@ def AnalyzeToys(label):
 
     ## Have to get discriminant binning directly from a toy histogram
     ws_tree.GetEntry(0)
-    h_tmp    = R.RooAbsData.createHistogram(workspace.Get('toys/toy_1'), 'CMS_th1x')
+    h_tmp    = R.RooAbsData.createHistogram(workspace.Get('toys/toy_1'), obs_name)
     bin_disc = [h_tmp.GetNbinsX(), h_tmp.GetBinLowEdge(1), h_tmp.GetBinLowEdge(h_tmp.GetNbinsX()+1)]
     
-    bin_mu   = [200, -50,  50]
-    bin_pull = [100,  -5,   5]
-    bin_bkg  = [100,   0, 200]
+    bin_mu   = [200, -50,   50]
+    bin_pull = [100,  -5,    5]
+    bin_bkg  = [100,   0, 1000]
     if 'BDT' in label:
         bin_ROI = [20,   0,  20]
     else:
@@ -135,7 +145,7 @@ def AnalyzeToys(label):
 
             ## Skip events with unphysical best-fit uncertainties
             if (fit_err_lo < 0.5 or fit_err_hi < 0.5 or fit_err_lo > 50 or fit_err_hi > 50):
-                # print '\nIn event #%d, rErr = %.3f, rLoErr = %.3f, rHiErr = %.3f\n SKIPPING!!!\n' % (iEvt, fit_err, fit_err_lo, fit_err_hi)
+                print '\nIn event #%d, rErr = %.3f, rLoErr = %.3f, rHiErr = %.3f\n SKIPPING!!!\n' % (iEvt, fit_err, fit_err_lo, fit_err_hi)
                 continue
             else:
                 best_fit    = fit_tree[fit].r
@@ -143,8 +153,8 @@ def AnalyzeToys(label):
 
             ## Fill plots
             if VERBOSE: print '  * Filling histograms'
-            h_mu  [fit].Fill( min( max(best_fit,               bin_mu[1]+BIT),   bin_mu[2]-BIT) )
-            h_pull[fit].Fill( min( max(best_fit / fit_err_avg, bin_pull[1]+BIT), bin_pull[2]-BIT) )
+            h_mu  [fit].Fill( min( max(best_fit,                       bin_mu[1]+BIT),   bin_mu[2]-BIT)   )
+            h_pull[fit].Fill( min( max((best_fit - 1.0) / fit_err_avg, bin_pull[1]+BIT), bin_pull[2]-BIT) )
 
         ## End loop: for iEvt in range(fit_tree[fit].GetEntries()):
     ## End loop:  for fit in fit_tree.keys():
@@ -167,7 +177,7 @@ def AnalyzeToys(label):
         ## PyROOT bug doesn't allow normal call to createHistogram returning a TH1 object:
         ## h_toys.append( workspace.Get('toys/toy_%d' % (iToy+1)).createHistogram('CMS_th1x') )
         ## Solution: https://root-forum.cern.ch/t/cant-access-th1f-constructors-of-a-roodataset-using-pyroot-only-the-th2f-constructors-work/26657
-        h_toys.append( R.RooAbsData.createHistogram( workspace.Get('toys/toy_%d' % (iToy+1)), 'CMS_th1x') )
+        h_toys.append( R.RooAbsData.createHistogram( workspace.Get('toys/toy_%d' % (iToy+1)), obs_name) )
         h_toys[iToy].SetName('h_toy_%d' % (iToy+1))
 
         if VERBOSE: print '  * Filling histograms for toy %d' % (iToy+1)
@@ -335,13 +345,15 @@ def AnalyzeToys(label):
     ## Quadrature sum of shape variation, relative to median
     sum_bin_err_sq = 0
     for iBin in range(bin_disc[0]):
+        ## xCoord = (iBin+1)*0.9 - 0.25  ## Weird coordinates needed for re-binned 4-bin BDT histogram
+        xCoord = bin_disc[1] + (iBin + 0.5)*(bin_disc[2] - bin_disc[1])/bin_disc[0]
         q_bin = array.array('d', [0, 0, 0, 0, 0])
         h_bins[iBin].GetQuantiles(5, q_bin, quants)
-        g_q95_toys.SetPoint(iBin,                    (iBin+1)*0.9-0.25, q_bin[0])
-        g_q68_toys.SetPoint(iBin,                    (iBin+1)*0.9-0.25, q_bin[1])
-        g_med_toys.SetPoint(iBin,                    (iBin+1)*0.9-0.25, q_bin[2])
-        g_q68_toys.SetPoint(2*bin_disc[0] - iBin - 1, (iBin+1)*0.9-0.25, q_bin[3])
-        g_q95_toys.SetPoint(2*bin_disc[0] - iBin - 1, (iBin+1)*0.9-0.25, q_bin[4])
+        g_q95_toys.SetPoint(iBin,                     xCoord, q_bin[0])
+        g_q68_toys.SetPoint(iBin,                     xCoord, q_bin[1])
+        g_med_toys.SetPoint(iBin,                     xCoord, q_bin[2])
+        g_q68_toys.SetPoint(2*bin_disc[0] - iBin - 1, xCoord, q_bin[3])
+        g_q95_toys.SetPoint(2*bin_disc[0] - iBin - 1, xCoord, q_bin[4])
         sum_bin_err_sq += pow((q_bin[1] - q_bin[2])/q_bin[2], 2)  ## Lower 68%
         sum_bin_err_sq += pow((q_bin[3] - q_bin[2])/q_bin[2], 2)  ## Upper 68%
 
@@ -454,7 +466,7 @@ def AnalyzeToys(label):
 
 
     out_file.Close()
-    print '\nDone analyzing input %s\n\n' % (label, label)
+    print '\nDone analyzing input %s\n\n' % label
 
 ## End function: AnalyzeToys(label):
 

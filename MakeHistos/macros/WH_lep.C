@@ -46,7 +46,7 @@ const TString SAMPLE   = "H2Mu_WH_pos_125";
 // const TString SAMPLE   = "SingleMu";
 
 const std::string YEAR  = "2017";
-const std::string SLIM  = "Slim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
+const std::string SLIM  = "notSlim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR   = "plots";
 const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both
 
@@ -444,11 +444,11 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  for (const auto & muPair : SelectedMuPairs(obj_sel, br)) {
 	    // Check if the pair matches a GEN muon pair from H
 	    if (not isData) {
-	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, "H") ) {
+	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, *br.genParents, "H") ) {
 		H_true     = muPair;
 		H_true_vec = FourVec(muPair, PTC);
 	      }
-	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, "Z") ) {
+	      if ( IsGenMatched( muPair, *br.muons, *br.genMuons, *br.genParents, "Z") ) {
 		Z_true     = muPair;
 		Z_true_vec = FourVec(muPair, PTC);
 	      }

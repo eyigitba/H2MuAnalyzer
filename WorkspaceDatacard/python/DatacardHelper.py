@@ -137,7 +137,7 @@ def WriteGroupBody(card, cat, dist, fit, width, sig_hists, bkg_hists, doShapeSys
 	# card.write(('1.15').ljust(width))
 	card.write(('-').ljust(width))
     for i in range(1, len(bkg_hists)):
-      channel = bkg_hists[i].GetName()  ## .replace('Net_', '')
+        channel = bkg_hists[i].GetName()  ## .replace('Net_', '')
         if ( channel == 'ttbar' or channel == 'ZJets' ):
             card.write( ('-').ljust(width) )
         else:

@@ -48,19 +48,25 @@ def FitVoigtian(hist):
 
 
 def GetColor(sample, pt_cal):
-    if sample == "ZJets_MG_1" and pt_cal == "PF":
+    if sample == "ZJets_MG_1" or sample == "ZJets_AMC":
+      if pt_cal == "PF" or pt_cal == "Kin_vs_d0kin_BB" or pt_cal == "Kin_vs_d0kin_d0PV_N50_N15":
         return kRed
-    if sample == "ZJets_MG_1" and pt_cal == "Roch":
+      if pt_cal == "Roch" or pt_cal == "good_Kinfit" or pt_cal == "Kin_vs_d0kin_BE" or pt_cal == "Kin_vs_d0kin_d0PV_N15_N05":
         return kAzure
-    if sample == "ZJets_MG_1" and pt_cal == "Kinfit":
+      if pt_cal == "Kinfit" or pt_cal == "Kin_vs_d0kin_EE" or pt_cal == "Kin_vs_d0kin_d0PV_P05_P15":
 	return kSpring
+      if pt_cal == "KinRoch" or pt_cal == "Kin_vs_d0kin" or pt_cal == "Kin_vs_d0kin_d0PV_P15_P50":
+	return kOrange
 
-    if sample == "data" and pt_cal == "PF":
-        return kOrange + 2
-    if sample == "data" and pt_cal == "Roch":
+    if sample == "data":
+      if pt_cal == "PF" or pt_cal == "Kin_vs_d0kin_BB" or pt_cal == "Kin_vs_d0kin_d0PV_N50_N15":
+        return kMagenta
+      if pt_cal == "Roch" or pt_cal == "good_Kinfit" or pt_cal == "Kin_vs_d0kin_BE" or pt_cal == "Kin_vs_d0kin_d0PV_N15_N05":
         return kBlue + 2
-    if sample == "data" and pt_cal == "Kinfit":
+      if pt_cal == "Kinfit" or pt_cal == "Kin_vs_d0kin_EE" or pt_cal == "Kin_vs_d0kin_d0PV_P05_P15":
 	return kGreen + 2
+      if pt_cal == "KinRoch" or pt_cal == "Kin_vs_d0kin" or pt_cal == "Kin_vs_d0kin_d0PV_P15_P50":
+	return kOrange - 6
     else:
         return kBlack
 
@@ -79,7 +85,7 @@ def WriteOverlay(graphs, term, samples, pt_cals):
         graphs[sample+pt_cal].Draw()  ## the first plot cannot have option "SAME", otherwise it is empty
       for pt_cal in pt_cals:
 	graphs[sample+pt_cal].Draw("SAME")
-	legend.AddEntry(graphs[sample+pt_cal], pt_cal)
+	legend.AddEntry(graphs[sample+pt_cal], pt_cal.replace('KinRoch','Kinfit+Roch'))
       legend.Draw()
       canv.Update()
       canv.Write()
@@ -102,7 +108,7 @@ def WriteOverlay(graphs, term, samples, pt_cals):
 
 
 
-def WriteSummary(graphs, term, nameX, samples, pt_cals):
+def WriteSummary(graphs, term, nameX, samples, pt_cals, plot_dir):
     canv = TCanvas("summary_" + term, "summary_" + term, 600,600)
     
     ## upper pad
@@ -117,16 +123,16 @@ def WriteSummary(graphs, term, nameX, samples, pt_cals):
     for pt_cal in pt_cals:
       for sample in samples:
 	if term == "mean":
-          graphs[sample+pt_cal].SetMaximum(91.5)
-          graphs[sample+pt_cal].SetMinimum(90.5)
+          graphs[sample+pt_cal].SetMaximum(92.5)
+          graphs[sample+pt_cal].SetMinimum(90.0)
         else:
-          graphs[sample+pt_cal].SetMaximum(2.0)
+          graphs[sample+pt_cal].SetMaximum(2.8)
           graphs[sample+pt_cal].SetMinimum(0.8)
 	graphs[sample+pt_cal].Draw()
     for pt_cal in pt_cals:
       for sample in samples:
         graphs[sample+pt_cal].Draw("SAME")
-	legend_U.AddEntry(graphs[sample+pt_cal], pt_cal + "_" + sample, "LPE")
+	legend_U.AddEntry(graphs[sample+pt_cal], pt_cal.replace('KinRoch','Kinfit+Roch') + "_" + sample, "LPE")
     legend_U.Draw()
    
     ## lower pad 
@@ -147,36 +153,40 @@ def WriteSummary(graphs, term, nameX, samples, pt_cals):
       y_MC =   double(0.0)
       x_data = double(0.0)
       y_data = double(0.0)
-      for i in range( graphs["ZJets_MG_1"+pt_cal].GetN() ):
-	point_MC = graphs["ZJets_MG_1"+pt_cal].GetPoint(i,  x_MC,  y_MC )
+
+      MC_sample = "ZJets_MG_1"
+      if "ZJets_MG_1" not in samples and "ZJets_AMC" in samples:
+	MC_sample = "ZJets_AMC"
+      for i in range( graphs[MC_sample+pt_cal].GetN() ):
+	point_MC = graphs[MC_sample+pt_cal].GetPoint(i,  x_MC,  y_MC )
 	point_data = graphs["data"+pt_cal].GetPoint(i,  x_data, y_data ) 
-	x_err = graphs["ZJets_MG_1"+pt_cal].GetErrorX(i)
-	y_err_MC = graphs["ZJets_MG_1"+pt_cal].GetErrorY(i)
+	x_err = graphs[MC_sample+pt_cal].GetErrorX(i)
+	y_err_MC = graphs[MC_sample+pt_cal].GetErrorY(i)
 	y_err_data = graphs["data"+pt_cal].GetErrorY(i)
 
 	ratios[pt_cal].SetPoint(i, x_data, y_data/y_MC)
         ratios[pt_cal].SetPointError(i, x_err, y_data/y_MC * math.sqrt( (y_err_MC/y_MC) ** 2.0 + (y_err_data/y_data) ** 2.0 ) )
 
-      ratios[pt_cal].SetLineColor( GetColor("ZJets_MG_1", pt_cal) )
+      ratios[pt_cal].SetLineColor( GetColor(MC_sample, pt_cal) )
       ratios[pt_cal].SetLineWidth(2)
       ratios[pt_cal].GetXaxis().SetLabelSize(0.12)
       ratios[pt_cal].GetYaxis().SetLabelSize(0.12)
       if term == "mean":
-        ratios[pt_cal].SetMaximum(1.002)
-        ratios[pt_cal].SetMinimum(0.998)
+        ratios[pt_cal].SetMaximum(1.003)
+        ratios[pt_cal].SetMinimum(0.997)
       else:
-	ratios[pt_cal].SetMaximum(1.05)
-        ratios[pt_cal].SetMinimum(0.95)
+	ratios[pt_cal].SetMaximum(1.10)
+        ratios[pt_cal].SetMinimum(0.90)
       ratios[pt_cal].Draw()
 
     for pt_cal in pt_cals:
       ratios[pt_cal].Draw("SAME")
-      legend_L.AddEntry(ratios[pt_cal], pt_cal, "LPE")
+      legend_L.AddEntry(ratios[pt_cal], pt_cal.replace('KinRoch','Kinfit+Roch'), "LPE")
     legend_L.Draw()
 
     canv.Update()
     canv.Write()
-
+    canv.SaveAs( plot_dir + "/" + nameX + "_kinfit_eta_" + term + ".png")
 
 
 

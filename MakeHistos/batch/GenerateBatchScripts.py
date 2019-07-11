@@ -49,10 +49,12 @@ YEAR   = 2018    ## Dataset year (2016 or 2017)
 LUMI   = 59900   ## 36814 for 2016, 41500 for 2017, 59900 for 2018
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
+#IN_DIR = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2'
 IN_DIR = ''
+#IN_DIR = '/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l'
 HADD_IN = False   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
 PROD   = '190521'  ## choose given product version instead of the latest one
-
+PROD  = ''
 
 ## Directory for logs and output root files
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%d/Histograms' % YEAR
@@ -67,10 +69,11 @@ if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%d/Histog
 #LABEL = 'VH_selection_2019april/pt10_iso04/ZH_ele_massBDT'
 #LABEL  = 'ttH_3l_AWB_2019_04_12_v1'
 #LABEL = 'data_MC_2018_M70_170_v1'
-LABEL = 'MassCal/muN_d0'
+LABEL = 'MassCal_KinRoch_approx/d0_diff_KinRoch_by_eta'
+#LABEL = 'WH_lep_AWB_2018_data_from_skim_AD'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
-JOBSIZE = 1500  ## Size of input NTuples in MB, per job (default 1000)
+JOBSIZE = 800  ## Size of input NTuples in MB, per job (default 1000)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
 PRT_EVT = 10000  ## Print every Nth event in each job
@@ -80,14 +83,11 @@ HIST_TREE = '"HistTree"'  ## Ouptut histograms, trees, or both
 DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
 SIG_ONLY  = False  ## Only process signal MC samples, no others
-#SAMP_LIST = []  ## Leave [] empty to process multiple samples
+#SAMP_LIST = ['SingleMu_2018A', 'SingleMu_2018D']  ## Leave [] empty to process multiple samples
 
-SAMP_LIST = ['SingleMu_2018A', 'SingleMu_2018B', 'SingleMu_2018C', 'SingleMu_2018D', 'ZJets_MG_1']
-#SAMP_LIST = ['ZJets_AMC', 'tt',              # missing single top  --XWZ 28.09.2018
-#            'tZq', 'ttW','ttZ','ttH'        # tx and ttX, so far only tZq for tx, missing 'tW', 'tZW' -XWZ 27.09.2018
-#            'WW', 'WZ_3l_AMC', 'ZZ_2l_2v', 'ZZ_4l',  # diboson samples, missing 'WZ_2l' and 'ZZ_2l_2q'  --XWZ 27.09.2018
-#            'WWW', 'WWZ', 'WZZ', 'ZZZ',     # triboson, all the samples at hand included   - XWZ 27.09.2018
-#            'H2Mu_gg', 'H2Mu_VBF', 'H2Mu_ZH', 'H2Mu_WH_pos', 'H2Mu_WH_neg', 'H2Mu_ttH']  ## for keeping track of what is used
+SAMP_LIST = ['SingleMu_2018A', 'SingleMu_2018B', 'SingleMu_2018C', 'SingleMu_2018D', 'ZJets_MG_1'] #masscal study on 2018 data
+#SAMP_LIST = ['SingleMu_2017B', 'SingleMu_2017C', 'SingleMu_2017D', 'SingleMu_2017E', 'SingleMu_2017F', 'ZJets_AMC'] #masscal study on 2017 data
+#SAMP_LIST = ['SingleMu_2016B', 'SingleMu_2016C', 'SingleMu_2016D', 'SingleMu_2016E', 'SingleMu_2016F', 'SingleMu_2016G', 'SingleMu_2016H', 'ZJets_AMC'] #masscal study on 2016 data
 #SAMP_LIST = ['ZJets_hiM_MG']
 
 VERBOSE = False ## Verbose printout
@@ -322,7 +322,7 @@ def main():
 #		in_dir_name += '/180802_164117'
 #	if samp.name is 'ZJets_AMC':        # temporary for 2017 WH
 #		in_dir_name += '/180802_165055'
-	if samp.name is "SingleMu_2018D":
+	if PROD == '190521' and samp.name is "SingleMu_2018D":
 		in_dir_name += '/190522_140309'
 	else:
             in_dir_name += '/%d_%06d' % (versions[0][0], versions[0][1])

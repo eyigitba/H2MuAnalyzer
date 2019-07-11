@@ -95,7 +95,7 @@ def ConfigStackPlot(known_config, year):
         cfg.ntuple_loc = 'CERN'
         cfg.sig_mass   = '125'
 
-        if (year == '2017'):
+        if (year == '2017' or year == '2018'):
 
             cfg.groups['Data']['Data']   = []  ## By default, all data samples go into 'Data'
             cfg.groups['Sig']['Signal']  = []  ## By default, all signal samples go into 'Signal'
