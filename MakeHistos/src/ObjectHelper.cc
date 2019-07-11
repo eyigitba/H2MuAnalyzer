@@ -32,7 +32,7 @@ bool LepMVA( const EleInfo & ele, const std::string year, const std::string cut 
 
 // Return if muon fired HLT trigger
 bool MuonTrig ( const MuonInfo & muon, const std::string year, const std::vector<std::string> trigNames ) {
-  if        ( year == "2016" ) {
+  if        ( year == "2016" || year == "Legacy2016" ) {
     for (uint i = 0; i < trigNames.size(); i++) {
       // Unprescaled triggers in 2016 : https://cmswbm.web.cern.ch/cmswbm/cmsdb/servlet/TriggerMode?KEY=l1_hlt_collisions2016/v450
       if ( trigNames.at(i) == "HLT_IsoMu22_eta2p1" || trigNames.at(i) == "HLT_IsoTkMu22_eta2p1" ||
@@ -98,7 +98,7 @@ float MuPairMassErr ( const MuPairInfo & muPair, const std::string pt_corr ) {
 
 // Load LepMVA scale factor histogram
 TH2F * LoadSFsLepMVA( const std::string year, const std::string flavor, const std::string WP ) {
-  assert(year == "2016" || year == "2017");
+  assert(year == "2016" || year == "2017" || year == "2018");
   assert(flavor == "mu" || flavor == "ele");
   assert(WP == "T" || WP == "M" || WP == "L");
 
@@ -106,7 +106,7 @@ TH2F * LoadSFsLepMVA( const std::string year, const std::string flavor, const st
   if (year == "2016") {
     if (flavor == "mu")  SF_file = TFile::Open("data/LepMVA/scaleFactors_2016_mu.root");
     if (flavor == "ele") SF_file = TFile::Open("data/LepMVA/scaleFactors_2016_ele.root");
-  } else if (year == "2017") {
+  } else if (year == "2017" || year == "2018") {
     if (flavor == "mu")  SF_file = TFile::Open("data/LepMVA/scaleFactors_2017_mu.root");
     if (flavor == "ele") SF_file = TFile::Open("data/LepMVA/scaleFactors_2017_ele.root");
   }
@@ -265,7 +265,7 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
 
   float puID_cut = 999;  // Minimum puID value to pass cut
 
-  if (year == "2016") return true;
+  if (year == "Legacy2016" || year == "2016") return true; // What is the true PU ID for 2016? - AWB 01.07.2019
   
   else if (year == "2017" || year == "2018") { // What is the true PU ID for 2018? - AWB 03.05.2019
 
@@ -307,7 +307,7 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
       else { std::cout << "Inside JetPUID, invalid jet eta = " << jet.eta << std::endl; assert(false); }
     }
 
-  } // End conditional: if (year == "2017")
+  } // End conditional: if (year == "2017" || year == "2018")
 
   else { std::cout << "Inside JetPUID, invalid year = " << year << std::endl; assert(false); }
 
@@ -315,6 +315,16 @@ bool JetPUID ( const JetInfo & jet, const std::string PU_ID, const std::string y
 
 } // End function: bool JetPUID ()
 
+float JetCSV( const JetInfo & jet, const std::string opt ) {
+  assert(opt == "CSVv2" || opt == "deepCSV");
+  if (opt == "CSVv2") {
+    if ( isnan(jet.CSV) ) return -1.5;
+    else                  return jet.CSV;
+  } else {
+    if ( isnan(jet.deepCSV) ) return -1.5;
+    else                      return jet.deepCSV;
+  }
+} // End function: float JetCSV()
 
 // Return a new JetPair object, modeled on Ntupliser/DiMuons/src/JetPairHelper.cc
 JetPairInfo MakeJetPair( TLorentzVector jet1_vec, TLorentzVector jet2_vec ) {

@@ -32,6 +32,7 @@ bool  EleID ( const EleInfo & ele, const std::string ele_ID ); // Return loose, 
 float GetLepMVASF(const std::string lep_type, float pt, float eta, float lepMVA_cut); // return lepMVA SF, lep_type is "muon" or "ele" 
 
 bool JetPUID ( const JetInfo & jet, const std::string pu_ID, const std::string year ); // Return loose, medium, or tight jet PU ID from 2016 or 2017
+float JetCSV ( const JetInfo & jet, const std::string opt = "deepCSV" ); // Return CSVv2 or deepCSV, protect against NAN
 
 JetPairInfo MakeJetPair( TLorentzVector jet1_vec, TLorentzVector jet2_vec );
 

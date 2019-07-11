@@ -37,43 +37,45 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 #MACRO = 'macros/MC_data_comparison.C'
 #MACRO = 'macros/ggH_VBF_2l.C'
 #MACRO = 'macros/WH_lep.C'
-#MACRO = 'macros/ttH_3l.C'
+MACRO = 'macros/ttH_3l.C'
 #MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/MiniNTupliser_4l_cat.C'
-MACRO = 'macros/MassCalibration.C'
+#MACRO = 'macros/MassCalibration.C'
 
-LOC    = 'CERN'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF')
+LOC  = 'CERN_3l'  ## Location of input files ('CERN', 'CERN_hiM', 'CERN_3l', or 'UF')
 #LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
-#LOC   = 'CERN_lepMVA_3l_test_v1'
-YEAR   = 2018    ## Dataset year (2016 or 2017)
-LUMI   = 59900   ## 36814 for 2016, 41500 for 2017, 59900 for 2018
+#LOC  = 'CERN_lepMVA_3l_test_v1'
+YEAR = '2018'  ## Dataset year (2016, 2017, or 2018)
+LUMI = 59100   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
 #IN_DIR = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2'
 IN_DIR = ''
-#IN_DIR = '/eos/cms/store/user/bortigno/h2mm/ntuples/2018/102X/prod-v18.1.6.skim3l'
 HADD_IN = False   ## Use pre-hadded root files (NTuple_*.root) instead of original files (tuple_*.root)
-PROD   = '190521'  ## choose given product version instead of the latest one
+#PROD   = '190521'  ## choose given product version instead of the latest one
 PROD  = ''
 
 ## Directory for logs and output root files
-if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%d/Histograms' % YEAR
-if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%d/Histograms' % YEAR
+if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%s/Histograms' % YEAR
+if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%s/Histograms' % YEAR
 
 #LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
-#LABEL = 'WH_lep_AWB_2019_04_24_v1'
-#LABEL = 'ttH_3l_AWB_2019_05_01_v1'
+#LABEL = 'WH_lep_AWB_2019_07_05_test_v1'
+LABEL = 'ttH_3l_AWB_2019_07_08_signal_v1'
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'
-#LABEL = 'VH_selection_2019april/pt10_iso04/ZH_ele_massBDT'
+#LABEL = 'VH_selection_2019april/pt10_iso04/WH_mu_test_run'
 #LABEL  = 'ttH_3l_AWB_2019_04_12_v1'
 #LABEL = 'data_MC_2018_M70_170_v1'
-LABEL = 'MassCal_KinRoch_approx/d0_diff_KinRoch_by_eta'
+#LABEL = 'MassCal_KinRoch_approx/d0_diff_KinRoch_by_eta'
 #LABEL = 'WH_lep_AWB_2018_data_from_skim_AD'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
-JOBSIZE = 800  ## Size of input NTuples in MB, per job (default 1000)
+# JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
+# JOBSIZE =  200  ## Size of input NTuples in MB, per job (WH with multiple categories)
+JOBSIZE =   50  ## Size of input NTuples in MB, per job (ttH with BDT reconstruction)
 
 MAX_EVT = -1     ## Maximum number of events to process per job
 PRT_EVT = 10000  ## Print every Nth event in each job
@@ -142,7 +144,9 @@ def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_
     sub_files[-1].write( 'output      = $(out_dir)/out/sub_%d_%s.out\n' % (job_num, samp_name) )
     sub_files[-1].write( 'error       = $(out_dir)/err/sub_%d_%s.err\n' % (job_num, samp_name) )
     sub_files[-1].write( 'log         = $(out_dir)/log/sub_%d_%s.log\n' % (job_num, samp_name) )
-    sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(2400, job_size*5) )  ## Use for WH_lep with more categories
+    sub_files[-1].write( '+MaxRuntime = %d\n' % max(3600, job_size*20) )  ## Use for ttH with BDT reconstruction
     sub_files[-1].write( 'queue\n' )
     sub_files[-1].close()
     # print 'Wrote file %s' % sub_files[-1].name
@@ -252,7 +256,9 @@ def main():
         hadd_files[cat].write('\nout_dir="%s/files"\n' % out_dir)
         hadd_files[cat].write('\necho "\nNavigating to ${out_dir}"')
         hadd_files[cat].write('\ncd ${out_dir}\n\n')
-        hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
+        if (YEAR == '2016'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_15_patch2/external/slc6_amd64_gcc700/bin/hadd -f')
+        if (YEAR == '2017'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
+        if (YEAR == '2018'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_11_patch1/external/slc6_amd64_gcc700/bin/hadd -f')
         hadd_files[cat].write( ' HADD/histos_%s.root' % cat)
 
     run_files = [] ## Separate submission script for each job
@@ -267,7 +273,7 @@ def main():
     ## Loop over available samples
     for samp in samples:
 
-        # if (YEAR == 2017 and LOC == 'CERN'):  ## Some samples not yet available for 2017 - AWB 17.08.2018
+        # if (YEAR == '2017' and LOC == 'CERN'):  ## Some samples not yet available for 2017 - AWB 17.08.2018
         #     if ('_120' in samp.name or '_130' in samp.name): continue
         #     if ('ZJets' in samp.name):
         #         if not (samp.name == 'ZJets_AMC' or samp.name == 'ZJets_AMC_2' or samp.name == 'ZJets_m_10_50'): continue
@@ -365,7 +371,7 @@ def main():
         for iFile in range(len(in_files)):
             if (len(run_files) >= NJOBS - 1 and NJOBS > 0):
                 break
-            if (job_size > JOBSIZE and JOBSIZE > 0):
+            if ( (job_size > JOBSIZE and JOBSIZE > 0) or len(job_files) >= 50 ):  ## ROOT doesn't like vectors of file names that are too long
                 if VERBOSE: print 'In loop, writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
                 WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, job_size, samp_wgt)
                 job_size  = 0.

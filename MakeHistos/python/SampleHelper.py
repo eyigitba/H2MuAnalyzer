@@ -22,12 +22,17 @@ def GetNormForSample(samp_name, xsec, lumi, in_dir_name, file_list):
     file_chain = R.TChain("dimuons/metadata","chain_"+samp_name)
     for in_file in file_list:
         # print 'Adding file %s/%s' % (in_dir_name, in_file[0])
-        file_tmp = R.TFile.Open( '%s/%s' % (in_dir_name, in_file[0]) )
-        if (not file_tmp):
-            print 'COULD NOT OPEN FILE!!!'
+        try:
+            file_tmp = R.TFile.Open( '%s/%s' % (in_dir_name, in_file[0]) )
+            if (not file_tmp):
+                print 'COULD NOT OPEN FILE!!!'
+                print '%s/%s' % (in_dir_name, in_file[0])
+                sys.exit()
+            file_chain.Add( '%s/%s' % (in_dir_name, in_file[0]) )
+        except:
+            print '\n\nSUPER-BIZZARE EOS ERROR! File exists, but (temporarily) not readable:'
             print '%s/%s' % (in_dir_name, in_file[0])
-            sys.exit()
-	file_chain.Add( '%s/%s' % (in_dir_name, in_file[0]) )
+            print 'Skipping for this round.\n'
 
     total_event = 0
     for i in range(file_chain.GetEntries()):

@@ -16,6 +16,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   TChain * ch = (&ch_);
 
   // Configure special options
+  bool isLeg2016 = false;
   bool is2016    = false;
   bool is2017    = false;
   bool is2018    = false;
@@ -29,6 +30,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
 
   for (uint i = 0; i < opts.size(); i++) {
     if (verbose) std::cout << "  * Using option " << opts.at(i) << std::endl;
+    if (opts.at(i) == "Leg2016") isLeg2016 = true;
     if (opts.at(i) == "2016")    is2016    = true;
     if (opts.at(i) == "2017")    is2017    = true;
     if (opts.at(i) == "2018")    is2018    = true;
@@ -41,13 +43,13 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     if (opts.at(i) == "Wgts")    loadWgts  = true;
   }
 
-  assert(is2016 || is2017 || is2018);
+  assert(isLeg2016 || is2016 || is2017 || is2018);
   assert(isSlim || notSlim);
 
-  if (verbose) std::cout << "is2016 = " << is2016 << ", is2017 = " << is2017 << ", is2018 = " << is2018
-		         << ", isSlim = " << isSlim << ", loadGen = " << loadGEN << ", loadJES = " << loadJES
-			 << ", loadFlags = " << loadFlags << ", loadEffs = " << loadEffs 
-			 << ", loadWgts = " << loadWgts << std::endl;
+  if (verbose) std::cout << "isLeg2016 = " << isLeg2016 << ", is2016 = " << is2016 << ", is2017 = " << is2017
+			 << ", is2018 = " << is2018 << ", isSlim = " << isSlim << ", loadGen = " << loadGEN
+			 << ", loadJES = " << loadJES << ", loadFlags = " << loadFlags
+			 << ", loadEffs = " << loadEffs  << ", loadWgts = " << loadWgts << std::endl;
 
   ch->SetBranchAddress("event", &(br.event));
   ch->SetBranchAddress("vertices", &(br.vertices));
@@ -55,8 +57,8 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
   ch->SetBranchAddress("muons", &(br.muons));
   ch->SetBranchAddress("muPairs", &(br.muPairs));
   ch->SetBranchAddress("eles", &(br.eles));
-  if ( is2016            ||  isSlim) ch->SetBranchAddress("jets", &(br.slimJets));
-  if ((is2017 || is2018) && !isSlim) ch->SetBranchAddress("jets", &(br.jets));
+  if ( isSlim) ch->SetBranchAddress("jets", &(br.slimJets));
+  if (!isSlim) ch->SetBranchAddress("jets", &(br.jets));
   ch->SetBranchAddress("jetPairs", &(br.jetPairs));
   ch->SetBranchAddress("met", &(br.met));
   ch->SetBranchAddress("mht", &(br.mht));
@@ -141,7 +143,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("MuIso_eff_3_up", &(br.MuIso_eff_3_up));
     ch->SetBranchAddress("MuIso_eff_3_down", &(br.MuIso_eff_3_down));
 
-    if (is2016) {
+    if (isLeg2016 || is2016) {
       ch->SetBranchAddress("IsoMu_eff_4", &(br.IsoMu_eff_4));
       ch->SetBranchAddress("IsoMu_eff_4_up", &(br.IsoMu_eff_4_up));
       ch->SetBranchAddress("IsoMu_eff_4_down", &(br.IsoMu_eff_4_down));
@@ -151,9 +153,11 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
       ch->SetBranchAddress("MuIso_eff_4", &(br.MuIso_eff_4));
       ch->SetBranchAddress("MuIso_eff_4_up", &(br.MuIso_eff_4_up));
       ch->SetBranchAddress("MuIso_eff_4_down", &(br.MuIso_eff_4_down));
-      ch->SetBranchAddress("IsoMu_eff_bug", &(br.IsoMu_eff_bug));
-      ch->SetBranchAddress("IsoMu_eff_bug_up", &(br.IsoMu_eff_bug_up));
-      ch->SetBranchAddress("IsoMu_eff_bug_down", &(br.IsoMu_eff_bug_down));
+      if (isLeg2016) {
+	ch->SetBranchAddress("IsoMu_eff_bug", &(br.IsoMu_eff_bug));
+	ch->SetBranchAddress("IsoMu_eff_bug_up", &(br.IsoMu_eff_bug_up));
+	ch->SetBranchAddress("IsoMu_eff_bug_down", &(br.IsoMu_eff_bug_down));
+      }
     }
 
   }
@@ -175,7 +179,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("MuIso_SF_3_up", &(br.MuIso_SF_3_up));
     ch->SetBranchAddress("MuIso_SF_3_down", &(br.MuIso_SF_3_down));
 
-    if (is2016) {
+    if (isLeg2016 || is2016) {
       ch->SetBranchAddress("IsoMu_SF_4", &(br.IsoMu_SF_4));
       ch->SetBranchAddress("IsoMu_SF_4_up", &(br.IsoMu_SF_4_up));
       ch->SetBranchAddress("IsoMu_SF_4_down", &(br.IsoMu_SF_4_down));
@@ -185,10 +189,11 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
       ch->SetBranchAddress("MuIso_SF_4", &(br.MuIso_SF_4));
       ch->SetBranchAddress("MuIso_SF_4_up", &(br.MuIso_SF_4_up));
       ch->SetBranchAddress("MuIso_SF_4_down", &(br.MuIso_SF_4_down));
-      ch->SetBranchAddress("IsoMu_SF_bug", &(br.IsoMu_SF_bug));
-      ch->SetBranchAddress("IsoMu_SF_bug_up", &(br.IsoMu_SF_bug_up));
-      ch->SetBranchAddress("IsoMu_SF_bug_down", &(br.IsoMu_SF_bug_down));
-// not present in 2016 samples. commented out by Xunwu 2019.07.07
+      if (isLeg2016) {
+	ch->SetBranchAddress("IsoMu_SF_bug", &(br.IsoMu_SF_bug));
+	ch->SetBranchAddress("IsoMu_SF_bug_up", &(br.IsoMu_SF_bug_up));
+	ch->SetBranchAddress("IsoMu_SF_bug_down", &(br.IsoMu_SF_bug_down));
+      }
     }
 
   }
@@ -213,8 +218,8 @@ JetInfos ConvertSlimJets(SlimJetInfos & _slimJets) {
     _jet.jecFactor  = _slimJet.jecFactor;
     _jet.jecUnc     = _slimJet.jecUnc;
 
-    _jet.CSV     = _slimJet.CSV;
-    _jet.deepCSV = _slimJet.deepCSV;
+    _jet.CSV     = ( isnan(_slimJet.CSV    ) ? -1.5 : _slimJet.CSV     );
+    _jet.deepCSV = ( isnan(_slimJet.deepCSV) ? -1.5 : _slimJet.deepCSV );
     _jet.puID    = _slimJet.puID;
     
     _jets.push_back(_jet);

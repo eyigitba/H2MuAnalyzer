@@ -12,6 +12,7 @@
 import os
 import sys
 import math
+from shutil import copyfile
 
 ## ROOT includes
 import ROOT as R
@@ -32,18 +33,17 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Settings for this stack-drawing job
 if USER == 'abrinke1':
-    PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
-    YEAR     = '2017'     ## Dataset year (2016 or 2017)
-
+    YEAR     = '2018'     ## Dataset year (2016, 2017, or 2018)
+    PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%s/Histograms' % YEAR
     CONFIG   = 'WH_lep'   ## Pre-defined stack configuration from python/StackPlotConfig.py
-    LABEL    = 'WH_lep_AWB_2019_05_20_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    CATEGORY = '3lep_medLepMVA_noZ_noBtag_mass12'  ## Category for which to draw plots
+    LABEL    = 'WH_lep_AWB_2019_06_25_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    CATEGORY = '3lep_looseLepMVA_noZ5_noBtag'  ## Category for which to draw plots
 
     # CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
     # LABEL    = 'ttH_3l_AWB_2019_05_01_v1'  ## Sub-folder within PLOT_DIR containing histograms
     # CATEGORY = 'e2mu_medLepMVA_noZ_ge2j_btag_mass12'  ## Category for which to draw plots
 
-    IN_FILE  = 'histos_Presel2017_%s.root' % CATEGORY  ## File with input histograms
+    IN_FILE  = 'histos_PreselRun2_%s.root' % CATEGORY  ## File with input histograms
     SCALE     = 'lin' ## 'log' or 'lin' scaling of y-axis
     RATIO_MIN = 0.0   ## Minimum value in ratio plot
     RATIO_MAX = 2.0   ## Maximum value in ratio plot
@@ -104,7 +104,7 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
                     h_data.SetBinContent(i, 0)
                     h_data.SetBinError(i, 0)
         ## Blind high-score part of BDT with mass
-        if 'BDT' in h_data.GetName() and not 'H_pair_mass_BDT' in h_data.GetName():
+        if 'BDT' in h_data.GetName() and ('withMass' in h_data.GetName() or 'retrain' in h_data.GetName() or 'combo' in h_data.GetName()):
             for i in range(1, h_data.GetNbinsX()+1):
                 if h_data.GetXaxis().GetBinCenter(i) > 0.4:
                     h_data.SetBinContent(i, 0)
@@ -147,8 +147,9 @@ def DrawOneStack( dist, sig_stack, all_stack, h_data, legend, out_file_name ):  
         ratio_hist.Draw()
 
     canv.Update()
-    if not '_zoom' in dist or 'combo_zoom' in dist:
+    if not ('BDT' in dist and 'zoom' in dist):
         canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.png')
+        canv.SaveAs(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/'+dist+'.pdf')
 
     ## Open output root file and save canvas and net histograms
     out_file_loc = R.TFile.Open(out_file_name, 'UPDATE')
@@ -189,6 +190,14 @@ def main():
         print 'Creating output file %s' % out_file_name
         out_file = R.TFile.Open(out_file_name, 'RECREATE')
         out_file.mkdir('groups')
+        ## Post plots to webpage: https://abrinke1.web.cern.ch/abrinke1/H2Mu/
+        if USER == 'abrinke1':
+            web_dir = '/afs/cern.ch/user/%s/%s/www/H2Mu/%s/Histograms/%s/plots' % (USER[0], USER, YEAR, LABEL)
+            if not os.path.exists(web_dir): os.makedirs(web_dir)
+            if not os.path.exists(web_dir+'/'+CATEGORY):
+                os.symlink(PLOT_DIR+'/'+LABEL+'/plots/'+CATEGORY+'/', web_dir+'/'+CATEGORY)
+            copyfile('/afs/cern.ch/user/%s/%s/www/index.php' % (USER[0], USER), web_dir+'/'+CATEGORY+'/index.php')
+
     else:  ## If StackPlots.py crashed and you are finishing the plots, update existing file
         print 'Re-opening output file %s' % out_file_name
         out_file = R.TFile.Open(out_file_name, 'UPDATE')
@@ -216,7 +225,10 @@ def main():
     ###################################################
 
     ## List of expected samples from SampleDatabase.py
-    DB_samps = GetSamples(loc, int(YEAR))
+    if (YEAR == 'Run2'):
+        DB_samps = GetSamples(loc, 2017) + GetSamples(loc, 2018)
+    else:
+        DB_samps = GetSamples(loc, int(YEAR))
 
     ## Exclude samples with incorrect signal mass
     for samp in [S for S in DB_samps if S.evt_type == 'Sig']:
@@ -353,27 +365,8 @@ def main():
                 for samp in samps:
                     try:
                         hist = in_file.Get(samp+'_'+dist).Clone('tmp')
-
-                        ## Include multiple samples scaled by available statistics
-                        if YEAR == '2016':
-                            if 'ZJets_AMC' in samp: hist.Scale(0.6)
-                            if 'ZJets_MG'  in samp: hist.Scale(0.4)
-                            # if 'tt_ll_MG'  in samp: hist.Scale(0.4)  ## Experimental SF from 3LooseMu_ttbar_3l_val_mu category
-                        if YEAR == '2017':
-                            if 'ZJets_AMC'     in samp: hist.Scale(0.5)
-                            if 'ZJets_MG'      in samp: hist.Scale(0.25)  ## Using both MG_1 and MG_2
-                            if 'ZJets_hiM_AMC' in samp: hist.Scale(0.5)
-                            if 'ZJets_hiM_MG'  in samp: hist.Scale(0.5)
-                            if 'tt_ll_POW'     in samp: hist.Scale(0.7)
-                            if 'tt_ll_MG'      in samp: hist.Scale(0.3)
-			if YEAR == '2018':
-			    if 'ZJets_AMC'     in samp: hist.Scale(0.0)  ## not enough low mass AMC for now
-                            if 'ZJets_MG'      in samp: hist.Scale(1.0)  ## only MG_1
-                            if 'ZJets_hiM_AMC' in samp: hist.Scale(0.5)
-                            if 'ZJets_hiM_MG'  in samp: hist.Scale(0.5)
-                            if 'tt_ll_POW'     in samp: hist.Scale(0.5)
-                            if 'tt_ll_MG'      in samp: hist.Scale(0.5)  ## check to make sure
-
+                        if samp in cfg.weight.keys():
+                            print 'Scaling sample %s by %.2f' % (samp, cfg.weight[samp])
 
                         if not group in group_hist.keys():
                             group_hist[group] = hist.Clone('hist_'+dist+'_'+group)
@@ -417,12 +410,12 @@ def main():
             group_hist['Dat'] = 0
 
         ## Set aliases for final histograms
-        h_sig  = group_hist['Sig']
-        h_bkg  = group_hist['MC']
-        h_dat  = group_hist['Dat']
-        nSig   = h_sig.Integral()
-        nBkg   = h_bkg.Integral()
-        nDat   = h_dat.Integral()
+        h_sig = group_hist['Sig']
+        h_bkg = group_hist['MC']
+        h_dat = group_hist['Dat']
+        nSig  = h_sig.Integral()
+        nBkg  = h_bkg.Integral()
+        nDat  = 0 if MC_only else h_dat.Integral()
 
         ## Compute B/S and S/sqrt(B) for this distribution
         B_to_S = (nBkg/nSig) if (nSig > 0) else 0
