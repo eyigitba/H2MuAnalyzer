@@ -12,7 +12,7 @@ class StackPlotConfig:
 
     def __init__(self):
         self.year       = 'NONE',  ## '2016' or '2017'
-        self.ntuple_loc = 'NONE',  ## 'CERN', 'CERN_hiM', or 'UF'
+        self.ntuple_loc = 'NONE',  ## 'CERN', 'CERN_hiM', 'CERN_3l', or 'UF'
         self.sig_mass   = 'NONE',  ## '120', '125', or '130'
         self.groups     = {}       ## 'Data', 'Sig', and 'Bkg' defined below
         self.weight     = {}       ##  By individual sample, defined below
@@ -43,7 +43,7 @@ def ConfigStackPlot(known_config, year):
         cfg.ntuple_loc = 'CERN_hiM'
         cfg.sig_mass   = '125'
 
-        if (year == '2016'):
+        if (year == 'Leg2016'):
 
             cfg.groups['Data']['Data']  = []  ## By default, all data samples go into 'Data'
             cfg.groups['Sig']['Signal'] = []  ## By default, all signal samples go into 'Signal'
@@ -95,16 +95,31 @@ def ConfigStackPlot(known_config, year):
     ###  Configuration for validation of WH backgrounds (Z+jets, ttbar, ttW, ttZ)  ###
     ##################################################################################
 
-    if (known_config == 'WH_lep' or 'ttH_3l'):
+    if (known_config == 'WH_lep' or known_config == 'WH_lep_allMass' or
+        known_config == 'ttH_3l' or known_config == 'ttH_3l_allMass'):
 
         cfg.year       = year
-        cfg.ntuple_loc = 'CERN'
+        cfg.ntuple_loc = 'CERN_3l'
         cfg.sig_mass   = '125'
 
-        if (year == '2017' or year == '2018' or year == 'Run2'):
+        if (year == '2016' or year == '2017' or year == '2018' or year == 'Run2'):
 
             cfg.groups['Data']['Data']  = []  ## By default, all data samples go into 'Data'
             cfg.groups['Sig']['Signal'] = []  ## By default, all signal samples go into 'Signal'
+            cfg.excl_samps              = []  ## Samples to exclude from consideration
+
+            ## Start by excluding component histograms merged in MakeHistos/scripts/MergeHists.py
+            cfg.excl_samps += ['H2Mu_VBF_120_NLO_1', 'H2Mu_VBF_120_NLO_2']  ## Merged into H2Mu_VBF_120
+            cfg.excl_samps += ['H2Mu_VBF_125_NLO_1', 'H2Mu_VBF_125_NLO_2']  ## Merged into H2Mu_VBF
+            cfg.excl_samps += ['H2Mu_VBF_130_NLO_1', 'H2Mu_VBF_130_NLO_2']  ## Merged into H2Mu_VBF_130
+            cfg.excl_samps += ['ZJets_AMC', 'ZJets_MG_1', 'ZJets_MG_2']     ## Merged into ZJets
+            cfg.excl_samps += ['ZJets_hiM_AMC', 'ZJets_hiM_MG']             ## Merged into ZJets_hiM
+            cfg.excl_samps += ['tt_ll_POW', 'tt_ll_MG', 'tt_ll_AMC']        ## Merged into tt_ll
+            cfg.excl_samps += ['ttZ_1', 'ttZ_2']                            ## Merged into ttZ
+
+            ## Additional samples to exclude from consideration (redundant)
+            cfg.excl_samps += ['WWW_lep', 'ZZ_4l_amc']
+
 
             cfg.groups['Bkg']['WZ'] = ['WZ_3l']
 
@@ -114,56 +129,33 @@ def ConfigStackPlot(known_config, year):
             if (year == '2018' or year == 'Run2'):
                 cfg.groups['Bkg']['ZZ'] += ['ggZZ_4mu', 'ggZZ_4tau', 'ggZZ_2e2mu', 'ggZZ_2mu2tau']
 
-            ## Powheg sample has ~70% of the stats, MadGraph sample has ~30%.  Weight by 0.7 and 0.3.
-            cfg.groups['Bkg']['ttbar'] = ['tt_ll_POW', 'tt_ll_MG', 'tW_pos', 'tW_neg']
-            cfg.weight['tt_ll_POW'] = 0.7
-            cfg.weight['tt_ll_MG']  = 0.3
+            cfg.groups['Bkg']['ttbar'] = ['tt_ll', 'tW_pos', 'tW_neg']
 
-            # ## Inclusive (mass > 50 GeV) Z+jets samples, to use for Z mass background validation plots
-            # cfg.groups['Bkg']['ZJets'] = ['ZJets_MG_1']
-            # if (year == '2017'):
-            #     ## Can't use extra 2017 samples for Run2 because they don't exist in 2018
-            #     cfg.groups['Bkg']['ZJets'] += ['ZJets_AMC', 'ZJets_MG_2']
-            #     ## After GEN_wgt factor (-1 in ~18% of events), AMC sample has ~50% of the total stats,
-            #     ##   with ~50% for ZJets_MG.  Weight each sample by 0.5.
-            #     cfg.weight['ZJets_AMC']  = 0.50
-            #     cfg.weight['ZJets_MG_1'] = 0.25
-            #     cfg.weight['ZJets_MG_2'] = 0.25
-            
-            ## High-mass (105 - 160 GeV) Z+jets samples, to use for Higgs mass signal region plots
-            cfg.groups['Bkg']['ZJets']  = ['ZJets_hiM_AMC', 'ZJets_hiM_MG']
-            ## Assume 50-50 split for AMC and MG
-            cfg.weight['ZJets_hiM_AMC'] = 0.5
-            cfg.weight['ZJets_hiM_MG']  = 0.5
+            if ('allMass' in known_config):
+                ## Inclusive (mass > 50 GeV) Z+jets samples, to use for Z mass background validation plots
+                cfg.groups['Bkg']['ZJets'] = ['ZJets']
+                cfg.excl_samps            += ['ZJets_hiM']  ## Using inclusive samples, don't need 'hiM'
+
+            elif not ('allMass' in known_config):
+                ## High-mass (105 - 160 GeV) Z+jets samples, to use for Higgs mass signal region plots
+                cfg.groups['Bkg']['ZJets']  = ['ZJets_hiM']
+                cfg.excl_samps             += ['ZJets']  ## Using 'hiM' samples, don't need inclusive
+
+            else: print 'Config %s is not valid for year %s. Exiting.' % (known_config, year), sys.exit()
 
             cfg.groups['Bkg']['Other'] = []  ## Any background sample not of a specified type goes into 'Other'
 
-            ## Samples to exclude from consideration
-            cfg.excl_samps = ['tt_ll_AMC']
-            # cfg.excl_samps += ['ZJets_hiM_AMC',  ## Using inclusive samples, don't need 'hiM'
-            #                    'ZJets_hiM_MG']
-            cfg.excl_samps += ['ZJets_MG_1',  ## Using 'hiM' samples, don't need inclusive
-                               'ZJets_MG_2',
-                               'ZJets_AMC']
-
 
             ## Special modifications for WH or ttH plots
-            if known_config == 'WH_lep':
+            if known_config == 'WH_lep' or known_config == 'WH_lep_allMass':
 
-                cfg.groups['Bkg']['ttX']      = ['ttW', 'ttZ', 'ttH', 'tZq']
-                if (year == '2018' or year == 'Run2'):
-                    cfg.groups['Bkg']['ttX'] += ['tHq', 'tHW', 'ttZ_lowM', 'ttWW']
+                cfg.groups['Bkg']['ttX'] = ['ttZ', 'ttW', 'ttH', 'tZq', 'tHq', 'tHW', 'ttZ_lowM', 'ttWW']
 
-            elif known_config == 'ttH_3l':
-                cfg.groups['Bkg']['top+X']      = ['tZq'] ## Missing tZW
-                if (year == '2018' or year == 'Run2'):
-                    cfg.groups['Bkg']['top+X'] += ['tHq', 'tHW', 'ttWW']
-                cfg.groups['Bkg']['ttW']        = ['ttW']
-                cfg.groups['Bkg']['ttZ']        = ['ttZ']
-                if (year == '2018' or year == 'Run2'):
-                    cfg.groups['Bkg']['ttZ']   += ['ttZ_lowM']
-                cfg.groups['Bkg']['ttH']        = ['ttH']
-
+            elif known_config == 'ttH_3l' or known_config == 'ttH_3l_allMass':
+                cfg.groups['Bkg']['top+X'] = ['tZq', 'tHq', 'tHW', 'ttWW'] ## Missing tZW
+                cfg.groups['Bkg']['ttH']   = ['ttH']
+                cfg.groups['Bkg']['ttW']   = ['ttW']
+                cfg.groups['Bkg']['ttZ']   = ['ttZ', 'ttZ_lowM']
 
             else: print 'Config %s is not valid for year %s. Exiting.' % (known_config, year), sys.exit()
 
@@ -175,7 +167,7 @@ def ConfigStackPlot(known_config, year):
         else: print 'Year %s not valid for config %s. Exiting.' % (year, known_config), sys.exit()
 
 
-    if (year == '2017' or year == '2018' or year == 'Run2'):
+    if (year == '2016' or year == '2017' or year == '2018' or year == 'Run2'):
 
         ## Colors for each group
         cfg.colors = {}
@@ -187,7 +179,7 @@ def ConfigStackPlot(known_config, year):
         cfg.colors['ttbar']      = R.kOrange+2
         cfg.colors['Other']      = R.kCyan
 
-        if known_config == 'WH_lep':
+        if known_config == 'WH_lep' or known_config == 'WH_lep_allMass':
             cfg.colors['ttX']        = R.kSpring
         else:
             cfg.colors['top+X']      = R.kOrange

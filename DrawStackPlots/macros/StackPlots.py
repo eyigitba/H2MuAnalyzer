@@ -12,6 +12,7 @@
 import os
 import sys
 import math
+import copy
 from shutil import copyfile
 
 ## ROOT includes
@@ -33,17 +34,19 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Settings for this stack-drawing job
 if USER == 'abrinke1':
-    YEAR     = '2018'     ## Dataset year (2016, 2017, or 2018)
+    YEAR     = 'Run2'  ## Dataset year (2016, 2017, 2018, or Run2)
     PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%s/Histograms' % YEAR
-    CONFIG   = 'WH_lep'   ## Pre-defined stack configuration from python/StackPlotConfig.py
-    LABEL    = 'WH_lep_AWB_2019_06_25_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    CATEGORY = '3lep_looseLepMVA_noZ5_noBtag'  ## Category for which to draw plots
 
-    # CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
-    # LABEL    = 'ttH_3l_AWB_2019_05_01_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORY = 'e2mu_medLepMVA_noZ_ge2j_btag_mass12'  ## Category for which to draw plots
+    # CONFIG   = 'WH_lep'   ## Pre-defined stack configuration from python/StackPlotConfig.py
+    # LABEL    = 'WH_lep_AWB_2019_07_08_signal_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    # CATEGORY = '3lep_medLepMVA_noZ10_noBtag'  ## Category for which to draw plots
 
-    IN_FILE  = 'histos_PreselRun2_%s.root' % CATEGORY  ## File with input histograms
+    CONFIG   = 'ttH_3l'   ## Pre-defined stack configuration from python/StackPlotConfig.py
+    LABEL    = 'ttH_3l_AWB_2019_07_12_signal_v1'  ## Sub-folder within PLOT_DIR containing histograms
+    CATEGORY = '3lep_medLepMVA_noZ10_ge2j_btag'  ## Category for which to draw plots
+
+    IN_FILE  = 'histos_PreselRun2_%s_merged.root' % CATEGORY  ## File with input histograms
+
     SCALE     = 'lin' ## 'log' or 'lin' scaling of y-axis
     RATIO_MIN = 0.0   ## Minimum value in ratio plot
     RATIO_MAX = 2.0   ## Maximum value in ratio plot
@@ -52,6 +55,28 @@ elif USER == 'xzuo':
 elif USER == 'bortigno':
     PLOT_DIR = 'NONE'
 else: print 'Invalid USER = %s' % USER
+
+
+## Configure year, category, label, and config from command line
+## ./macros/StackPlots.py i j YEAR CATEGORY LABEL CONFIG
+if len(sys.argv) > 3:
+    OLD_YEAR = YEAR
+    YEAR = str(sys.argv[3])
+    print '\nYEAR changed from %s to %s' % (OLD_YEAR, YEAR)
+    PLOT_DIR = PLOT_DIR.replace(OLD_YEAR, YEAR)
+if len(sys.argv) > 4:
+    OLD_CATEGORY = CATEGORY
+    CATEGORY = str(sys.argv[4])
+    print '\nCATEGORY changed from %s to %s' % (OLD_CATEGORY, CATEGORY)
+    IN_FILE = IN_FILE.replace(OLD_CATEGORY, CATEGORY)
+if len(sys.argv) > 5:
+    OLD_LABEL = LABEL
+    LABEL = str(sys.argv[5])
+    print '\nLABEL changed from %s to %s' % (OLD_LABEL, LABEL)
+if len(sys.argv) > 6:
+    OLD_CONFIG = CONFIG
+    CONFIG = str(sys.argv[6])
+    print '\nCONFIG changed from %s to %s' % (OLD_CONFIG, CONFIG)
 
 
 
@@ -214,9 +239,9 @@ def main():
 
     ## List of expected samples from SampleDatabase.py
     if (YEAR == 'Run2'):
-        DB_samps = GetSamples(loc, 2017) + GetSamples(loc, 2018)
+        DB_samps = GetSamples(loc, '2016') + GetSamples(loc, '2017') + GetSamples(loc, '2018')
     else:
-        DB_samps = GetSamples(loc, int(YEAR))
+        DB_samps = GetSamples(loc, YEAR)
 
     ## Exclude samples with incorrect signal mass
     for samp in [S for S in DB_samps if S.evt_type == 'Sig']:
@@ -318,8 +343,14 @@ def main():
     for group in groups['Sig'].keys(): print group+': '+', '.join(groups['Sig'][group])
     print '\nFinal list of background samples:'
     for group in groups['Bkg'].keys(): print group+': '+', '.join(groups['Bkg'][group])
-    print '\nFinal list of excluded samples:'
-    print ', '.join(excl_samps)
+    print '\nFinal list of excluded samples (signal, usually wrong-mass):'
+    for excl_samp in excl_samps:
+        if 'H2Mu' in excl_samp: print (excl_samp+', '),
+    print '\nFinal list of excluded samples (background):'
+    for excl_samp in excl_samps:
+        if not 'H2Mu' in excl_samp: print (excl_samp+', '),
+    print '\n'
+
 
     ## Drop empty groups
     for kind in ['Data', 'Sig', 'Bkg']:
@@ -333,6 +364,9 @@ def main():
     ###  Histograms, stacks, and canvases  ###
     ##########################################
 
+    ## Save a copy of the original set of groups
+    orig_groups = copy.deepcopy(groups)
+
     print '\nAbout to start creating and filling the plots'
     print 'Looping over samples and distributions to get histograms'
     iDist = 0
@@ -341,6 +375,9 @@ def main():
         ## Only plot stacks in certain index range, if speficied by the user
         if ( len(sys.argv) > 1 and (iDist < int(sys.argv[1]) or iDist > int(sys.argv[2])) ): continue
         print '  * Looking at distribution %s (#%d)' % (dist, iDist)
+
+        ## Reset "group" to the original set of groups
+        groups = copy.deepcopy(orig_groups)
 
 	group_hist = {}  ## Summed sample histograms by group
 	stack_all  = R.THStack('all_stack_'+dist, dist+' signal + background')
@@ -353,8 +390,21 @@ def main():
                 for samp in samps:
                     try:
                         hist = in_file.Get(samp+'_'+dist).Clone('tmp')
+
+                        ## Set uncertainty for empty bins to Integral/(nEffectuveEntries*sqrt(nEmptyBins))
+                        if not evt_type is 'Data':
+                            nEmptyBins = 0
+                            for iBin in range(1, hist.GetNbinsX()+1):
+                                if hist.GetBinContent(iBin) == 0: nEmptyBins += 1
+                            if nEmptyBins > 0:
+                                empty_uncert = abs(hist.Integral() / (hist.GetEffectiveEntries() * math.sqrt(nEmptyBins)))
+                                for jBin in range(1, hist.GetNbinsX()+1):
+                                    hist.SetBinError(jBin, max(abs(hist.GetBinError(jBin)), empty_uncert))
+
+                        ## Scale samples for which there is more than on MC dataset
                         if samp in cfg.weight.keys():
                             print 'Scaling sample %s by %.2f' % (samp, cfg.weight[samp])
+                            hist.Scale(cfg.weight[samp])
 
                         if not group in group_hist.keys():
                             group_hist[group] = hist.Clone('hist_'+dist+'_'+group)
@@ -368,6 +418,11 @@ def main():
             for key in groups[evt_type].keys():
                 if not key in group_hist.keys():
                     del groups[evt_type][key]
+
+        if ( len(groups['Sig'].keys()) + len(groups['Bkg'].keys()) == 0 ):
+            print '\n\n******* Super-bizzare situation: no signal or background histograms for %s!!!' % dist
+            print 'There are %d histograms in data.  Moving on to the next plot,\n' % len(groups['Data'].keys())
+            continue
 
         ## Fill the signal stack
 	for group in groups['Sig'].keys():
