@@ -80,8 +80,6 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
       cfg.ele_pt_min  = 10.0;     // Minimum electron pT
       cfg.ele_MVA_min = -0.4;     // Minimum prompt electron lepton MVA (lepMVA) BDT score
       cfg.ele_CSV_max = "loose";  // Veto electrons with pT < 20 GeV with matching jet passing b-tag threshold
-
-      cfg.jet_pt_min  = 20.0;     // Lower minimum jet pT for higher acceptance
     }
 
   } // End if (_year == "2016" || _year == "2017" || _year == "2018")
@@ -217,7 +215,7 @@ int JetMuonClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const 
     jetPass = false;
   } else {                         // Remove leptons with pT < 20 matched to b-tagged jets
     assert(cfg.mu_CSV_max == "loose");
-    float jet_CSV = JetCSV(jet, (cfg.year == "Legacy2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+    float jet_CSV = JetCSV(jet, (cfg.year == "Legacy2016" ? "CSVv2" : "deepCSV"));
     if (vLep.Pt() > 20 || jet_CSV < cfg.jet_btag_cuts.at(0)) {
       jetPass = false;
     } else {
@@ -256,7 +254,7 @@ int JetEleClean( const ObjectSelectionConfig & cfg, const JetInfo & jet, const E
     jetPass = false;
   } else {                         // Remove leptons with pT < 20 matched to b-tagged jets
     assert(cfg.ele_CSV_max == "loose");
-    float jet_CSV = JetCSV(jet, (cfg.year == "Legacy2016" ? "CSVv2" : "deepCSV"));  // Will switch to deepCSV in all years eventually - AWB 2019.01.19
+    float jet_CSV = JetCSV(jet, (cfg.year == "Legacy2016" ? "CSVv2" : "deepCSV"));
     if (vLep.Pt() > 20 || jet_CSV < cfg.jet_btag_cuts.at(0)) {
       jetPass = false;
     } else {
