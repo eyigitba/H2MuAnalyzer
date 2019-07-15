@@ -40,8 +40,8 @@ INDIR   = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/Run2/TrainMVA/output'
 # FACTORY = 'f_Opt_AWB_noMass_allVars_all_sig_all_bkg_ge0j'
 
 INFILE  = "Run2_ttH_3l_varStudy_ttH_vs_all_jetCuts_2019_07_13_test_v1.root"
-FACTORY = "f_Opt_AWB_noMass_allVars_ttH_sig_all_bkg_le3j_notag"
-# FACTORY = "f_Opt_AWB_noMass_allVars_ttH_sig_all_bkg_ge4j_btag"
+# FACTORY = "f_Opt_AWB_noMass_allVars_ttH_sig_all_bkg_le3j_notag"
+FACTORY = "f_Opt_AWB_noMass_allVars_ttH_sig_all_bkg_ge4j_btag"
 
 ## Script global settings
 MAX_EVT =     -1  ## Total number of events in the tree to process
