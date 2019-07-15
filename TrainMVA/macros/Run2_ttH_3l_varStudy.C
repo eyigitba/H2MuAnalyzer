@@ -1,7 +1,7 @@
 
 /////////////////////////////////////////////////////
 ///   General H2Mu vs. background BDT from 2016   ///
-///        Copied from UFDimuAnalysis fil        ///
+///        Copied from UFDimuAnalysis file        ///
 ///        bin/TMVAClassification_H2Mu.cxx        ///
 ///                                               ///
 ///        Andrew Brinkerhoff  01.10.2018         ///
@@ -19,8 +19,8 @@
 
 // Hard-coded options for running locally / manually
 // Options passed in as arguments to TMVA_BDT_2017_ggH_hiPt when running in batch mode
-const int MAX_EVT =  -1; // Maximum number of events to process per sample
-const int PRT_EVT =  10000;  // Print every N events
+const int MAX_EVT =    -1;  // Maximum number of events to process per sample
+const int PRT_EVT =  1000;  // Print every N events
 
 const bool verbose = false; // Print extra information
 
@@ -243,7 +243,7 @@ void Run2_ttH_3l_varStudy( TString myMethodList = "", std::vector<TString> in_di
   // 0xf the 1st 4, 0xff the 1st 8, 0xa the 2nd and 4th, 0xf1 the 1st and 5th-8th, etc.
   // The last three strings indicate which signal, background, and nJets to use.
   std::vector< std::tuple<TMVA::Factory*, TMVA::DataLoader*, TString, std::vector<TString>, std::vector<double>,
-    int, int, long long int, TString, TString, TString> > factories;
+    long long int, long long int, long long int, TString, TString, TString> > factories;
 
   // // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_XWZ_noMass_v2", var_names, var_vals,
   // // 					0xfffe, 0x0000, 0x0000, "all", "all", "ge0j") );

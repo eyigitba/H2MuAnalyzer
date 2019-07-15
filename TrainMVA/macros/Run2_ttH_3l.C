@@ -24,8 +24,9 @@ const int PRT_EVT =  1000;  // Print every N events
 
 const bool verbose = false; // Print extra information
 
-const std::vector<TString> IN_DIRS  = {"/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms/ttH_3l_AWB_2019_06_25_v1/files/",
-				       "/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms/ttH_3l_AWB_2019_06_25_v1/files/"};
+const std::vector<TString> IN_DIRS  = {"/afs/cern.ch/work/a/abrinke1/public/H2Mu/2016/Histograms/ttH_3l_AWB_2019_07_12_signal_v1/files/",
+                                       "/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms/ttH_3l_AWB_2019_07_12_signal_v1/files/",
+				       "/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms/ttH_3l_AWB_2019_07_12_signal_v1/files/"};
 // const TString OUT_DIR = "output";
 const TString OUT_DIR = "/afs/cern.ch/work/a/abrinke1/public/H2Mu/Run2/TrainMVA/output";
 
@@ -41,6 +42,7 @@ const double BIT = 0.000001; // Tiny value or offset
 
 // Events must fall into one of the allowed categories
 const std::vector<TString> CATS = {"OPT_3lep_CAT_looseLepMVA_ge2j_btag"};
+// const std::vector<TString> CATS = {"OPT_3lep_CAT_medLepMVA_noZ10_ge2j_btag"};
 
 
 using namespace TMVA;
@@ -152,18 +154,20 @@ void Run2_ttH_3l( TString myMethodList = "", std::vector<TString> in_dirs = {},
 
   // bkg_samps.push_back( std::make_tuple("ZJets_MG",      +1) );
   // bkg_samps.push_back( std::make_tuple("ZJets_AMC",     +2) );
-  bkg_samps.push_back( std::make_tuple("ZJets_hiM_MG",  +1) );
-  bkg_samps.push_back( std::make_tuple("ZJets_hiM_AMC", +2) );
+  bkg_samps.push_back( std::make_tuple("ZJets_hiM_MG",  +1) ); // In 2016/17/18, has weight 0.20/0.35/0.45
+  bkg_samps.push_back( std::make_tuple("ZJets_hiM_AMC", +2) ); // In 2016/17/18, has weight 0.80/0.65/0.55
 
-  bkg_samps.push_back( std::make_tuple("tt_ll_POW", +4) );
-  bkg_samps.push_back( std::make_tuple("tt_ll_MG",  +5) );
+  bkg_samps.push_back( std::make_tuple("tt_ll_POW", +4) ); // In 2016/17/18, has weight 0.75/0.70/0.65
+  bkg_samps.push_back( std::make_tuple("tt_ll_MG",  +5) ); // In 2016/17/18, has weight 0.25/0.30/0.30 (other 0.05 tt_ll_AMC)
   bkg_samps.push_back( std::make_tuple("tW_pos",    +6) );
   bkg_samps.push_back( std::make_tuple("tW_neg",    +7) );
   bkg_samps.push_back( std::make_tuple("tZq",       +8) );
   bkg_samps.push_back( std::make_tuple("tZW",       +9) );
   
   bkg_samps.push_back( std::make_tuple("ttW",      +10) );
-  bkg_samps.push_back( std::make_tuple("ttZ",      +11) );
+  bkg_samps.push_back( std::make_tuple("ttZ",      +11) );   // In all years, has weight 0.10 in 2016
+  bkg_samps.push_back( std::make_tuple("ttZ_1",    +11.2) ); // Only in 2016, has weight 0.45
+  bkg_samps.push_back( std::make_tuple("ttZ_2",    +11.4) ); // Only in 2016, has weight 0.45
   bkg_samps.push_back( std::make_tuple("ttZ_lowM", +12) );
   bkg_samps.push_back( std::make_tuple("ttH",      +13) );
   bkg_samps.push_back( std::make_tuple("tHq",      +14) );
@@ -521,6 +525,9 @@ void Run2_ttH_3l( TString myMethodList = "", std::vector<TString> in_dirs = {},
   std::vector<TString> used_samps;
   std::vector<TString> skipped_samps;
 
+  int year = 2015;  // Keep track of which year we're looking at
+  bool last_was_ttH_125 = false;  // Use first occurance of ttH signal event to do so
+
   int nEvents = in_chain->GetEntries();
   int nEvt_pass = 0;
   std::cout << "\nLooping over the " << nEvents << " events in the input file" << std::endl;
@@ -586,6 +593,16 @@ void Run2_ttH_3l( TString myMethodList = "", std::vector<TString> in_dirs = {},
       used_samps.push_back(br_str.at("sample")->c_str());
     }
 
+    // Check if we are in a new year by finding first instance of a ttH signal event
+    if (samp_name.Contains("H2Mu_ttH_125")) {
+      if (!last_was_ttH_125) {
+	year += 1;
+	std::cout << "\n\n*** Just updated year to " << year << " ***\n\n" << std::endl;
+      }
+      last_was_ttH_125 = true;
+    } else {
+      last_was_ttH_125 = false;
+    }
 
     // Select "odd" events after prescale
     int presc = 1;
@@ -602,10 +619,10 @@ void Run2_ttH_3l( TString myMethodList = "", std::vector<TString> in_dirs = {},
       if ( br_int.at(CATS.at(i)) == 1 ) {
 	pass_cat_cut = true;
 	lepMVA_wgt = br_flt.at("lepMVA_wgt_"+CATS.at(i));
-	// If using looseLepMVA to model medLepMVA, re-weight non-prompt background by 0.5
+	// If using looseLepMVA to model medLepMVA, re-weight non-prompt background by 0.33 fo 3mu, 0.5 for e2mu events
 	if ( CATS.at(i).Contains("looseLepMVA") && ( samp_name.Contains("ZJets") ||
 						     samp_name.Contains("tt_ll") ||
-						     samp_name.Contains("tW_") ) ) lepMVA_wgt *= 0.5;
+						     samp_name.Contains("tW_") ) ) lepMVA_wgt *= (0.33 + 0.17*br_int.at("nEles"));
       }
     }
     if (!pass_cat_cut) continue;
@@ -628,17 +645,52 @@ void Run2_ttH_3l( TString myMethodList = "", std::vector<TString> in_dirs = {},
       samp_wgt *= (1.0 * presc / DAT_PRESC);
     
     // Special weights for processes with multiple MC samples
-    if (samp_name == "ZJets_hiM_MG")  samp_wgt *= 0.5;
-    if (samp_name == "ZJets_hiM_AMC") samp_wgt *= 0.5;
-    if (samp_name == "tt_ll_POW")     samp_wgt *= 0.7;
-    if (samp_name == "tt_ll_MG")      samp_wgt *= 0.3;    
+    if (samp_name == "ZJets_hiM_MG") {
+      if      (year == 2016) samp_wgt *= 0.20;
+      else if (year == 2017) samp_wgt *= 0.35;
+      else if (year == 2018) samp_wgt *= 0.45;
+      else { std::cout << "Looking at " << samp_name << ", invalid year " << year << std::endl; assert(1.0/0); }
+    }
+    if (samp_name == "ZJets_hiM_AMC") {
+      if      (year == 2016) samp_wgt *= 0.80;
+      else if (year == 2017) samp_wgt *= 0.65;
+      else if (year == 2018) samp_wgt *= 0.55;
+      else { std::cout << "Looking at " << samp_name << ", invalid year " << year << std::endl; assert(1.0/0); }
+    }
+    if (samp_name == "tt_ll_POW") {
+      if      (year == 2016) samp_wgt *= 0.75;
+      else if (year == 2017) samp_wgt *= 0.70;
+      else if (year == 2018) samp_wgt *= 0.65;
+      else { std::cout << "Looking at " << samp_name << ", invalid year " << year << std::endl; assert(1.0/0); }
+    }
+    if (samp_name == "tt_ll_MG") {
+      if      (year == 2016) samp_wgt *= 0.25;
+      else if (year == 2017) samp_wgt *= 0.30;
+      else if (year == 2018) samp_wgt *= 0.35;
+      else { std::cout << "Looking at " << samp_name << ", invalid year " << year << std::endl; assert(1.0/0); }
+    }
+    if (samp_name == "ttZ") {
+      if      (year == 2016) samp_wgt *= 0.1;
+      else if (year == 2017) samp_wgt *= 1.0;
+      else if (year == 2018) samp_wgt *= 1.0;
+    else { std::cout << "Looking at " << samp_name << ", invalid year " << year << std::endl; assert(1.0/0); }
+    }
+    if (samp_name == "ttZ_1" || samp_name == "ttZ_2") {
+      if      (year == 2016) samp_wgt *= 0.45;
+      else { std::cout << "Looking at " << samp_name << ", invalid year " << year << std::endl; assert(1.0/0); }
+    }
+
 
     // Total weight combines all 3 weights
     total_wgt = samp_wgt*event_wgt*lepMVA_wgt;
 
-    if (verbose) std::cout << "Event " << iEvt << ", sample " << samp_name << " has sample weight " << samp_wgt
-    			   << ", event weight = " << event_wgt << ", and lepMVA SF = " << lepMVA_wgt
-			   << " (total = " << total_wgt << ")" << std::endl;
+    if (verbose || abs(total_wgt) > 0.2) std::cout << "Event " << iEvt << ", sample " << samp_name << " has sample weight " << samp_wgt
+						   << ", event weight = " << event_wgt << ", and lepMVA SF = " << lepMVA_wgt
+						   << " (total = " << total_wgt << ")" << std::endl;
+    if (abs(total_wgt) > 0.2) {
+      std::cout << "\n\nBizzare case where total weight is > 0.2!!!  Skipping." << std::endl;
+      continue;
+    }
 
     // For signal samples with mass 120 or 130, shift observed mass by 5 GeV
     double mass_shift = 0.0;
@@ -687,8 +739,10 @@ void Run2_ttH_3l( TString myMethodList = "", std::vector<TString> in_dirs = {},
       // Select only events with Higgs candidate matched to true Z (or not matched to true Z)
       if (bkg_name.Contains("trueZ") && samp_ID > 0 && br_flt.at("H_pair_mass") != br_flt.at("Z_mass_true")) continue;
       if (bkg_name.Contains("nonZ")  && samp_ID > 0 && br_flt.at("H_pair_mass") == br_flt.at("Z_mass_true")) continue;
-      // If a 3-muon event, mask events within 5 GeV of the Z boson mass
-      if (br_int.at("nEles") == 0 && abs(br_flt.at("OS_pair_mass") - 91) < 5) continue;
+      // If a 3-muon event, mask events within 10 GeV of the Z boson mass
+      if (br_int.at("nEles") == 0 && abs(br_flt.at("OS_pair_mass") - 91) < 10) continue;
+      // Only use events with >= 2 central jets
+      if (br_int.at("nJetsCent") < 2) continue;
       // Cut on the number of jets or b-tags
       if (options.Contains("le3j") && br_int.at("nJetsCent") > 3) continue;
       if (options.Contains("ge4j") && br_int.at("nJetsCent") < 4) continue;
