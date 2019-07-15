@@ -20,8 +20,7 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Settings for this stack-drawing job
 if USER == 'abrinke1':
-    # YEARS    = ['2016', '2017', '2018']  ## Dataset years (2016, 2017, 2018)
-    YEARS    = ['2018']
+    YEARS    = ['2016', '2017', '2018']  ## Dataset years (2016, 2017, 2018)
     PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/YEAR/Histograms'
 
     SAMPLES = {}  ## Sets of samples to merge
@@ -47,11 +46,10 @@ if USER == 'abrinke1':
     #               'e2mu_allMass_medLepMVA_onZ10_noBtag']
 
     LABEL      = 'ttH_3l_AWB_2019_07_12_signal_v1'  ## Sub-folder within PLOT_DIR containing histograms
-    # CATEGORIES = ['3lep_looseLepMVA_ge2j_btag',     ## Categories for which to merge histograms
-    #               '3lep_medLepMVA_noZ10_ge2j_btag',
-    #               '3lep_hiPt_lepW20_medLepMVA_noZ10_ge2j_btag',
-    #               '3lep_hiPt_lep20_tightLepMVA_noZ10_btag']
-    CATEGORIES = ['3lep_looseLepMVA_ge2j_btag']
+    CATEGORIES = ['3lep_looseLepMVA_ge2j_btag',     ## Categories for which to merge histograms
+                  '3lep_medLepMVA_noZ10_ge2j_btag',
+                  '3lep_hiPt_lepW20_medLepMVA_noZ10_ge2j_btag',
+                  '3lep_hiPt_lep20_tightLepMVA_noZ10_btag']
 
     # LABEL      = 'ttH_3l_AWB_2019_07_08_sideband_v1'         ## Sub-folder within PLOT_DIR containing histograms
     # CATEGORIES = ['3lep_allMass_medLepMVA_noZ10_ge2j_btag',  ## Categories for which to merge histograms 
