@@ -13,6 +13,10 @@ echo $in_dir_18
 echo $out_dir
 echo $hadd_cmd
 
+## Make output directory
+mkdir_str="mkdir -p $out_dir"
+`$mkdir_str`
+
 ## Loop over files from 2018
 for file18 in `ls $in_dir_18`; do
     ## Make sure this is a ROOT file
