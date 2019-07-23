@@ -42,7 +42,7 @@ def ComputeSignificance(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning =
         ## Make a histogram of the signal^2 / background
         h_sigma_sq = h_sig_sq.Clone('h_sigma_sq')
         h_sigma_sq.Divide(h_bkg)
-        sigma_integral = math.sqrt(h_sigma_sq.Integral())
+        sigma_integral = 0 if h_sigma_sq.Integral() <= 0 else math.sqrt(h_sigma_sq.Integral())
 
         if verbose: print '\nNet significance estimated directly from the S^2 / B integral = %.3f' % sigma_integral
 
@@ -51,8 +51,10 @@ def ComputeSignificance(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning =
         for bin in bins:
             num = h_sig.Integral(bin[0], bin[1])
             den = h_bkg.Integral(bin[0], bin[1])
-            if den <= min_bkg:
+            if den > min_bkg:
                 sigma_no_uncert += ( pow(num, 2) / den )
+            if verbose: print '  * Bins [%d, %d] have %.3f signal events'     % (bin[0], bin[1], num)
+            if verbose: print '  * Bins [%d, %d] have %.2f background events' % (bin[0], bin[1], den)
         sigma_no_uncert = math.sqrt(sigma_no_uncert)
 
         if verbose: print 'Net significance with original binning and no statistical uncertainties = %.3f\n' % sigma_no_uncert
@@ -66,10 +68,11 @@ def ComputeSignificance(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning =
             num = h_sig.Integral        (bin[0], bin[1])
             den = h_bkg.IntegralAndError(bin[0], bin[1], err)
             if den <= min_bkg:
-                if verbose: print '  * Bins [%d, %d] have %.2f +/- %.2f background events (skipping)' % (bin[0], bin[1], den, math.sqrt(err))
+                if verbose: print '  * Bins [%d, %d] have %.2f +/- %.2f background events (skipping)' % (bin[0], bin[1], den, err)
                 continue
             sigma_with_uncert += ( pow(num, 2) / (den + pow(err, 2)) )
-            if verbose: print '  * Bins [%d, %d] have %.2f +/- %.2f (%.2f%%) background events' % (bin[0], bin[1], den, math.sqrt(err), 100*math.sqrt(err) / den)
+            if verbose: print '  * Bins [%d, %d] have %.3f signal events'                       % (bin[0], bin[1], num)
+            if verbose: print '  * Bins [%d, %d] have %.2f +/- %.2f (%.2f%%) background events' % (bin[0], bin[1], den, err, 100*(err / den))
 
         ## Don't return an estimate that is less than the integral of the whole range
         err = R.Double(-99)
@@ -92,13 +95,16 @@ def ComputeSignificance(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning =
             den = h_bkg.IntegralAndError(bin[0], bin[1], err_bkg)
             if den <= min_bkg: continue
             sigma_conserv += ( pow(num - err_sig, 2) / (den + err_bkg + pow(err_bkg, 2)) )
-            if verbose: print '  * Bins [%d, %d] have %.3f +/- %.3f signal events'              % (bin[0], bin[1], num, math.sqrt(err_sig))
-            if verbose: print '  * Bins [%d, %d] have %.2f +/- %.2f (%.2f%%) background events' % (bin[0], bin[1], den, math.sqrt(err_bkg), 100*math.sqrt(err_bkg) / den)
+            if verbose: print '  * Bins [%d, %d] have %.3f +/- %.3f signal events'              % (bin[0], bin[1], num, err_sig)
+            if verbose: print '  * Bins [%d, %d] have %.2f +/- %.2f (%.2f%%) background events' % (bin[0], bin[1], den, err_bkg, 100*(err_bkg / den))
 
         ## Don't return an estimate that is less than the integral of the whole range
-        err = R.Double(-99)
-        den = h_bkg.IntegralAndError(1, h_bkg.GetNbinsX(), err)
-        sigma_conserv = max( sigma_conserv, pow(h_sig.Integral(), 2) / (den + pow(err, 2)) )
+        err_sig = R.Double(-99)
+        err_bkg = R.Double(-99)
+        num = h_sig.IntegralAndError(1, h_sig.GetNbinsX(), err_sig)
+        den = h_bkg.IntegralAndError(1, h_bkg.GetNbinsX(), err_bkg)
+        if (num > 0 and den > min_bkg):
+            sigma_conserv = max( sigma_conserv, pow(h_sig.Integral() - err_sig, 2) / (den + err_bkg + pow(err_bkg, 2)) )
         ## Significance = sqrt(S^2 / B)
         sigma_conserv = math.sqrt(sigma_conserv)
 
@@ -113,12 +119,29 @@ def ComputeSignificance(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning =
 ## End function: def ComputeSignificance(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning = [], verbose = False):
 
 
+## Compute significance of 2D signal histogram w.r.t. background
+def ComputeSignificance2D(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning = [], verbose = False):
+
+    ## Loop through bins on x-axis and compute significance of histograms along y-axis
+    sigma_sq = 0
+    for i in range(1, h_sig.GetNbinsX()+1):
+        h_sig_1D = h_sig.ProjectionY(h_sig.GetName()+'_bin%d' % i, i, i)
+        h_bkg_1D = h_bkg.ProjectionY(h_bkg.GetName()+'_bin%d' % i, i, i)
+        if (h_sig_1D.Integral() >= 0 and h_bkg_1D.Integral() > min_bkg):
+            sigma_sq += pow( ComputeSignificance(h_sig_1D, h_bkg_1D, syst, min_bkg, binning, verbose), 2 )
+
+    return math.sqrt( sigma_sq )
+
+## End function: def ComputeSignificance2D(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, binning = [], verbose = False):
+
+
 ## Rebin a histogram to maximize the significance
 ## Continue rebinning as long as the relative significance loss compared to the maximum significance is less than "loss"
 def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, max_bin_width = -1, verbose = False):
 
-    print '\nMerging %d bins for signal %s and background %s' % (h_sig.GetNbinsX(), h_sig.GetName(), h_bkg.GetName())
-    print '  * Options syst = %s, min_bkg = %.2f, max_loss = %.3f, max_bin_width = %.2f' % (syst, min_bkg, max_loss, max_bin_width)
+    if verbose:
+        print '\nMerging %d bins for signal %s and background %s' % (h_sig.GetNbinsX(), h_sig.GetName(), h_bkg.GetName())
+        print '  * Options syst = %s, min_bkg = %.2f, max_loss = %.3f, max_bin_width = %.2f' % (syst, min_bkg, max_loss, max_bin_width)
 
     if (h_sig.GetNbinsX() != h_bkg.GetNbinsX()):
         print '\n\nnBinsSig = %d, nBinsBkg = %d! What are you, nuts!!!' % (h_sig.GetNbinsX(), h_bkg.GetNbinsX())
@@ -129,7 +152,7 @@ def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, ma
 
 
     ## Compute the initial significance
-    sigma_nom = ComputeSignificance(h_sig, h_bkg, 'nominal', 0.0, [], verbose)
+    sigma_nom = ComputeSignificance(h_sig, h_bkg, 'nominal', min_bkg/10., [], verbose)
     sigma_max = float(sigma_nom)
     sigma_new = float(sigma_nom)
 
@@ -141,17 +164,20 @@ def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, ma
             if h_sig.GetBinWidth(i) != h_sig.GetBinWidth(i-1):
                 var_bins = True
                 break
-        ## No need to rebin-by-2 for less than 64 bins: iterative procedure is plenty fast
-        if var_bins or h_sig.GetNbinsX() < 64: break
+        ## No need to rebin-by-2 for less than 128 bins: iterative procedure is plenty fast
+        if var_bins or h_sig.GetNbinsX() < 128: break
         ## Compute significance with rebin-by-2 signal and background histograms
         h_sig_2 = (h_sig.Clone(h_sig.GetName())).Rebin(2)
         h_bkg_2 = (h_bkg.Clone(h_bkg.GetName())).Rebin(2)
-        sigma_2 = ComputeSignificance(h_sig_2, h_bkg_2, 'nominal', 0.0, [], False)
-        if (sigma_new / sigma_max) > (1 - max_loss/10.):
-            print '*** Rebinning by a factor of 2 from %d bins to %d (significance %f to %f)' % (h_sig.GetNbinsX(), h_sig_2.GetNbinsX(), sigma_max, sigma_2)
+        sigma_2 = ComputeSignificance(h_sig_2, h_bkg_2, 'nominal', min_bkg/10., [], verbose)
+        if verbose: print '\n*** Considering whether to rebin from %d bins to %d (significance %f to %f)' % (h_sig.GetNbinsX(), h_sig_2.GetNbinsX(), sigma_max, sigma_2)
+        if verbose: print '    Now sigma_2 = %f, sigma_max = %f, ratio = %f vs. minimum %f' % (sigma_new, sigma_max, sigma_new/sigma_max, (1 - max_loss/10.))
+        if (sigma_2 / sigma_max) > (1 - max_loss/10.):
+            if verbose: print '    Rebinning!'
             h_sig = h_sig_2.Clone(h_sig_2.GetName())
             h_bkg = h_bkg_2.Clone(h_bkg_2.GetName())
             sigma_max = float(sigma_2)
+            sigma_new = float(sigma_2)
         else: break
 
     ## Reset "original" significance with rebin-by-2 histogram
@@ -186,8 +212,8 @@ def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, ma
             binA = list(bins_old[iBin])
             binB = list(bins_old[iBin+1])
 
-            ## Skip if new merged bin would be larger than the minimum bin size
-            if (h_sig.GetBinLowEdge(binB[1]+1) - h_sig.GetBinLowEdge(binA[0]) > max_bin_width): continue
+            ## Skip if new merged bin would be larger than the maximum bin size
+            if (max_bin_width > 0 and h_sig.GetBinLowEdge(binB[1]+1) - h_sig.GetBinLowEdge(binA[0]) > max_bin_width): continue
 
             ## Automatically merge bins with low background stats
             if (h_bkg.Integral(binA[0], binA[1]) <= min_bkg and h_bkg.Integral(binB[0], binB[1]) <= min_bkg):
@@ -243,15 +269,17 @@ def MergeBins(h_sig, h_bkg, syst = 'conserv', min_bkg = 0.0, max_loss = 0.02, ma
 
     
     ## Use the last binning that passed the "while" loop
-    print '\nFinal binning is '+','.join(':'.join(str(idx) for idx in bin) for bin in bins_old)
-    print '  * Significance = %f, vs. original %f and maximum %f' % (sigma_old, sigma_orig, sigma_max)
+    if verbose or True:
+        print '\nFinal binning is '+','.join(':'.join(str(idx) for idx in bin) for bin in bins_old)
+        print '  * Significance = %f, vs. original %f and maximum %f' % (sigma_old, sigma_orig, sigma_max)
 
     ## Convert bin indices to upper and lower edges per bin
     edges = []
     for bin in bins_old:
         edges.append( h_sig.GetBinLowEdge(bin[0]) )
+        print '    - Bins %d - %d contain %.4f signal, %.3f background' % (bin[0], bin[1], h_sig.Integral(bin[0], bin[1]), h_bkg.Integral(bin[0], bin[1]))
     edges.append( h_sig.GetBinLowEdge(nBins+1) )
-    print 'Bin edges are ['+','.join(('%.3f' % edge) for edge in edges)+']\n'
+    if verbose or True: print 'Bin edges are ['+','.join(('%.3f' % edge) for edge in edges)+']\n'
 
     return edges
 

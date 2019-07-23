@@ -61,8 +61,8 @@ if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%s/Hi
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%s/Histograms' % YEAR
 
 #LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
-#LABEL = 'WH_lep_AWB_2019_07_05_test_v1'
-LABEL = 'ttH_3l_AWB_2019_07_08_signal_v1'
+#LABEL = 'WH_lep_AWB_2019_07_08_sideband_v1'
+LABEL = 'ttH_3l_AWB_2019_07_12_signal_v1'
 #LABEL = 'lepMVA_variables_v3_some_test'
 #LABEL = 'lepMVA_ttH_3l_ele_v2_miniNtuple_dimu_sel_dimu_pt_v1'
 #LABEL = 'lepMVA_SF_v1'
