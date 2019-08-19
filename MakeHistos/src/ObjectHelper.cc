@@ -65,6 +65,13 @@ float MuonPt ( const MuonInfo & muon, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muon.pt;
   if ( pt_corr == "Roch" ) return muon.pt_Roch;
   if ( pt_corr == "KaMu" ) return muon.pt_KaMu;
+  if ( pt_corr == "Roch_sys_up" )    return muon.pt_Roch_sys_up;
+  if ( pt_corr == "Roch_sys_down" )  return muon.pt_Roch_sys_down;  
+  if ( pt_corr == "KaMu_sys_up" )    return muon.pt_KaMu_sys_up;
+  if ( pt_corr == "KaMu_sys_down" )  return muon.pt_KaMu_sys_down;
+  if ( pt_corr == "KaMu_clos_up" )   return muon.pt_KaMu_clos_up;
+  if ( pt_corr == "KaMu_clos_down" ) return muon.pt_KaMu_clos_down;
+
   std::cout << "\n\nInside ObjectHelper.cc, invalid option pt_corr = " << pt_corr << std::endl;
   assert(false);
 }
@@ -74,6 +81,12 @@ float MuPairPt ( const MuPairInfo & muPair, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muPair.pt;
   if ( pt_corr == "Roch" ) return muPair.pt_Roch;
   if ( pt_corr == "KaMu" ) return muPair.pt_KaMu;
+  if ( pt_corr == "Roch_sys_up" )    return muPair.pt_Roch_sys_up;
+  if ( pt_corr == "Roch_sys_down" )  return muPair.pt_Roch_sys_down;
+  if ( pt_corr == "KaMu_sys_up" )    return muPair.pt_KaMu_sys_up;
+  if ( pt_corr == "KaMu_sys_down" )  return muPair.pt_KaMu_sys_down;
+  if ( pt_corr == "KaMu_clos_up" )   return muPair.pt_KaMu_clos_up;
+  if ( pt_corr == "KaMu_clos_down" ) return muPair.pt_KaMu_clos_down;
   std::cout << "\n\nInside ObjectHelper.cc, invalid option pt_corr = " << pt_corr << std::endl;
   assert(false);
 }
@@ -83,6 +96,12 @@ float MuPairMass ( const MuPairInfo & muPair, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muPair.mass;
   if ( pt_corr == "Roch" ) return muPair.mass_Roch;
   if ( pt_corr == "KaMu" ) return muPair.mass_KaMu;
+  if ( pt_corr == "Roch_sys_up" )    return muPair.mass_Roch_sys_up;
+  if ( pt_corr == "Roch_sys_down" )  return muPair.mass_Roch_sys_down;
+  if ( pt_corr == "KaMu_sys_up" )    return muPair.mass_KaMu_sys_up;
+  if ( pt_corr == "KaMu_sys_down" )  return muPair.mass_KaMu_sys_down;
+  if ( pt_corr == "KaMu_clos_up" )   return muPair.mass_KaMu_clos_up;
+  if ( pt_corr == "KaMu_clos_down" ) return muPair.mass_KaMu_clos_down;
   std::cout << "\n\nInside ObjectHelper.cc, invalid option pt_corr = " << pt_corr << std::endl;
   assert(false);
 }
@@ -90,8 +109,8 @@ float MuPairMass ( const MuPairInfo & muPair, const std::string pt_corr ) {
 // Return PF, Rochester, or Kalman corrected dimuon invariant mass uncertainty
 float MuPairMassErr ( const MuPairInfo & muPair, const std::string pt_corr ) {
   if ( pt_corr == "PF"   ) return muPair.massErr;
-  if ( pt_corr == "Roch" ) return muPair.massErr_Roch;
-  if ( pt_corr == "KaMu" ) return muPair.massErr_KaMu;
+  if ( pt_corr.find("Roch") != std::string::npos ) return muPair.massErr_Roch;
+  if ( pt_corr.find("KaMu") != std::string::npos ) return muPair.massErr_KaMu;
   std::cout << "\n\nInside ObjectHelper.cc, invalid option pt_corr = " << pt_corr << std::endl;
   assert(false);
 }
@@ -124,7 +143,7 @@ TH2F * LoadSFsLepMVA( const std::string year, const std::string flavor, const st
 }
 
 // Return lepton MVA scale factor for a single lepton
-float LepMVASF( const TH2F * h_SF, const float pt, const float eta ) {
+float LepMVASF( const TH2F * h_SF, const float pt, const float eta, const std::string SF_sys ) {
 
   float min_pt  = h_SF->GetXaxis()->GetBinLowEdge(0) + 0.01;
   float max_pt  = h_SF->GetXaxis()->GetBinLowEdge( h_SF->GetNbinsX() + 1 ) - 0.01;
@@ -134,7 +153,9 @@ float LepMVASF( const TH2F * h_SF, const float pt, const float eta ) {
   int iPt  = h_SF->GetXaxis()->FindBin( std::min( std::max(pt , min_pt ), max_pt ) );
   int iEta = h_SF->GetYaxis()->FindBin( std::min( std::max(eta, min_eta), max_eta) );
 
-  return h_SF->GetBinContent(iPt, iEta);
+  if (SF_sys == "LepMVA_SF_up") 	return h_SF->GetBinContent(iPt, iEta) + h_SF->GetBinError(iPt, iEta);
+  else if (SF_sys == "LepMVA_SF_down") 	return h_SF->GetBinContent(iPt, iEta) - h_SF->GetBinError(iPt, iEta);
+  else 					return h_SF->GetBinContent(iPt, iEta);
 }
 
 // Determine if dimuon pair is matched to GEN pair

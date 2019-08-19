@@ -25,7 +25,7 @@ float MuPairMass    ( const MuPairInfo & muPair, const std::string pt_corr ); //
 float MuPairMassErr ( const MuPairInfo & muPair, const std::string pt_corr ); // Return PF, Rochester, or Kalman corrected dimuon invariant mass uncertainty
 bool  IsGenMatched  ( const MuPairInfo & muPair, const MuonInfos & muons, const GenMuonInfos & genMuons, const GenParentInfos & genParents, const std::string gen_ID ); // Match di-muon pairs to GEN Higgs or Z
 TH2F* LoadSFsLepMVA ( const std::string year, const std::string flavor, const std::string WP ); // Return a 2D histogram with LepMVA efficiency scale factors
-float LepMVASF      ( const TH2F * h_SF, const float pt, const float eta );   // Return the LepMVA efficiency scale factor for a single lepton
+float LepMVASF      ( const TH2F * h_SF, const float pt, const float eta, const std::string SF_sys = "noSys" );   // Return the LepMVA efficiency scale factor for a single lepton
 
 bool  EleID ( const EleInfo & ele, const std::string ele_ID ); // Return loose, medium, or tight electron ID
 
