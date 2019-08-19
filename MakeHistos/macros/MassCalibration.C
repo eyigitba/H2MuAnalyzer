@@ -31,26 +31,26 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
 const int MIN_FILE = 1;     // Minimum index of input files to process
 const int MAX_FILE = 10;     // Maximum index of input files to process
-const int MAX_EVT  = 10000; // Maximum number of events to process
+const int MAX_EVT  = 100000; // Maximum number of events to process
 const int PRT_EVT  = 1000;  // Print every N events
 const float SAMP_WGT = 1.0;
 // const float LUMI = 36814; // pb-1
 const bool verbose = false; // Print extra information
 
 
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18-pre-tag/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZJets_MG_1/190521_174140/0000";
-const TString SAMPLE   = "ZJets_MG_1";
-//const TString IN_DIR   = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/190625_204843/0000";
-//const TString SAMPLE   = "ZJets_AMC";
-//const TString IN_DIR   = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/SingleMuon/SingleMu_2016B/190625_203851/0000";
-//const TString SAMPLE   = "SingleMu_2016B";
+//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18-pre-tag/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZJets_MG_1/190521_174140/0000";
+//const TString SAMPLE   = "ZJets_MG_1";
+//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/190714_182527/0000/";
+//const TString SAMPLE   = "ZJets_AMC";const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7/SingleMuon/SingleMu_2016B/190714_182320/0000/";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7/SingleMuon/SingleMu_2016B/190714_182320/0000/";
+const TString SAMPLE   = "SingleMu_2016B";
 
-const std::string YEAR  = "2017";
+const std::string YEAR  = "2018";
 const std::string SLIM  = "notSlim";  // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
 const TString OUT_DIR   = "plots";
 const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both
 
-const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
+const std::vector<std::string> SEL_CUTS = {"Presel2018"}; // Cuts which every event must pass
 const std::vector<std::string> OPT_CUTS = {"NONE"}; // Multiple selection cuts, applied independently in parallel
 const std::vector<std::string> CAT_CUTS = {"NONE", "inclusive_01jet", "inclusive_2jets"}; // Event selection categories, also applied in parallel
 
@@ -59,7 +59,7 @@ const std::vector<std::string> CAT_CUTS = {"NONE", "inclusive_01jet", "inclusive
 void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir = "",
 	     std::vector<TString> in_files = {}, TString out_file_str = "",
 	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0,
-	     TString hist_tree = "" ) {
+	     TString hist_tree = "", std::string SYS = "" ) {
   
   // Set variables to hard-coded values if they are not initialized
   if (sample.Length()    == 0) sample  	   = SAMPLE;
@@ -110,9 +110,9 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
   //   in_chain->Add( samp->filenames.at(i) );
     // Set branch addresses, from interface/LoadNTupleBranches.h
     if (sample.Contains("SingleMu"))
-      SetBranchAddresses(*in_chain, br, {YEAR, SLIM}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM}, "noSys", false); // Options in {} include "JES", "Flags", and "SFs"
     else
-      SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, "noSys", false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
   // Initialize empty map of histogram names to output histograms
@@ -142,18 +142,25 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
   ////   Config for mass calibration   ////
   /////////////////////////////////////////
   MassCalConfig 	mc_cfg;
-  ConfigureMassCal( mc_cfg, "Z", "d0_diff");
+//  ConfigureMassCal( mc_cfg, "Z", "muN_d0");
+  ConfigureMassCal( mc_cfg, "Z", "muP_d0", "muN_d0");
+
+  std::map<TString, MassCalPlots*> mc_map_gen;
 
   std::map<TString, MassCalPlots*> mc_map_PF;
   std::map<TString, MassCalPlots*> mc_map_Roch;
   std::map<TString, MassCalPlots*> mc_map_Kinfit;
   std::map<TString, MassCalPlots*> mc_map_KinRoch;
-  std::map<TString, MassCalPlots*> mc_map_Kingood;
-  std::map<TString, MassCalPlots*> mc_map_Kind0;
+  std::map<TString, MassCalPlots*> mc_map_KaMu;
+  std::map<TString, MassCalPlots*> mc_map_KinKaMu;
 
-  std::map<TString, MassCalPlots*> mc_map_Kind0_BB;
-  std::map<TString, MassCalPlots*> mc_map_Kind0_BE;
-  std::map<TString, MassCalPlots*> mc_map_Kind0_EE;
+
+//  std::map<TString, MassCalPlots*> mc_map_Kingood;
+//  std::map<TString, MassCalPlots*> mc_map_Kind0;
+//
+//  std::map<TString, MassCalPlots*> mc_map_Kind0_BB;
+//  std::map<TString, MassCalPlots*> mc_map_Kind0_BE;
+//  std::map<TString, MassCalPlots*> mc_map_Kind0_EE;
 
 //  std::map<TString, MassCalPlots*> mc_map_Kind0_N50_N15;
 //  std::map<TString, MassCalPlots*> mc_map_Kind0_N15_N05;
@@ -163,16 +170,21 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
   for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++) {
     for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++) {
 	TString optCatStr = OPT_CUTS.at(iOpt)+"_"+CAT_CUTS.at(iCat);
+	mc_map_gen    [ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_gen", mc_cfg );
+
 	mc_map_PF     [ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_PF", mc_cfg );
 	mc_map_Roch   [ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Roch", mc_cfg );
 	mc_map_Kinfit [ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kinfit", mc_cfg );
         mc_map_KinRoch[ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_KinRoch", mc_cfg );
-	mc_map_Kingood[ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_good_Kinfit", mc_cfg );
-	mc_map_Kind0  [ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin", mc_cfg );
+        mc_map_KaMu   [ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_KaMu", mc_cfg );
+	mc_map_KinKaMu[ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_KinKaMu", mc_cfg );
 
-	mc_map_Kind0_BB[ optCatStr ]  = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin_BB", mc_cfg );
-	mc_map_Kind0_BE[ optCatStr ]  = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin_BE", mc_cfg );
-	mc_map_Kind0_EE[ optCatStr ]  = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin_EE", mc_cfg );
+//	mc_map_Kingood[ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_good_Kinfit", mc_cfg );
+//	mc_map_Kind0  [ optCatStr ]   = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin", mc_cfg );
+//
+//	mc_map_Kind0_BB[ optCatStr ]  = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin_BB", mc_cfg );
+//	mc_map_Kind0_BE[ optCatStr ]  = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin_BE", mc_cfg );
+//	mc_map_Kind0_EE[ optCatStr ]  = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin_EE", mc_cfg );
 
 //	mc_map_Kind0_N50_N15[ optCatStr ]  = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin_d0PV_N50_N15", mc_cfg );
 //        mc_map_Kind0_N15_N05[ optCatStr ]  = new MassCalPlots( (sample.Contains("SingleMu") ? "data" :  sample) + "_" + optCatStr + "_Kin_vs_d0kin_d0PV_N15_N05", mc_cfg );
@@ -234,40 +246,71 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
 	if ( SelectedMuPairs(obj_sel, br).size()!=1 or SelectedMuons(obj_sel, br).size()!=2 ) continue;
 	MuPairInfo    dimu;
 	dimu = SelectedCandPair(obj_sel, br);
-
+	
 	MuonInfo mu1, mu2, muP, muN;
 	mu1 = br.muons->at(dimu.iMu1);
 	mu2 = br.muons->at(dimu.iMu2);
+
+	TLorentzVector mu_vec1 = FourVec( mu1, "PF" );
+	TLorentzVector mu_vec2 = FourVec( mu2, "PF" );
+
+	// for MC samples, find gen match
+	GenParentInfo    gen_dimu;
+	if (not isData) {
+	  for (const auto & genPa : *br.genParents) {
+	    if (genPa.ID != 23 or genPa.daughter_1_ID + genPa.daughter_2_ID != 0) continue;  // legit Z 
+	    if (genPa.daughter_1_ID != 13 and genPa.daughter_1_ID != -13) continue;         // decays to dimuon
+	    if (genPa.daughter_1_idx < 0 or genPa.daughter_2_idx < 0) continue;             // present in genMuons collection
+	    TLorentzVector gen_vec1 = FourVec( br.genMuons->at(genPa.daughter_1_idx) );
+            TLorentzVector gen_vec2 = FourVec( br.genMuons->at(genPa.daughter_2_idx) );
+	    if ( mu_vec1.DeltaR(gen_vec1)<0.05 and mu_vec2.DeltaR(gen_vec2)<0.05 ) gen_dimu = genPa;
+            if ( mu_vec1.DeltaR(gen_vec2)<0.05 and mu_vec2.DeltaR(gen_vec1)<0.05 ) gen_dimu = genPa;
+	  }
+	}
+	if ( gen_dimu.mass == -999 and not isData) continue;
+	// gen match found
+	
 	float dimu_mass_KinRoch = dimu.mass_kinfit * dimu.mass_Roch / dimu.mass;
 	float dimu_pt_KinRoch	= dimu.pt_kinfit * dimu.pt_Roch / dimu.pt;
  	float mu1_pt_KinRoch	= mu1.pt_kinfit * mu1.pt_Roch / mu1.pt;
 	float mu2_pt_KinRoch    = mu2.pt_kinfit * mu2.pt_Roch / mu2.pt;
+
+	float dimu_mass_KinKaMu = dimu.mass_kinfit * dimu.mass_KaMu / dimu.mass;
+        float dimu_pt_KinKaMu   = dimu.pt_kinfit * dimu.pt_KaMu / dimu.pt;
+        float mu1_pt_KinKaMu    = mu1.pt_kinfit * mu1.pt_KaMu / mu1.pt;
+        float mu2_pt_KinKaMu    = mu2.pt_kinfit * mu2.pt_KaMu / mu2.pt;
+
 
 	if (mu1.charge == 1)  muP = mu1, muN = mu2;
  	else muP = mu2, muN = mu1;	
  	float d0_diff = (muP.d0_PV - muN.d0_PV) / 2.0;
 	float d0_mean = (mu1.d0_PV + mu2.d0_PV) / 2.0;
 
-	mc_map_PF     [optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_PF",      dimu.mass, 	 d0_diff, event_wgt, false);
-	mc_map_Roch   [optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Roch",    dimu.mass_Roch,    d0_diff, event_wgt, false);
-  	mc_map_Kinfit [optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kinfit",  dimu.mass_kinfit,  d0_diff, event_wgt, false);
-	mc_map_KinRoch[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_KinRoch", dimu_mass_KinRoch, d0_diff, event_wgt, false);
-	if (mu1.d0_PV_kinfit > -1 and mu2.d0_PV_kinfit > -1) {
-	  mc_map_Kingood[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_good_Kinfit", dimu.mass_kinfit, d0_diff, event_wgt, false);
-	  float d0kin_diff = (muP.d0_PV_kinfit - muN.d0_PV_kinfit) / 2.0;
-	  float d0kin_mean = (muP.d0_PV_kinfit + muN.d0_PV_kinfit) / 2.0;
-	  mc_map_Kind0[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin", dimu.mass_kinfit, d0kin_diff, event_wgt, false);
+	mc_map_gen    [optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_gen",     gen_dimu.mass,     muP.d0_PV, muN.d0_PV, event_wgt, false);
+	mc_map_PF     [optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_PF",      dimu.mass, 	 muP.d0_PV, muN.d0_PV, event_wgt, false);
+	mc_map_Roch   [optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Roch",    dimu.mass_Roch,    muP.d0_PV, muN.d0_PV, event_wgt, false);
+  	mc_map_Kinfit [optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kinfit",  dimu.mass_kinfit,  muP.d0_PV, muN.d0_PV, event_wgt, false);
+	mc_map_KinRoch[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_KinRoch", dimu_mass_KinRoch, muP.d0_PV, muN.d0_PV, event_wgt, false);
+	mc_map_KaMu   [optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_KaMu",    dimu.mass_KaMu,    muP.d0_PV, muN.d0_PV, event_wgt, false);
+	mc_map_KinKaMu[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_KinKaMu", dimu_mass_KinKaMu, muP.d0_PV, muN.d0_PV, event_wgt, false);
 
-	  if (abs(mu1.eta) < 0.9 and abs(mu2.eta) < 0.9) mc_map_Kind0_BB[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_BB", dimu_mass_KinRoch, d0kin_diff, event_wgt, false);
-	  if (abs(mu1.eta) > 1.2 and abs(mu2.eta) > 1.2) mc_map_Kind0_EE[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_EE", dimu_mass_KinRoch, d0kin_diff, event_wgt, false);
-	  if (abs(mu1.eta) < 0.9 and abs(mu2.eta) > 1.2) mc_map_Kind0_BE[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_BE", dimu_mass_KinRoch, d0kin_diff, event_wgt, false);
-	  if (abs(mu1.eta) > 1.2 and abs(mu2.eta) < 0.9) mc_map_Kind0_BE[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_BE", dimu_mass_KinRoch, d0kin_diff, event_wgt, false);
+
+//	if (mu1.d0_PV_kinfit > -1 and mu2.d0_PV_kinfit > -1) {
+//	  mc_map_Kingood[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_good_Kinfit", dimu.mass_kinfit, d0_diff, event_wgt, false);
+//	  float d0kin_diff = (muP.d0_PV_kinfit - muN.d0_PV_kinfit) / 2.0;
+//	  float d0kin_mean = (muP.d0_PV_kinfit + muN.d0_PV_kinfit) / 2.0;
+//	  mc_map_Kind0[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin", dimu.mass_kinfit, d0kin_diff, event_wgt, false);
+//
+//	  if (abs(mu1.eta) < 0.9 and abs(mu2.eta) < 0.9) mc_map_Kind0_BB[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_BB", dimu_mass_KinRoch, d0kin_diff, event_wgt, false);
+//	  if (abs(mu1.eta) > 1.2 and abs(mu2.eta) > 1.2) mc_map_Kind0_EE[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_EE", dimu_mass_KinRoch, d0kin_diff, event_wgt, false);
+//	  if (abs(mu1.eta) < 0.9 and abs(mu2.eta) > 1.2) mc_map_Kind0_BE[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_BE", dimu_mass_KinRoch, d0kin_diff, event_wgt, false);
+//	  if (abs(mu1.eta) > 1.2 and abs(mu2.eta) < 0.9) mc_map_Kind0_BE[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_BE", dimu_mass_KinRoch, d0kin_diff, event_wgt, false);
 
 //	  if ( d0_diff > -0.005 and d0_diff < -0.0015 )       mc_map_Kind0_N50_N15[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_d0PV_N50_N15", dimu.mass_kinfit, d0kin_diff, event_wgt, false);
 //	  else if ( d0_diff > -0.0015 and d0_diff < -0.0005 ) mc_map_Kind0_N15_N05[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_d0PV_N15_N05", dimu.mass_kinfit, d0kin_diff, event_wgt, false);
 //	  else if ( d0_diff > 0.0005 and d0_diff < 0.0015 )   mc_map_Kind0_P05_P15[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_d0PV_P05_P15", dimu.mass_kinfit, d0kin_diff, event_wgt, false);
 //	  else if ( d0_diff > 0.0015 and d0_diff < 0.005 )    mc_map_Kind0_P15_P50[optCatStr]->FillEvent( (sample.Contains("SingleMu") ? "data" : sample) + "_" + optCatStr + "_Kin_vs_d0kin_d0PV_P15_P50", dimu.mass_kinfit, d0kin_diff, event_wgt, false);
-	}
+//	}
 
       } // End loop: for (int iCat = 0; iCat < CAT_CUTS.size(); iCat++)
     } // End loop: for (int iOpt = 0; iOpt < OPT_CUTS.size(); iOpt++)
@@ -292,40 +335,57 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
       if (verbose) std::cout << "\nWriting output file " << out_file_name.Data() << std::endl;
       out_file->cd();
 
+      TDirectory* gen_dir = out_file->mkdir("gen");
       TDirectory* PF_dir = out_file->mkdir("PF");
       TDirectory* Roch_dir = out_file->mkdir("Roch");
       TDirectory* Kinfit_dir = out_file->mkdir("Kinfit");
       TDirectory* KinRoch_dir = out_file->mkdir("KinRoch");
-      TDirectory* Kingood_dir = out_file->mkdir("good_Kinfit");    
-      TDirectory* Kind0_dir = out_file->mkdir("Kin_vs_d0kin");
-
-      TDirectory* Kind0_BB_dir = out_file->mkdir("Kin_vs_d0kin_BB");
-      TDirectory* Kind0_BE_dir = out_file->mkdir("Kin_vs_d0kin_BE");
-      TDirectory* Kind0_EE_dir = out_file->mkdir("Kin_vs_d0kin_EE");
+      TDirectory* KaMu_dir = out_file->mkdir("KaMu");
+      TDirectory* KinKaMu_dir = out_file->mkdir("KinKaMu");
+//      TDirectory* Kingood_dir = out_file->mkdir("good_Kinfit");    
+//      TDirectory* Kind0_dir = out_file->mkdir("Kin_vs_d0kin");
+//
+//      TDirectory* Kind0_BB_dir = out_file->mkdir("Kin_vs_d0kin_BB");
+//      TDirectory* Kind0_BE_dir = out_file->mkdir("Kin_vs_d0kin_BE");
+//      TDirectory* Kind0_EE_dir = out_file->mkdir("Kin_vs_d0kin_EE");
 
 //      TDirectory* Kind0_N50_N15_dir  = out_file->mkdir("Kin_vs_d0kin_d0PV_N50_N15");
 //      TDirectory* Kind0_N15_N05_dir  = out_file->mkdir("Kin_vs_d0kin_d0PV_N15_N05");
 //      TDirectory* Kind0_P05_P15_dir  = out_file->mkdir("Kin_vs_d0kin_d0PV_P05_P15");
 //      TDirectory* Kind0_P15_P50_dir  = out_file->mkdir("Kin_vs_d0kin_d0PV_P15_P50");
- 
+
+      MassCalPlots* mc_gen       = mc_map_gen[optCatStr]; 
       MassCalPlots* mc_PF	 = mc_map_PF[optCatStr];
       MassCalPlots* mc_Roch	 = mc_map_Roch[optCatStr];
       MassCalPlots* mc_Kinfit	 = mc_map_Kinfit[optCatStr];
       MassCalPlots* mc_KinRoch   = mc_map_KinRoch[optCatStr]; 
-      MassCalPlots* mc_Kingood   = mc_map_Kingood[optCatStr]; 
-      MassCalPlots* mc_Kind0     = mc_map_Kind0[optCatStr];
-
-      MassCalPlots* mc_Kind0_BB     = mc_map_Kind0_BB[optCatStr];
-      MassCalPlots* mc_Kind0_BE     = mc_map_Kind0_BE[optCatStr];
-      MassCalPlots* mc_Kind0_EE     = mc_map_Kind0_EE[optCatStr];
+      MassCalPlots* mc_KaMu      = mc_map_KaMu[optCatStr];
+      MassCalPlots* mc_KinKaMu   = mc_map_KinKaMu[optCatStr];
+//      MassCalPlots* mc_Kingood   = mc_map_Kingood[optCatStr]; 
+//      MassCalPlots* mc_Kind0     = mc_map_Kind0[optCatStr];
+//
+//      MassCalPlots* mc_Kind0_BB     = mc_map_Kind0_BB[optCatStr];
+//      MassCalPlots* mc_Kind0_BE     = mc_map_Kind0_BE[optCatStr];
+//      MassCalPlots* mc_Kind0_EE     = mc_map_Kind0_EE[optCatStr];
 
 //      MassCalPlots* mc_Kind0_N50_N15    = mc_map_Kind0_N50_N15[optCatStr];
 //      MassCalPlots* mc_Kind0_N15_N05    = mc_map_Kind0_N15_N05[optCatStr];
 //      MassCalPlots* mc_Kind0_P05_P15    = mc_map_Kind0_P05_P15[optCatStr];
 //      MassCalPlots* mc_Kind0_P15_P50    = mc_map_Kind0_P15_P50[optCatStr];
 
+      gen_dir->cd();
+      mc_gen->summary_plot_2D->Write();
+      for (std::map<TString, TH1*>::iterator it = mc_gen->mass_plots.begin(); it != mc_gen->mass_plots.end(); ++it) {
+        std::string h_name = it->second->GetName();
+        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
+        it->second->SetName(h_name.c_str());
+        it->second->SetTitle(h_name.c_str());
+        it->second->Write();
+      }
+
+
       PF_dir->cd();
-      mc_PF->summary_plot_1D->Write();
+      mc_PF->summary_plot_2D->Write();
       for (std::map<TString, TH1*>::iterator it = mc_PF->mass_plots.begin(); it != mc_PF->mass_plots.end(); ++it) {
 	std::string h_name = it->second->GetName();
 	h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
@@ -335,7 +395,7 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
       }
 
       Roch_dir->cd();
-      mc_Roch->summary_plot_1D->Write();
+      mc_Roch->summary_plot_2D->Write();
       for (std::map<TString, TH1*>::iterator it = mc_Roch->mass_plots.begin(); it != mc_Roch->mass_plots.end(); ++it) {
 	std::string h_name = it->second->GetName();
         h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
@@ -345,7 +405,7 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
       }
 
       Kinfit_dir->cd();
-      mc_Kinfit->summary_plot_1D->Write();
+      mc_Kinfit->summary_plot_2D->Write();
       for (std::map<TString, TH1*>::iterator it = mc_Kinfit->mass_plots.begin(); it != mc_Kinfit->mass_plots.end(); ++it) {
 	std::string h_name = it->second->GetName();
         h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
@@ -355,7 +415,7 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
       }
 
       KinRoch_dir->cd();
-      mc_KinRoch->summary_plot_1D->Write();
+      mc_KinRoch->summary_plot_2D->Write();
       for (std::map<TString, TH1*>::iterator it = mc_KinRoch->mass_plots.begin(); it != mc_KinRoch->mass_plots.end(); ++it) {
 	std::string h_name = it->second->GetName();
         h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
@@ -364,9 +424,9 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
    	it->second->Write();
       }
 
-      Kingood_dir->cd();
-      mc_Kingood->summary_plot_1D->Write();
-      for (std::map<TString, TH1*>::iterator it = mc_Kingood->mass_plots.begin(); it != mc_Kingood->mass_plots.end(); ++it) {
+      KaMu_dir->cd();
+      mc_KaMu->summary_plot_2D->Write();
+      for (std::map<TString, TH1*>::iterator it = mc_KaMu->mass_plots.begin(); it != mc_KaMu->mass_plots.end(); ++it) {
         std::string h_name = it->second->GetName();
         h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
         it->second->SetName(h_name.c_str());
@@ -374,9 +434,9 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
         it->second->Write();
       }
 
-      Kind0_dir->cd();
-      mc_Kind0->summary_plot_1D->Write();
-      for (std::map<TString, TH1*>::iterator it = mc_Kind0->mass_plots.begin(); it != mc_Kind0->mass_plots.end(); ++it) {
+      KinKaMu_dir->cd();
+      mc_KinKaMu->summary_plot_2D->Write();
+      for (std::map<TString, TH1*>::iterator it = mc_KinKaMu->mass_plots.begin(); it != mc_KinKaMu->mass_plots.end(); ++it) {
         std::string h_name = it->second->GetName();
         h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
         it->second->SetName(h_name.c_str());
@@ -386,35 +446,58 @@ void MassCalibration( TString sample = "", TString in_dir = "", TString out_dir 
 
 
 
-      Kind0_BB_dir->cd();
-      mc_Kind0_BB->summary_plot_1D->Write();
-      for (std::map<TString, TH1*>::iterator it = mc_Kind0_BB->mass_plots.begin(); it != mc_Kind0_BB->mass_plots.end(); ++it) {
-        std::string h_name = it->second->GetName();
-        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
-        it->second->SetName(h_name.c_str());
-        it->second->SetTitle(h_name.c_str());
-        it->second->Write();
-      }
 
-      Kind0_BE_dir->cd();
-      mc_Kind0_BE->summary_plot_1D->Write();
-      for (std::map<TString, TH1*>::iterator it = mc_Kind0_BE->mass_plots.begin(); it != mc_Kind0_BE->mass_plots.end(); ++it) {
-        std::string h_name = it->second->GetName();
-        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
-        it->second->SetName(h_name.c_str());
-        it->second->SetTitle(h_name.c_str());
-        it->second->Write();
-      }
-
-      Kind0_EE_dir->cd();
-      mc_Kind0_EE->summary_plot_1D->Write();
-      for (std::map<TString, TH1*>::iterator it = mc_Kind0_EE->mass_plots.begin(); it != mc_Kind0_EE->mass_plots.end(); ++it) {
-        std::string h_name = it->second->GetName();
-        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
-        it->second->SetName(h_name.c_str());
-        it->second->SetTitle(h_name.c_str());
-        it->second->Write();
-      }
+//      Kingood_dir->cd();
+//      mc_Kingood->summary_plot_1D->Write();
+//      for (std::map<TString, TH1*>::iterator it = mc_Kingood->mass_plots.begin(); it != mc_Kingood->mass_plots.end(); ++it) {
+//        std::string h_name = it->second->GetName();
+//        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
+//        it->second->SetName(h_name.c_str());
+//        it->second->SetTitle(h_name.c_str());
+//        it->second->Write();
+//      }
+//
+//      Kind0_dir->cd();
+//      mc_Kind0->summary_plot_1D->Write();
+//      for (std::map<TString, TH1*>::iterator it = mc_Kind0->mass_plots.begin(); it != mc_Kind0->mass_plots.end(); ++it) {
+//        std::string h_name = it->second->GetName();
+//        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
+//        it->second->SetName(h_name.c_str());
+//        it->second->SetTitle(h_name.c_str());
+//        it->second->Write();
+//      }
+//
+//
+//
+//      Kind0_BB_dir->cd();
+//      mc_Kind0_BB->summary_plot_1D->Write();
+//      for (std::map<TString, TH1*>::iterator it = mc_Kind0_BB->mass_plots.begin(); it != mc_Kind0_BB->mass_plots.end(); ++it) {
+//        std::string h_name = it->second->GetName();
+//        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
+//        it->second->SetName(h_name.c_str());
+//        it->second->SetTitle(h_name.c_str());
+//        it->second->Write();
+//      }
+//
+//      Kind0_BE_dir->cd();
+//      mc_Kind0_BE->summary_plot_1D->Write();
+//      for (std::map<TString, TH1*>::iterator it = mc_Kind0_BE->mass_plots.begin(); it != mc_Kind0_BE->mass_plots.end(); ++it) {
+//        std::string h_name = it->second->GetName();
+//        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
+//        it->second->SetName(h_name.c_str());
+//        it->second->SetTitle(h_name.c_str());
+//        it->second->Write();
+//      }
+//
+//      Kind0_EE_dir->cd();
+//      mc_Kind0_EE->summary_plot_1D->Write();
+//      for (std::map<TString, TH1*>::iterator it = mc_Kind0_EE->mass_plots.begin(); it != mc_Kind0_EE->mass_plots.end(); ++it) {
+//        std::string h_name = it->second->GetName();
+//        h_name.erase( h_name.find(optCatStr+"_"), optCatStr.Length() + 1 );
+//        it->second->SetName(h_name.c_str());
+//        it->second->SetTitle(h_name.c_str());
+//        it->second->Write();
+//      }
 
       
 //      Kind0_N50_N15_dir->cd();

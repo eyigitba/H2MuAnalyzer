@@ -22,18 +22,20 @@ def FitVoigtian(hist):
     F_voigt.SetParameters( hist.GetMaximum(),   hist.GetMean(),   hist.GetRMS() / 2.0,    2.5     )
     F_voigt.SetParLimits(2, 0,    hist.GetRMS() * 5.0 )  ## Sigma range
     F_voigt.SetParLimits(1, minM, maxM			    )  ## Mean  range
+#    F_voigt.SetParLimits(3, 2.0, 3.0) ## test floating Z width
     F_voigt.FixParameter(3, 2.5)  ## fix Z natural width
-
-    gStyle.SetOptFit(0011)
 
     for i in range(10):
         hist.Fit("voigtian", "QR")
 	F_voigt.SetParameters( F_voigt.GetParameter(0), F_voigt.GetParameter(1), F_voigt.GetParameter(2), F_voigt.GetParameter(3) )
 
+    gStyle.SetOptFit(0111)
     mean_val = F_voigt.GetParameter(1)
     mean_err = F_voigt.GetParError(1)
     reso_val = F_voigt.GetParameter(2)
     reso_err = F_voigt.GetParError(2)
+
+    if hist.GetTitle() == "color blue": hist.GetFunction("voigtian").SetLineColor(kBlue)
 
     print "fit hist %s, "  %hist.GetName()
     print "chi^2 = %f, \n\n" %hist.GetFunction("voigtian").GetChisquare()
@@ -85,7 +87,7 @@ def WriteOverlay(graphs, term, samples, pt_cals):
         graphs[sample+pt_cal].Draw()  ## the first plot cannot have option "SAME", otherwise it is empty
       for pt_cal in pt_cals:
 	graphs[sample+pt_cal].Draw("SAME")
-	legend.AddEntry(graphs[sample+pt_cal], pt_cal.replace('KinRoch','Kinfit+Roch'))
+	legend.AddEntry(graphs[sample+pt_cal], pt_cal.replace('KinRoch','Kinfit+Roch'), "LPE")
       legend.Draw()
       canv.Update()
       canv.Write()
@@ -100,7 +102,7 @@ def WriteOverlay(graphs, term, samples, pt_cals):
         graphs[sample+pt_cal].Draw()  ## the first plot cannot have option "SAME", otherwise it is empty
       for sample in samples:
 	graphs[sample+pt_cal].Draw("SAME")
-        legend.AddEntry(graphs[sample+pt_cal], sample)
+        legend.AddEntry(graphs[sample+pt_cal], sample, "LPE")
       legend.Draw()
       canv.Update()
       canv.Write()
@@ -186,7 +188,7 @@ def WriteSummary(graphs, term, nameX, samples, pt_cals, plot_dir):
 
     canv.Update()
     canv.Write()
-    canv.SaveAs( plot_dir + "/" + nameX + "_kinfit_eta_" + term + ".png")
+    canv.SaveAs( plot_dir + "/" + nameX + "_summary_" + term + ".png")
 
 
 
