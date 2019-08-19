@@ -118,36 +118,46 @@ def InitVarDat(FF):
 def DoFit(FF):
     
     print '\n\nAbout to fit model %s to data!' % FF.model.GetName()
-
-    ## RooFit or Minuit strategy, error level, etc?
-    ## https://root.cern.ch/doc/master/classRooAbsPdf.html#a8f802a3a93467d5b7b089e3ccaec0fa8
-    ## https://root.cern.ch/doc/master/classRooMinuit.html#a605d27ee6cfbd36d5a61e8085bed0539
-    if len(FF.x_blind) == 2:
-        FF.model.fitTo(FF.dat, RF.Save(), RF.Range('loM,hiM'))
+   
+    print '\nhist havs integral %f' %FF.hist_orig.Integral()
+    if FF.hist_orig.Integral() < 0.001 and FF.hist_orig.GetEntries() < 10:
+      print 'hist %s has few events and infinitesimal yield, setting all coefficients to zero, all parameters are their initial value' %(FF.hist_orig.GetName())
+      for i in range(len(FF.coef_list)):
+	FF.coef_list[i].setVal(0.001)
+	FF.coef_list[i].setError(0.0)
+	FF.fit_hist = FF.model.createHistogram(FF.var_name, FF.x_bins[0])
     else:
-        FF.model.fitTo(FF.dat, RF.Save())
+      ## RooFit or Minuit strategy, error level, etc?
+      ## https://root.cern.ch/doc/master/classRooAbsPdf.html#a8f802a3a93467d5b7b089e3ccaec0fa8
+      ## https://root.cern.ch/doc/master/classRooMinuit.html#a605d27ee6cfbd36d5a61e8085bed0539
+      if len(FF.x_blind) == 2:
+          FF.model.fitTo(FF.dat, RF.Save(), RF.Range('loM,hiM'))
+      else:
+          FF.model.fitTo(FF.dat, RF.Save())
 
-    ## Creates a histogram of the model, with arbitrary normalization
-    FF.fit_hist = FF.model.createHistogram(FF.var_name, FF.x_bins[0])
-    ## Find the normalization of the fitted range, and scale model histogram
-    f_norm = FF.fit_hist.Integral()
-    h_norm = FF.hist_orig.Integral(FF.x_bins[1], FF.x_bins[2])
-    ## If a range of the histogram had been pre-blinded, need to use only fitted range
-    if len(FF.x_blind) == 2:
-        f_norm = 0
-        h_norm = 0
-        nBins = FF.hist.GetNbinsX()
-        for i in range(FF.x_bins[1], FF.x_bins[2]+1):
-            if FF.hist.GetBinLowEdge(i+1) <= FF.x_blind[0] or FF.hist.GetBinLowEdge(i) >= FF.x_blind[1]:
-                f_norm += FF.fit_hist.GetBinContent(i)
-                h_norm += FF.hist.GetBinContent(i)
+      ## Creates a histogram of the model, with arbitrary normalization
+      FF.fit_hist = FF.model.createHistogram(FF.var_name, FF.x_bins[0])
+      ## Find the normalization of the fitted range, and scale model histogram
+      f_norm = FF.fit_hist.Integral()
+      h_norm = FF.hist_orig.Integral(FF.x_bins[1], FF.x_bins[2])
+      ## If a range of the histogram had been pre-blinded, need to use only fitted range
+      if len(FF.x_blind) == 2:
+          f_norm = 0
+          h_norm = 0
+          nBins = FF.hist.GetNbinsX()
+          for i in range(FF.x_bins[1], FF.x_bins[2]+1):
+              if FF.hist.GetBinLowEdge(i+1) <= FF.x_blind[0] or FF.hist.GetBinLowEdge(i) >= FF.x_blind[1]:
+                  f_norm += FF.fit_hist.GetBinContent(i)
+                  h_norm += FF.hist.GetBinContent(i)
+  
+      ## Scale fit histogram to data normalization in the fitted range
+      FF.fit_hist.Scale( h_norm / f_norm )
+      ## Set line color red, remove error bars
+      FF.fit_hist.SetLineColor( R.kRed )
+      for i in range(FF.fit_hist.GetNbinsX()):
+          FF.fit_hist.SetBinError(i+1, 0)
+    ## End of else:  (if FF.hist_orig.Integral() <= 0)
 
-    ## Scale fit histogram to data normalization in the fitted range
-    FF.fit_hist.Scale( h_norm / f_norm )
-    ## Set line color red, remove error bars
-    FF.fit_hist.SetLineColor( R.kRed )
-    for i in range(FF.fit_hist.GetNbinsX()):
-        FF.fit_hist.SetBinError(i+1, 0)
 
     print 'Post-fit amplitude values are:'
     for i in range(len(FF.coef_list)):
@@ -364,11 +374,11 @@ def InitGaus(FF):
 
     for i in range(FF.order):
         if i != 0: FF.params.append([])
-        FF.params[i].append( R.RooRealVar('mean%d'  % (i+1), 'Mean of Gaussian #%d'  % (i+1), coef[i][0], coef[i][1], coef[i][2]) )
-        FF.params[i].append( R.RooRealVar('width%d' % (i+1), 'Width of Gaussian #%d' % (i+1), coef[i][3], coef[i][4], coef[i][5]) )
-        FF.funcs    .append( R.RooGaussian('gaus%d' % (i+1), 'gaus(x - mean, width) #%d' % (i+1), FF.var, FF.params[i][0], FF.params[i][1]) )
+        FF.params[i].append( R.RooRealVar('%s_mean%d'  %(FF.name, (i+1)), 'Mean of Gaussian #%d'  % (i+1), coef[i][0], coef[i][1], coef[i][2]) )
+        FF.params[i].append( R.RooRealVar('%s_width%d' %(FF.name, (i+1)), 'Width of Gaussian #%d' % (i+1), coef[i][3], coef[i][4], coef[i][5]) )
+        FF.funcs    .append( R.RooGaussian('%s_gaus%d' %(FF.name, (i+1)), 'gaus(x - mean, width) #%d' % (i+1), FF.var, FF.params[i][0], FF.params[i][1]) )
         FF.arg_sets .append( R.RooArgSet(FF.funcs[i]) )
-        FF.amp_vars .append( R.RooRealVar('Gaus_amp%d' % (i+1), 'Amplitude of Gaussian #%d' % (i+1), coef[i][6], coef[i][7], coef[i][8]) )
+        FF.amp_vars .append( R.RooRealVar('%s_Gaus_amp%d' %(FF.name, (i+1)), 'Amplitude of Gaussian #%d' % (i+1), coef[i][6], coef[i][7], coef[i][8]) )
         
         FF.func_list.add(FF.funcs[i])
         if (i < FF.order - 1):
