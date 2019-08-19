@@ -9,7 +9,7 @@ void ASSERT(bool condition, std::string message) {
   }
 }
 
-void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::string> opts, bool verbose) {
+void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::string> opts, std::string jet_sys, bool verbose) {
 
   if (verbose) std::cout << "\nInside SetBranchAddress" << std::endl;
 
@@ -98,7 +98,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     if (!isSlim) ch->SetBranchAddress("jets_JES_up", &(br.jets_JES_up));
     if (!isSlim) ch->SetBranchAddress("jets_JES_down", &(br.jets_JES_down));
     ch->SetBranchAddress("jetPairs_JES_up", &(br.jetPairs_JES_up));
-    // ch->SetBranchAddress("jetPairs_JES_down", &(br.jetPairs_JES_down));  // Causes segfault, for some reason - AWB 15.08.2018
+    ch->SetBranchAddress("jetPairs_JES_down", &(br.jetPairs_JES_down));  // Causes segfault, for some reason - AWB 15.08.2018
     ch->SetBranchAddress("met_JES_up", &(br.met_JES_up));
     ch->SetBranchAddress("met_JES_down", &(br.met_JES_down));
     ch->SetBranchAddress("mht_JES_up", &(br.mht_JES_up));
@@ -116,7 +116,36 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
     ch->SetBranchAddress("nBLoose_JES_down", &(br.nBLoose_JES_down));
     ch->SetBranchAddress("nBMed_JES_down", &(br.nBMed_JES_down));
     ch->SetBranchAddress("nBTight_JES_down", &(br.nBTight_JES_down));
-  }
+
+    // overwrite addresses if using systematic shifts
+    if (jet_sys == "JES_up") {
+      if (isSlim) ch->SetBranchAddress("jets_JES_up", &(br.slimJets));
+      ch->SetBranchAddress("jets_JES_up", &(br.jets));
+      ch->SetBranchAddress("jetPairs_JES_up", &(br.jetPairs));
+      ch->SetBranchAddress("met_JES_up", &(br.met));
+      ch->SetBranchAddress("mht_JES_up", &(br.mht));
+      ch->SetBranchAddress("nJets_JES_up", &(br.nJets));
+      ch->SetBranchAddress("nJetsCent_JES_up", &(br.nJetsCent));
+      ch->SetBranchAddress("nJetsFwd_JES_up", &(br.nJetsFwd));
+      ch->SetBranchAddress("nBLoose_JES_up", &(br.nBLoose));
+      ch->SetBranchAddress("nBMed_JES_up", &(br.nBMed));
+      ch->SetBranchAddress("nBTight_JES_up", &(br.nBTight));
+    }
+    else if (jet_sys == "JES_down") {
+      if (isSlim) ch->SetBranchAddress("jets_JES_down", &(br.slimJets));
+      ch->SetBranchAddress("jets_JES_down", &(br.jets));
+      ch->SetBranchAddress("jetPairs_JES_dowb", &(br.jetPairs));
+      ch->SetBranchAddress("met_JES_down", &(br.met));
+      ch->SetBranchAddress("mht_JES_down", &(br.mht));
+      ch->SetBranchAddress("nJets_JES_down", &(br.nJets));
+      ch->SetBranchAddress("nJetsCent_JES_down", &(br.nJetsCent));
+      ch->SetBranchAddress("nJetsFwd_JES_down", &(br.nJetsFwd));
+      ch->SetBranchAddress("nBLoose_JES_down", &(br.nBLoose));
+      ch->SetBranchAddress("nBMed_JES_down", &(br.nBMed));
+      ch->SetBranchAddress("nBTight_JES_down", &(br.nBTight));
+    }
+
+  } // end of if (loadJES)
 
   if (loadFlags) {
     ch->SetBranchAddress("Flag_all", &(br.Flag_all));
@@ -159,7 +188,6 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
 	ch->SetBranchAddress("IsoMu_eff_bug_down", &(br.IsoMu_eff_bug_down));
       }
     }
-
   }
 
   if (loadWgts) {
@@ -196,7 +224,7 @@ void SetBranchAddresses(TChain & ch_, NTupleBranches & br, std::vector<std::stri
       }
     }
 
-  }
+  } // end of if (loadWgts)
 
   if (verbose) std::cout << "Exiting SetBranchAddress\n" << std::endl;
 

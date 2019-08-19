@@ -146,7 +146,7 @@ struct NTupleBranches {
 };
 
 
-void SetBranchAddresses(TChain & ch_, NTupleBranches & br_, std::vector<std::string> opts = {}, bool verbose = false);
+void SetBranchAddresses(TChain & ch_, NTupleBranches & br_, std::vector<std::string> opts = {}, std::string jet_sys = "noSys", bool verbose = false);
 
 JetInfos ConvertSlimJets(SlimJetInfos & _slimJets);
 

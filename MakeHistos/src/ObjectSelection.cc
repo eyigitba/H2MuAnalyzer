@@ -35,7 +35,8 @@ void ConfigureObjectSelection( ObjectSelectionConfig & cfg, const std::string _y
     cfg.year = _year;
 
     // Muon selection
-    cfg.mu_pt_corr  = "KaMu";   // Muon pT correction: "PF", "Roch", or "KaMu"
+    if (_year == "2016") cfg.mu_pt_corr  = "KaMu";   // Muon pT correction: "PF", "Roch", or "KaMu"
+    else 		 cfg.mu_pt_corr  = "Roch";   // Muon pT correction: "PF", "Roch", or "KaMu"
     cfg.mu_pt_min   = 20.0;     // Minimum muon pT
     cfg.mu_eta_max  =  2.4;     // Maximum muon |eta|
     cfg.mu_ID_cut   = "medium"; // Muon ID: "loose", "medium", or "tight"

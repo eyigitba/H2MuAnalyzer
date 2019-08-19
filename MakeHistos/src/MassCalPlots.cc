@@ -164,7 +164,16 @@ void ConfigureMassCal(MassCalConfig & cfg, const TString peak_name, const TStrin
   }
 
   // setting attributes for the y variable
+  cfg.nameY = yname;
   if (yname == "NA") {
+  }
+  else if (yname == "muN_d0") {
+    cfg.minY    = -0.01;
+    cfg.maxY    = 0.01;
+    cfg.nbinsY  = 20;
+    cfg.binningY.clear();
+    float width = 1.0 * (cfg.maxY - cfg.minY) / cfg.nbinsY;
+    for (int i=0; i<cfg.nbinsY+1; i++) cfg.binningY.push_back( cfg.minY + width * i );
   }
   else if (yname == "") {
   }
@@ -263,13 +272,13 @@ void MassCalPlots::FillEvent(const TString h_pre, float m_value, float x_value, 
   for (int i = 0; i < cfg.nbinsX; i++) {   // only need to loop nbinsX times
     if ( x_value >= cfg.binningX.at(i) and x_value < cfg.binningX.at(i+1) ) {
       for (int j = 0; j < cfg.nbinsY; j++) { // only need to loop nbinsY times
-	if ( y_value >= cfg.binningY.at(i) and y_value < cfg.binningY.at(j+1) ) {
+	if ( y_value >= cfg.binningY.at(j) and y_value < cfg.binningY.at(j+1) ) {
 	  TString bin_name;
           bin_name.Form( "_%s_%8.4f_to_%8.4f_%s_%8.4f_to_%8.4f", cfg.nameX.Data(), cfg.binningX.at(i), cfg.binningX.at(i+1), cfg.nameY.Data(), cfg.binningY.at(j), cfg.binningY.at(j+1) );
 	  bin_name.ReplaceAll(" ","");   //  "" for space
           bin_name.ReplaceAll("-","m");  // "m" for "minus"
           bin_name.ReplaceAll(".","p");  // "p" for "point"
-          TString MP_name = h_pre + bin_name; 
+          MP_name = h_pre + bin_name; 
           break;
 	}
       } // end of for (int j = 0; j < cfg.nbinsY; j++) 
