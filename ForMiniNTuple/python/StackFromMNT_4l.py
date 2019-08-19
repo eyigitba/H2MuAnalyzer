@@ -20,11 +20,12 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Directory for input histograms and output plots
 if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
-if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms'
+if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/Run2/Histograms'
 
 #LABEL = 'miniNtuple_WH_2016_v5'  ## Sub-folder within PLOT_DIR containing histograms
-LABEL = 'VH_selection_2019april/pt10_iso04/ZH_mu_massBDT'
-LEP = "muon"
+#LABEL = 'VH_selection_2019april/pt10_iso04/ZH_mu_massBDT'
+LABEL = 'ZH_lep_2019_08_14'
+#LEP = "muon"
 
 def InitHists(histos, terms, signals, bkgs):
     for sample in signals + bkgs + ["Data"]:
@@ -138,7 +139,7 @@ def PrintEventYield(histos, signals, bkgs):
     print "sig_num = %f" %sig_num + "      ZZ_num = %f" %ZZ_num + "      bkgs_num = %f" %bkgs_num
 
 def main():
-    out_name = "stack_plots_lepMVA_n04.root"
+    out_name = "stack_plots.root"
 
     file_dir = PLOT_DIR+"/"+LABEL+"/"
     out_file = TFile( file_dir + "plots/" + out_name , "RECREATE")
@@ -183,6 +184,25 @@ def main():
         stack_sig[term] = THStack("sig_stack_"+term, "sig_"+term)
         stack_data[term] = THStack("data_stack"+term, "data_"+term)
 	
+    
+    MVA_str = "mu1_lepMVA > -0.4 && mu2_lepMVA > -0.4 && lep1_lepMVA > -0.4 && lep2_lepMVA > -0.4"
+    wgt_str = "event_wgt * xsec_norm * all_lepMVA_SF"
+    for bdt_cut in [ -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]:
+      file_chain.Draw("dimu_mass >> sig_p(20,123,127)", "(Sample_ID > 0 && BDT_noMass_v3 > %f && %s ) * %s" %(bdt_cut, MVA_str, wgt_str) )
+      file_chain.Draw("dimu_mass >> sig_n(20,123,127)", "(Sample_ID > 0 && BDT_noMass_v3 < %f && %s ) * %s" %(bdt_cut, MVA_str, wgt_str) )
+      file_chain.Draw("dimu_mass >> bkg_p(20,123,127)", "(Sample_ID < 0 && BDT_noMass_v3 > %f && %s ) * %s" %(bdt_cut, MVA_str, wgt_str) )
+      file_chain.Draw("dimu_mass >> bkg_n(20,123,127)", "(Sample_ID < 0 && BDT_noMass_v3 < %f && %s ) * %s" %(bdt_cut, MVA_str, wgt_str) )
+
+      sig_p_temp = gDirectory.Get("sig_p")
+      sig_n_temp = gDirectory.Get("sig_n")
+      bkg_p_temp = gDirectory.Get("bkg_p")
+      bkg_n_temp = gDirectory.Get("bkg_n")
+
+      print sig_p_temp.Integral()
+      sens_temp = ( (sig_p_temp.Integral())**2.0 / bkg_p_temp.Integral() + (sig_n_temp.Integral())**2.0 / bkg_n_temp.Integral() ) ** 0.5
+      print bdt_cut
+      print sens_temp
+
 
     InitHists(histos, terms, cfg.signals, cfg.bkgs)
 
@@ -195,12 +215,12 @@ def main():
 	MVA_cut = -0.4
 	if ( file_chain.mu1_lepMVA < MVA_cut or file_chain.mu2_lepMVA < MVA_cut or file_chain.lep1_lepMVA < MVA_cut or file_chain.lep2_lepMVA < MVA_cut):
 	    continue
-	mu1_SF = GetSF("muon", file_chain.mu1_pt, file_chain.mu1_abs_eta, MVA_cut)
-        mu2_SF = GetSF("muon", file_chain.mu2_pt, file_chain.mu2_abs_eta, MVA_cut)
-        lep1_SF = GetSF(LEP,    file_chain.lep1_pt, file_chain.lep1_abs_eta, MVA_cut)
-	lep2_SF = GetSF(LEP,    file_chain.lep2_pt, file_chain.lep2_abs_eta, MVA_cut)
-        MVA_SF = mu1_SF * mu2_SF * lep1_SF * lep2_SF
-#	MVA_SF = 1.0
+#	mu1_SF = GetSF("muon", file_chain.mu1_pt, file_chain.mu1_abs_eta, MVA_cut)
+#        mu2_SF = GetSF("muon", file_chain.mu2_pt, file_chain.mu2_abs_eta, MVA_cut)
+#        lep1_SF = GetSF(LEP,    file_chain.lep1_pt, file_chain.lep1_abs_eta, MVA_cut)
+#	lep2_SF = GetSF(LEP,    file_chain.lep2_pt, file_chain.lep2_abs_eta, MVA_cut)
+#        MVA_SF = mu1_SF * mu2_SF * lep1_SF * lep2_SF
+	MVA_SF = file_chain.all_lepMVA_SF
 
 	FillHistTerm(histos, "mu1_pt"	      	, cfg, file_chain.mu1_pt		, file_chain.Sample_ID	, file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
 	FillHistTerm(histos, "mu2_pt"		, cfg, file_chain.mu2_pt		, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
@@ -307,7 +327,7 @@ def main():
             stack_all[term].Add(histos[term][sample])
 
 	scaled_signal[term] =  histos[term]["signal"].Clone()
-  	scaled_signal[term].Scale(50)
+  	scaled_signal[term].Scale(20)
 	scaled_signal[term].SetLineColor(kRed)
 	scaled_signal[term].SetLineWidth(2)
 	scaled_signal[term].SetFillStyle(0)
@@ -317,7 +337,7 @@ def main():
 	legend[term].AddEntry(histos[term]["signal"], "signal sum")
 	for sample in cfg.bkgs:
             legend[term].AddEntry(histos[term][sample], sample )
-	legend[term].AddEntry(scaled_signal[term], "signal X50")
+	legend[term].AddEntry(scaled_signal[term], "signal X20")
 	LinearStack( term, stack_all[term], scaled_signal[term], histos[term]["Data"], legend[term], PLOT_DIR+"/"+LABEL+"/plots")
 
 

@@ -19,29 +19,34 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 
 ## Directory for input histograms and output plots
 if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2017/Histograms'
-if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms'
+if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/Run2/Histograms'
 
 #LABEL = 'miniNtuple_WH_2016_v5'  ## Sub-folder within PLOT_DIR containing histograms
 #LABEL = 'WH_ele_loose_ID_loose_iso_loose_mu_iso_v1'
 #LABEL = 'WH_mu_med_ID_loose_iso_v1'
 
-LABEL = 'VH_selection_2019april/pt10_iso04/ZH_ele_massBDT'
-LEP = 'ele'
+LABEL = 'ZH_lep_2019_08_14'
+#LABEL = 'VH_selection_2019april/pt10_iso04/ZH_ele_massBDT'
+#LEP = 'ele'
 
 def InitHists(histos, terms, signals, bkgs):
     for sample in signals + bkgs:
-	histos["dimu_mass"][sample] 	= TH1F("dimu_mass" + "_Net_" + sample, "dimu_mass" + "_Net_" + sample, 			50,110,160)
-    histos["dimu_mass"]["Data"]     = TH1F("dimu_mass" + "_Net_" + "Data", "dimu_mass" + "_Net_" + "Data",                  50,110,160)
+	histos["dimu_mass"][sample] 		    = TH1F("dimu_mass" + "_Net_" + sample, "dimu_mass" + "_Net_" + sample, 			100,110,160)
+	histos["dimu_mass_BDT_n10_p05"][sample]     = TH1F("dimu_mass_BDT_n10_p05" + "_Net_" + sample, "dimu_mass_BDT_n10_p05" + "_Net_" + sample,                  100,110,160)
+	histos["dimu_mass_BDT_p05_p10"][sample]     = TH1F("dimu_mass_BDT_p05_p10" + "_Net_" + sample, "dimu_mass_BDT_p05_p10" + "_Net_" + sample,                  100,110,160)
+    histos["dimu_mass"]["Data"]     		= TH1F("dimu_mass" + "_Net_" + "Data", "dimu_mass" + "_Net_" + "Data",                  100,110,160)
+    histos["dimu_mass_BDT_n10_p05"]["Data"]     = TH1F("dimu_mass_BDT_n10_p05" + "_Net_" + "Data", "dimu_mass_BDT_n10_p05" + "_Net_" + "Data",                  100,110,160)
+    histos["dimu_mass_BDT_p05_p10"]["Data"]     = TH1F("dimu_mass_BDT_p05_p10" + "_Net_" + "Data", "dimu_mass_BDT_p05_p10" + "_Net_" + "Data",                  100,110,160)
 
 def main():
-    out_name = "mass_hists_cut_lepMVAp4.root"
+    out_name = "mass_hists_lepMVAn4.root"
 
     file_dir = PLOT_DIR+"/"+LABEL+"/"
     out_file = TFile( file_dir + "plots/" + out_name , "RECREATE")
     file_chain = TChain("tree","chain");
     file_chain.Add(file_dir + "all_samples.root")
 
-    terms = ["dimu_mass"]
+    terms = ["dimu_mass", "dimu_mass_BDT_n10_p05", "dimu_mass_BDT_p05_p10"]
 
     cfg = PC.Plot_Config("ZH_4l")
 
@@ -69,17 +74,21 @@ def main():
 	if iEvt % 10000 == 0:
 	    print "looking at event %d" %iEvt
 
-	MVA_cut = 0.4
+	MVA_cut = -0.4
 	if file_chain.mu1_lepMVA < MVA_cut or file_chain.mu2_lepMVA < MVA_cut or file_chain.lep1_lepMVA < MVA_cut or file_chain.lep2_lepMVA < MVA_cut:
 	    continue
-	mu1_SF = GetSF("muon", file_chain.mu1_pt,  file_chain.mu1_abs_eta, MVA_cut)
-	mu2_SF = GetSF("muon", file_chain.mu2_pt,  file_chain.mu2_abs_eta, MVA_cut)
-	lep1_SF = GetSF(LEP,   file_chain.lep1_pt, file_chain.lep1_abs_eta, MVA_cut)
- 	lep2_SF = GetSF(LEP,   file_chain.lep2_pt, file_chain.lep2_abs_eta, MVA_cut)
-	MVA_SF = mu1_SF * mu2_SF * lep1_SF * lep2_SF
-#	MVA_SF = 1.0
+#	mu1_SF = GetSF("muon", file_chain.mu1_pt,  file_chain.mu1_abs_eta, MVA_cut)
+#	mu2_SF = GetSF("muon", file_chain.mu2_pt,  file_chain.mu2_abs_eta, MVA_cut)
+#	lep1_SF = GetSF(LEP,   file_chain.lep1_pt, file_chain.lep1_abs_eta, MVA_cut)
+# 	lep2_SF = GetSF(LEP,   file_chain.lep2_pt, file_chain.lep2_abs_eta, MVA_cut)
+#	MVA_SF = mu1_SF * mu2_SF * lep1_SF * lep2_SF
+	MVA_SF = file_chain.all_lepMVA_SF
 
 	FillHistTerm(histos, "dimu_mass"   	, cfg, file_chain.dimu_mass   	, file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	if file_chain.BDT_noMass_v3 < 0.5:
+	  FillHistTerm(histos, "dimu_mass_BDT_n10_p05"        , cfg, file_chain.dimu_mass     , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
+	else:
+	  FillHistTerm(histos, "dimu_mass_BDT_p05_p10"        , cfg, file_chain.dimu_mass     , file_chain.Sample_ID  , file_chain.xsec_norm * file_chain.event_wgt * MVA_SF)
 
     out_file.cd()
     scaled_signal = {}
@@ -103,7 +112,7 @@ def main():
 	histos[term]["bkg"].SetNameTitle(term + "_Net_Bkg", term + "_Net_Bkg")
 
 	scaled_signal[term] =  histos[term]["signal"].Clone()
-  	scaled_signal[term].Scale(100)
+  	scaled_signal[term].Scale(20)
 	scaled_signal[term].SetLineColor(kRed)
 	scaled_signal[term].SetLineWidth(2)
 	scaled_signal[term].SetFillStyle(0)
@@ -114,7 +123,7 @@ def main():
 	legend[term].AddEntry(histos[term]["signal"], "signal sum")
 	for sample in cfg.bkgs:
             legend[term].AddEntry(histos[term][sample], sample )
-	legend[term].AddEntry(scaled_signal[term], "signal X100")
+	legend[term].AddEntry(scaled_signal[term], "signal X20")
 	LinearStack( term, stack_all[term], scaled_signal[term], histos[term]["Data"], legend[term], PLOT_DIR+"/"+LABEL+"/plots")
 
 	for sample in ["Data", "signal", "bkg"] + cfg.signals + cfg.bkgs:

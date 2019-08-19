@@ -27,13 +27,14 @@ BDT_WITHOUT_MASS = '2017_WH_mu_against_inclu_lepMVA04.root'
 
 
 if USER == 'xzuo':     
-    OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2017/Histograms'
-    OUT_DIR = OUT_DIR + '/VH_selection_2019april/pt10_iso04/ZH_ele_massBDT'
+    OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/Run2/Histograms'
+#    OUT_DIR = OUT_DIR + '/VH_selection_2019april/pt10_iso04/ZH_ele_massBDT'
+    OUT_DIR = OUT_DIR + '/ZH_lep_2019_08_14'
     #MASS_FILE = 'mass_hists_cut_lepMVAp4.root'
-    LEP = 'ele'
+#    LEP = 'ele'
 
 def Template_By_Channel():
-    out_name = "BDT_channels_lepMVAp04_with_mass_min110_40bins.root"
+    out_name = "BDT_channels_lepMVAn04_with_mass_min110_40bins.root"
     out_file = TFile( OUT_DIR + "/plots/" + out_name , "RECREATE")
     
     file_chain = TChain("tree","chain");
@@ -64,15 +65,15 @@ def Template_By_Channel():
         if (iEvt % 10000 == 1):
             print "looking at event %d" %iEvt 
 
-	MVA_cut = 0.4	
+	MVA_cut = -0.4	
 	if file_chain.mu1_lepMVA < MVA_cut or file_chain.mu2_lepMVA < MVA_cut or file_chain.lep1_lepMVA < MVA_cut or file_chain.lep2_lepMVA < MVA_cut:
             continue
-	mu1_SF = GetSF("muon", file_chain.mu1_pt,  file_chain.mu1_abs_eta, MVA_cut)
-        mu2_SF = GetSF("muon", file_chain.mu2_pt,  file_chain.mu2_abs_eta, MVA_cut)
-        lep1_SF = GetSF(LEP,   file_chain.lep1_pt, file_chain.lep1_abs_eta, MVA_cut)
-	lep2_SF = GetSF(LEP,   file_chain.lep2_pt, file_chain.lep2_abs_eta, MVA_cut)
-        MVA_SF = mu1_SF * mu2_SF * lep1_SF * lep2_SF
-#	MVA_SF = 1.0
+#	mu1_SF = GetSF("muon", file_chain.mu1_pt,  file_chain.mu1_abs_eta, MVA_cut)
+#        mu2_SF = GetSF("muon", file_chain.mu2_pt,  file_chain.mu2_abs_eta, MVA_cut)
+#        lep1_SF = GetSF(LEP,   file_chain.lep1_pt, file_chain.lep1_abs_eta, MVA_cut)
+#	lep2_SF = GetSF(LEP,   file_chain.lep2_pt, file_chain.lep2_abs_eta, MVA_cut)
+#        MVA_SF = mu1_SF * mu2_SF * lep1_SF * lep2_SF
+	MVA_SF = file_chain.all_lepMVA_SF
 
 	if file_chain.dimu_mass < 110: continue
 
