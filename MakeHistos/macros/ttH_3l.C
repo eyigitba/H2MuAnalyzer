@@ -67,13 +67,16 @@ const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output
 // Cuts which every event must pass, applied in sequence
 const std::vector<std::string> SEL_CUTS = {"PreselRun2"};
 // Multiple selection cuts, applied independently in parallel
-// const std::vector<std::string> OPT_CUTS = {"3lep", "3lep_allMass"};
 const std::vector<std::string> OPT_CUTS = {"3lep"};
+// const std::vector<std::string> OPT_CUTS = {"3lep_allMass", "3mu_allMass", "e2mu_allMass"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
 const std::vector<std::string> CAT_CUTS = { "looseLepMVA_ge2j_btag",
 					    "medLepMVA_noZ10_ge2j_btag",
-                                            "hiPt_lepW20_medLepMVA_noZ10_ge2j_btag" };
+                                            "hiPt_lepW20_medLepMVA_noZ10_ge2j_btag",
+                                            "hiPt_lep20_tightLepMVA_noZ10_btag" };
+// const std::vector<std::string> CAT_CUTS = { "medLepMVA_noZ10_ge2j_btag",
+// 					    "medLepMVA_onZ10_ge2j_btag" };
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -259,7 +262,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 
   std::cout << "\n******* About to enter the loop over " << in_chain->GetEntries() << " events *******" << std::endl;
   for (int iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++) {
-    
+
     if (iEvt > max_evt && max_evt > 0) break;
     if ( (iEvt % prt_evt) == 0 ) {
       std::cout << "\n*********************" << std::endl;
@@ -502,8 +505,8 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    // Find the muon not in the H pair, and the same-sign and opposite-sign muons
 	    for (const auto & mu : muons) {
 	      // Find the W muon candidate and the same-sign muon from the Higgs
-	      if ( mu.pt != muH1.pt && mu.eta != muH1.eta &&
-		   mu.pt != muH2.pt && mu.eta != muH2.eta ) {
+	      if ( (mu.phi != muH1.phi || mu.eta != muH1.eta) &&
+		   (mu.phi != muH2.phi || mu.eta != muH2.eta) ) {
 		ASSERT(muW.pt <= 0, "muW.pt <= 0"); // We should not have found a W candidate before
 		muW = mu;
 		lep_vec  = FourVec(mu, PTC);
@@ -793,23 +796,23 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  // Rank jets by highest b-tag score
 	  int   bjet1_idx = -99;
 	  int   bjet2_idx = -99;
-	  float bjet1_CSV = -99;
-	  float bjet2_CSV = -99;
+	  float bjet1_CSV = obj_sel.jet_btag_cuts.at(0);  // Require at least a loose b-tag
+	  float bjet2_CSV = obj_sel.jet_btag_cuts.at(0);  // Require at least a loose b-tag
 	  TLorentzVector bjet1_vec(0,0,0,0);
 	  TLorentzVector bjet2_vec(0,0,0,0);
 
-	  for (int i = 0; i < jets.size(); i++) {
-	    if (JetCSV(jets.at(i)) > bjet1_CSV) {
+	  for (int i = 0; i < jetsCent.size(); i++) {
+	    if (JetCSV(jetsCent.at(i)) > bjet1_CSV) {
 	      bjet2_idx = bjet1_idx;
 	      bjet2_CSV = bjet1_CSV;
 	      bjet2_vec = bjet1_vec;
 	      bjet1_idx = i;
-	      bjet1_CSV = max(JetCSV(jets.at(i)), float(-0.1));
-	      bjet1_vec = FourVec(jets.at(i));
-	    } else if (JetCSV(jets.at(i)) > bjet2_CSV) {
+	      bjet1_CSV = JetCSV(jetsCent.at(i));
+	      bjet1_vec = FourVec(jetsCent.at(i));
+	    } else if (JetCSV(jetsCent.at(i)) > bjet2_CSV) {
 	      bjet2_idx = i;
-	      bjet2_CSV = max(JetCSV(jets.at(i)), float(-0.1));
-	      bjet2_vec = FourVec(jets.at(i));
+	      bjet2_CSV = JetCSV(jetsCent.at(i));
+	      bjet2_vec = FourVec(jetsCent.at(i));
 	    }
 	  }
 
@@ -837,15 +840,15 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  TLorentzVector MAN_topH_vec(0,0,0,0);
 
 	  // Associate loose b-tagged jets with top quark decays
-	  if (bjet1_CSV > obj_sel.jet_btag_cuts.at(0)) {
+	  if (bjet1_idx >= 0) {
 	    MAN_top1_b_idx = bjet1_idx;
 	    MAN_top1_b_CSV = bjet1_CSV;
-	    MAN_top1_b_vec = FourVec(jets.at(MAN_top1_b_idx));
+	    MAN_top1_b_vec = FourVec(jetsCent.at(MAN_top1_b_idx));
 	  }
-	  if (bjet2_CSV > obj_sel.jet_btag_cuts.at(0)) {
+	  if (bjet2_idx >= 0) {
 	    MAN_top2_b_idx = bjet2_idx;
 	    MAN_top2_b_CSV = bjet2_CSV;
-	    MAN_top2_b_vec = FourVec(jets.at(MAN_top2_b_idx));
+	    MAN_top2_b_vec = FourVec(jetsCent.at(MAN_top2_b_idx));
 	  }
 
 	  // Pick the closest remaining pair in dR as the W candidate
@@ -877,7 +880,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	      if (i == MAN_top1_b_idx || i == MAN_top2_b_idx)
 		continue;
 	      TLorentzVector jv1 = FourVec(jetsCent.at(i));
-	      if ( MAN_top1_b_idx > 0 && abs((MAN_top1_b_vec+jv1).M() - 173) < abs(top_mass - 173) ) {
+	      if ( MAN_top1_b_idx >= 0 && abs((MAN_top1_b_vec+jv1).M() - 173) < abs(top_mass - 173) ) {
 		MAN_W_jet1_idx = i;
 		MAN_W_jet1_vec = jv1;
 		MAN_topH_b_idx = MAN_top1_b_idx;
@@ -885,7 +888,7 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 		MAN_topH_b_vec = MAN_top1_b_vec;
 		MAN_topH_vec   = MAN_top1_b_vec+MAN_W_jet1_vec;
 	      }
-	      if ( MAN_top2_b_idx > 0 && abs((MAN_top2_b_vec+jv1).M() - 173) < abs(top_mass - 173) ) {
+	      if ( MAN_top2_b_idx >= 0 && abs((MAN_top2_b_vec+jv1).M() - 173) < abs(top_mass - 173) ) {
 		MAN_W_jet1_idx = i;
 		MAN_W_jet1_vec = jv1;
 		MAN_topH_b_idx = MAN_top2_b_idx;
@@ -895,13 +898,13 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	      }
 	    }
 	  } else { // Also consider the fully-reconstructed t --> bjj system
-	    if ( MAN_top1_b_idx > 0 && abs((MAN_top1_b_vec+MAN_W_jj_vec).M() - 173) < abs(top_mass - 173) ) {
+	    if ( MAN_top1_b_idx >= 0 && abs((MAN_top1_b_vec+MAN_W_jj_vec).M() - 173) < abs(top_mass - 173) ) {
 	      MAN_topH_b_idx = MAN_top1_b_idx;
 	      MAN_topH_b_CSV = MAN_top1_b_CSV;
 	      MAN_topH_b_vec = MAN_top1_b_vec;
 	      MAN_topH_vec   = MAN_top1_b_vec+MAN_W_jj_vec;
 	    }
-	    if ( MAN_top2_b_idx > 0 && abs((MAN_top2_b_vec+MAN_W_jj_vec).M() - 173) < abs(top_mass - 173) ) {
+	    if ( MAN_top2_b_idx >= 0 && abs((MAN_top2_b_vec+MAN_W_jj_vec).M() - 173) < abs(top_mass - 173) ) {
 	      MAN_topH_b_idx = MAN_top2_b_idx;
 	      MAN_topH_b_CSV = MAN_top2_b_CSV;
 	      MAN_topH_b_vec = MAN_top2_b_vec;
@@ -1053,25 +1056,25 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupI, "nJetsCent40",  11, -0.5, 10.5, SelectedJets(obj_sel, br, "Central").size(),    cat_evt_wgt );
 	  obj_sel.jet_pt_min = 50;
 	  BookAndFill(tupI, "nJetsCent50",  11, -0.5, 10.5, SelectedJets(obj_sel, br, "Central").size(),    cat_evt_wgt );
-	  obj_sel.jet_pt_min = 20;
+	  obj_sel.jet_pt_min = obj_sel_orig.jet_pt_min;
 
-	  BookAndFill(tupF, "jet1_pt",  40,    0, 400, (jets.size() > 0 ? jets.at(0).pt                        : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet2_pt",  30,    0, 300, (jets.size() > 1 ? jets.at(1).pt                        : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet3_pt",  40,    0, 200, (jets.size() > 2 ? jets.at(2).pt                        : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet4_pt",  30,    0, 150, (jets.size() > 3 ? jets.at(3).pt                        : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet1_eta", 20, -5.0, 5.0, (jets.size() > 0 ? jets.at(0).eta                       : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet2_eta", 20, -5.0, 5.0, (jets.size() > 1 ? jets.at(1).eta                       : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet3_eta", 20, -5.0, 5.0, (jets.size() > 2 ? jets.at(2).eta                       : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet4_eta", 20, -5.0, 5.0, (jets.size() > 3 ? jets.at(3).eta                       : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet1_CSV", 22, -0.1, 1.0, (jets.size() > 0 ? max(JetCSV(jets.at(0)), float(-0.1)) : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet2_CSV", 22, -0.1, 1.0, (jets.size() > 1 ? max(JetCSV(jets.at(1)), float(-0.1)) : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet3_CSV", 22, -0.1, 1.0, (jets.size() > 2 ? max(JetCSV(jets.at(2)), float(-0.1)) : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "jet4_CSV", 22, -0.1, 1.0, (jets.size() > 3 ? max(JetCSV(jets.at(3)), float(-0.1)) : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet1_pt",  40,    0, 400, (jetsCent.size() > 0 ? jetsCent.at(0).pt                        : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet2_pt",  30,    0, 300, (jetsCent.size() > 1 ? jetsCent.at(1).pt                        : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet3_pt",  40,    0, 200, (jetsCent.size() > 2 ? jetsCent.at(2).pt                        : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet4_pt",  30,    0, 150, (jetsCent.size() > 3 ? jetsCent.at(3).pt                        : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet1_eta", 20, -5.0, 5.0, (jetsCent.size() > 0 ? jetsCent.at(0).eta                       : -5), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet2_eta", 20, -5.0, 5.0, (jetsCent.size() > 1 ? jetsCent.at(1).eta                       : -5), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet3_eta", 20, -5.0, 5.0, (jetsCent.size() > 2 ? jetsCent.at(2).eta                       : -5), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet4_eta", 20, -5.0, 5.0, (jetsCent.size() > 3 ? jetsCent.at(3).eta                       : -5), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet1_CSV", 22, -0.1, 1.0, (jetsCent.size() > 0 ? max(JetCSV(jetsCent.at(0)), float(-0.1)) : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet2_CSV", 22, -0.1, 1.0, (jetsCent.size() > 1 ? max(JetCSV(jetsCent.at(1)), float(-0.1)) : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet3_CSV", 22, -0.1, 1.0, (jetsCent.size() > 2 ? max(JetCSV(jetsCent.at(2)), float(-0.1)) : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "jet4_CSV", 22, -0.1, 1.0, (jetsCent.size() > 3 ? max(JetCSV(jetsCent.at(3)), float(-0.1)) : -1), cat_evt_wgt, false );
 
-	  BookAndFill(tupF, "bjet1_pt",  40,    0, 200, (bjet1_idx > 0 ? bjet1_vec.Pt() : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "bjet2_pt",  40,    0, 200, (bjet2_idx > 0 ? bjet2_vec.Pt() : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "bjet1_CSV", 22, -0.1, 1.0, (bjet1_idx > 0 ? bjet1_CSV      : -9), cat_evt_wgt, false );
-	  BookAndFill(tupF, "bjet2_CSV", 22, -0.1, 1.0, (bjet2_idx > 0 ? bjet2_CSV      : -9), cat_evt_wgt, false );
+	  BookAndFill(tupF, "bjet1_pt",  40,    0, 200, (bjet1_idx >= 0 ? bjet1_vec.Pt() : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "bjet2_pt",  40,    0, 200, (bjet2_idx >= 0 ? bjet2_vec.Pt() : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "bjet1_CSV", 22, -0.1, 1.0, (bjet1_idx >= 0 ? bjet1_CSV      : -1), cat_evt_wgt, false );
+	  BookAndFill(tupF, "bjet2_CSV", 22, -0.1, 1.0, (bjet2_idx >= 0 ? bjet2_CSV      : -1), cat_evt_wgt, false );
 
 	  BookAndFill(tupF, "MET",  20, 0,  200, MET_vec.Pt(), cat_evt_wgt );
 	  BookAndFill(tupF, "MHT",  20, 0,  200, MHT_vec.Pt(), cat_evt_wgt );
@@ -1160,69 +1163,73 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupF, "trilep_mass",       30,   0, 600, trilep_vec.M(),   cat_evt_wgt );
 
 	  // More useful variables for ttH vs. Z+jets and ttH vs. ttZ
-	  BookAndFill(tupI, "lep_charge",           3, -1.5, 1.5, sum_lep_charge,                    cat_evt_wgt );
-	  BookAndFill(tupF, "lep_H_pair_dEta",     20, -5.0, 5.0, SignedDEta( lep_vec, H_pair_vec ), cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_OS_pair_dEta",   20, -5.0, 5.0, SignedDEta(muSS_vec, OS_pair_vec), cat_evt_wgt );  // "Wrong combo" of lep_H_pair_dEta
-	  BookAndFill(tupF, "lep_H_pair_dR",       20,    0, 6.0, lep_vec .DeltaR(H_pair_vec),       cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_OS_pair_dR",     20,    0, 6.0, muSS_vec.DeltaR(OS_pair_vec),      cat_evt_wgt );  // "Wrong combo" of lep_H_pair_dR
-	  BookAndFill(tupF, "lep_muSS_cosThStar",  10, -1.0, 1.0, CosThetaStar(lep_vec, muSS_vec),   cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_lep_cosThStar",  10, -1.0, 1.0, CosThetaStar(muSS_vec, lep_vec),   cat_evt_wgt );  // "Wrong combo" of lep_muSS_cosThStar
-	  BookAndFill(tupF, "lep_muOS_cosThStar",  10, -1.0, 1.0, CosThetaStar( lep_vec, muOS_vec),  cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_muOS_cosThStar", 10, -1.0, 1.0, CosThetaStar(muSS_vec, muOS_vec),  cat_evt_wgt );  // "Wrong combo" of lep_muOS_cosThStar
-	  BookAndFill(tupF, "lep_muSS_dEta",       20, -5.0, 5.0, SignedDEta(lep_vec, muSS_vec),     cat_evt_wgt );
-	  BookAndFill(tupF, "lep_muSS_dR",         20,    0, 6.0, lep_vec.DeltaR(muSS_vec),          cat_evt_wgt );
-	  BookAndFill(tupF, "lep_muOS_dEta",       20, -5.0, 5.0, SignedDEta( lep_vec, muOS_vec),    cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_muOS_dEta",      20, -5.0, 5.0, SignedDEta(muSS_vec, muOS_vec),    cat_evt_wgt );  // "Wrong combo" of lep_muOS_dEta
-	  BookAndFill(tupF, "lep_muOS_dR",         20,    0, 6.0, lep_vec .DeltaR(muOS_vec),         cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_muOS_dR",        30,    0, 6.0, muSS_vec.DeltaR(muOS_vec),         cat_evt_wgt );  // "Wrong combo" of lep_muOS_dR
-	  BookAndFill(tupF, "lep_MET_dPhi_abs",    16,    0, 3.2, abs( lep_vec.DeltaPhi(MET_vec)),   cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_MET_dPhi_abs",   16,    0, 3.2, abs(muSS_vec.DeltaPhi(MET_vec)),   cat_evt_wgt );  // "Wrong combo" of lep_MET_dPhi_abs
-	  BookAndFill(tupF, "lep_MET_MT",          20,    0, 200, lep_MET_vec.M(),                   cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_MET_MT",         30,    0, 300, (muSS_vecT + MET_vec).M(),         cat_evt_wgt );  // "Wrong combo" of lep_MET_MT
-	  BookAndFill(tupF, "lep_MHT_MT",          20,    0, 200, lep_MHT_vec.M(),                   cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_MHT_MT",         30,    0, 300, (muSS_vecT + MHT_vec).M(),         cat_evt_wgt );  // "Wrong combo" of lep_MHT_MT
-	  BookAndFill(tupF, "lep_MHT_dPhi_abs",    16,    0, 3.2, abs( lep_vec.DeltaPhi(MHT_vec)),   cat_evt_wgt );
-	  BookAndFill(tupF, "muSS_MHT_dPhi_abs",   16,    0, 3.2, abs(muSS_vec.DeltaPhi(MHT_vec)),   cat_evt_wgt );  // "Wrong combo" of lep_MHT_dPhi_abs
-	  BookAndFill(tupF, "MHT_MET_dPhi_abs",    16,    0, 3.2, abs(MHT_vec.DeltaPhi(MET_vec)),    cat_evt_wgt );
+	  BookAndFill(tupI, "lep_charge",             3, -1.5, 1.5, sum_lep_charge,                      cat_evt_wgt );
+	  BookAndFill(tupF, "lep_H_pair_dEta",       20, -5.0, 5.0, SignedDEta( lep_vec, H_pair_vec ),   cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_OS_pair_dEta",     20, -5.0, 5.0, SignedDEta(muSS_vec, OS_pair_vec),   cat_evt_wgt );  // "Wrong combo" of lep_H_pair_dEta
+	  BookAndFill(tupF, "lep_H_pair_dPhi_abs",   16,    0, 3.2, abs( lep_vec.DeltaPhi(H_pair_vec )), cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_OS_pair_dPhi_abs", 16,    0, 3.2, abs(muSS_vec.DeltaPhi(OS_pair_vec)), cat_evt_wgt );  // "Wrong combo" of lep_H_pair_dEta
+	  BookAndFill(tupF, "lep_H_pair_dR",         20,    0, 6.0,  lep_vec.DeltaR(H_pair_vec),         cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_OS_pair_dR",       20,    0, 6.0, muSS_vec.DeltaR(OS_pair_vec),        cat_evt_wgt );  // "Wrong combo" of lep_H_pair_dR
+	  BookAndFill(tupF, "lep_muSS_cosThStar",    10, -1.0, 1.0, CosThetaStar( lep_vec, muSS_vec),    cat_evt_wgt );
+	  BookAndFill(tupF, "lep_muOS_cosThStar",    10, -1.0, 1.0, CosThetaStar( lep_vec, muOS_vec),    cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_muOS_cosThStar",   10, -1.0, 1.0, CosThetaStar(muSS_vec, muOS_vec),    cat_evt_wgt );  // "Wrong combo" of lep_muOS_cosThStar
+	  BookAndFill(tupF, "lep_muSS_dEta",         20, -5.0, 5.0, SignedDEta( lep_vec, muSS_vec),      cat_evt_wgt );
+	  BookAndFill(tupF, "lep_muOS_dEta",         20, -5.0, 5.0, SignedDEta( lep_vec, muOS_vec),      cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_muOS_dEta",        20, -5.0, 5.0, SignedDEta(muSS_vec, muOS_vec),      cat_evt_wgt );  // "Wrong combo" of lep_muOS_dEta
+	  BookAndFill(tupF, "lep_muSS_dPhi_abs",     16,    0, 3.2, abs( lep_vec.DeltaPhi(muSS_vec)),    cat_evt_wgt );
+	  BookAndFill(tupF, "lep_muOS_dPhi_abs",     16,    0, 3.2, abs( lep_vec.DeltaPhi(muOS_vec)),    cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_muOS_dPhi_abs",    16,    0, 3.2, abs(muSS_vec.DeltaPhi(muOS_vec)),    cat_evt_wgt );  // "Wrong combo" of lep_muOS_dPhi_abs
+	  BookAndFill(tupF, "lep_muSS_dR",           20,    0, 6.0,  lep_vec.DeltaR(muSS_vec),           cat_evt_wgt );
+	  BookAndFill(tupF, "lep_muOS_dR",           20,    0, 6.0,  lep_vec.DeltaR(muOS_vec),           cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_muOS_dR",          20,    0, 6.0, muSS_vec.DeltaR(muOS_vec),           cat_evt_wgt );  // "Wrong combo" of lep_muOS_dR
+	  BookAndFill(tupF, "lep_MET_dPhi_abs",      16,    0, 3.2, abs( lep_vec.DeltaPhi(MET_vec)),     cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_MET_dPhi_abs",     16,    0, 3.2, abs(muSS_vec.DeltaPhi(MET_vec)),     cat_evt_wgt );  // "Wrong combo" of lep_MET_dPhi_abs
+	  BookAndFill(tupF, "lep_MET_MT",            20,    0, 200, lep_MET_vec.M(),                     cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_MET_MT",           30,    0, 300, (muSS_vecT + MET_vec).M(),           cat_evt_wgt );  // "Wrong combo" of lep_MET_MT
+	  BookAndFill(tupF, "lep_MHT_MT",            20,    0, 200, lep_MHT_vec.M(),                     cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_MHT_MT",           30,    0, 300, (muSS_vecT + MHT_vec).M(),           cat_evt_wgt );  // "Wrong combo" of lep_MHT_MT
+	  BookAndFill(tupF, "lep_MHT_dPhi_abs",      16,    0, 3.2, abs( lep_vec.DeltaPhi(MHT_vec)),     cat_evt_wgt );
+	  BookAndFill(tupF, "muSS_MHT_dPhi_abs",     16,    0, 3.2, abs(muSS_vec.DeltaPhi(MHT_vec)),     cat_evt_wgt );  // "Wrong combo" of lep_MHT_dPhi_abs
+	  BookAndFill(tupF, "MHT_MET_dPhi_abs",      16,    0, 3.2, abs(MHT_vec.DeltaPhi(MET_vec)),      cat_evt_wgt );
 
 	  // Manual top quark reconstruction variables in ttH signal events
-	  BookAndFill(tupF, "MAN_top1_b_CSV", 22, -0.1,  1.0, (MAN_top1_b_idx > 0   ? MAN_top1_b_CSV      : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_top2_b_CSV", 22, -0.1,  1.0, (MAN_top2_b_idx > 0   ? MAN_top2_b_CSV      : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_topH_b_CSV", 22, -0.1,  1.0, (MAN_topH_b_idx > 0   ? MAN_topH_b_CSV      : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_top1_b_pt",  40,    0,  200, (MAN_top1_b_idx > 0   ? MAN_top1_b_vec.Pt() : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_top2_b_pt",  40,    0,  200, (MAN_top2_b_idx > 0   ? MAN_top1_b_vec.Pt() : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_topH_b_pt",  40,    0,  200, (MAN_topH_b_idx > 0   ? MAN_top1_b_vec.Pt() : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_W_jet1_pt",  30,    0,  300, (MAN_W_jet1_idx > 0   ? MAN_W_jet1_vec.Pt() : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_W_jet2_pt",  30,    0,  300, (MAN_W_jet2_idx > 0   ? MAN_W_jet2_vec.Pt() : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_top1_b_CSV", 22, -0.1,  1.0, (MAN_top1_b_idx >= 0   ? MAN_top1_b_CSV      : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_top2_b_CSV", 22, -0.1,  1.0, (MAN_top2_b_idx >= 0   ? MAN_top2_b_CSV      : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_topH_b_CSV", 22, -0.1,  1.0, (MAN_topH_b_idx >= 0   ? MAN_topH_b_CSV      : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_top1_b_pt",  40,    0,  200, (MAN_top1_b_idx >= 0   ? MAN_top1_b_vec.Pt() : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_top2_b_pt",  40,    0,  200, (MAN_top2_b_idx >= 0   ? MAN_top1_b_vec.Pt() : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_topH_b_pt",  40,    0,  200, (MAN_topH_b_idx >= 0   ? MAN_top1_b_vec.Pt() : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_W_jet1_pt",  30,    0,  300, (MAN_W_jet1_idx >= 0   ? MAN_W_jet1_vec.Pt() : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_W_jet2_pt",  30,    0,  300, (MAN_W_jet2_idx >= 0   ? MAN_W_jet2_vec.Pt() : -1), cat_evt_wgt, false);
 
-	  BookAndFill(tupF, "MAN_topH_mass", 100,    0, 1000, (MAN_topH_vec.M() > 0 ? MAN_topH_vec.M()    : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_topH_pt",    50,    0,  500, (MAN_topH_vec.M() > 0 ? MAN_topH_vec.Pt()   : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_W_jj_mass", 100,    0, 1000, (MAN_W_jj_vec.M() > 0 ? MAN_W_jj_vec.M()    : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_W_jj_pt",    50,    0,  500, (MAN_W_jj_vec.M() > 0 ? MAN_W_jj_vec.Pt()   : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "MAN_W_jj_dR",    20,    0,  6.0, (MAN_W_jj_vec.M() > 0 ? MAN_W_jj_dR         : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_topH_mass", 100,    0, 1000, (MAN_topH_vec.M() > 0 ? MAN_topH_vec.M()    : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_topH_pt",    50,    0,  500, (MAN_topH_vec.M() > 0 ? MAN_topH_vec.Pt()   : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_W_jj_mass", 100,    0, 1000, (MAN_W_jj_vec.M() > 0 ? MAN_W_jj_vec.M()    : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_W_jj_pt",    50,    0,  500, (MAN_W_jj_vec.M() > 0 ? MAN_W_jj_vec.Pt()   : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "MAN_W_jj_dR",    20,    0,  6.0, (MAN_W_jj_vec.M() > 0 ? MAN_W_jj_dR         : -1), cat_evt_wgt, false);
 
 	  // BDT-based top quark reconstruction variables in ttH signal events
-	  BookAndFill(tupF, "BDT_topL_b_CSV", 22, -0.1,  1.0, (BDT_topL_b_idx > 0   ? BDT_topL_b_CSV      : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_topH_b_CSV", 22, -0.1,  1.0, (BDT_topH_b_idx > 0   ? BDT_topH_b_CSV      : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_topL_b_pt",  40,    0,  200, (BDT_topL_b_idx > 0   ? BDT_topL_b_vec.Pt() : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_topH_b_pt",  40,    0,  200, (BDT_topH_b_idx > 0   ? BDT_topH_b_vec.Pt() : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_W_jet1_pt",  30,    0,  300, (BDT_W_jet1_idx > 0   ? BDT_W_jet1_vec.Pt() : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_W_jet2_pt",  30,    0,  300, (BDT_W_jet2_idx > 0   ? BDT_W_jet2_vec.Pt() : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_topL_b_CSV", 22, -0.1,  1.0, (BDT_topL_b_idx >= 0   ? BDT_topL_b_CSV      : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_topH_b_CSV", 22, -0.1,  1.0, (BDT_topH_b_idx >= 0   ? BDT_topH_b_CSV      : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_topL_b_pt",  40,    0,  200, (BDT_topL_b_idx >= 0   ? BDT_topL_b_vec.Pt() : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_topH_b_pt",  40,    0,  200, (BDT_topH_b_idx >= 0   ? BDT_topH_b_vec.Pt() : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_W_jet1_pt",  30,    0,  300, (BDT_W_jet1_idx >= 0   ? BDT_W_jet1_vec.Pt() : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_W_jet2_pt",  30,    0,  300, (BDT_W_jet2_idx >= 0   ? BDT_W_jet2_vec.Pt() : -1), cat_evt_wgt, false);
 
-	  BookAndFill(tupF, "BDT_topH_mass", 100,    0, 1000, (BDT_topH_vec.M() > 0 ? BDT_topH_vec.M()    : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_topH_pt",    50,    0,  500, (BDT_topH_vec.M() > 0 ? BDT_topH_vec.Pt()   : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_W_jj_mass", 100,    0, 1000, (BDT_W_jj_vec.M() > 0 ? BDT_W_jj_vec.M()    : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_W_jj_pt",    50,    0,  500, (BDT_W_jj_vec.M() > 0 ? BDT_W_jj_vec.Pt()   : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_topH_mass", 100,    0, 1000, (BDT_topH_vec.M() > 0 ? BDT_topH_vec.M()    : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_topH_pt",    50,    0,  500, (BDT_topH_vec.M() > 0 ? BDT_topH_vec.Pt()   : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_W_jj_mass", 100,    0, 1000, (BDT_W_jj_vec.M() > 0 ? BDT_W_jj_vec.M()    : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_W_jj_pt",    50,    0,  500, (BDT_W_jj_vec.M() > 0 ? BDT_W_jj_vec.Pt()   : -1), cat_evt_wgt, false);
 
-	  BookAndFill(tupF, "BDT_W_jj_dR",       20, 0, 6.0, (BDT_W_jet2_idx > 0 ? BDT_W_jet1_vec.DeltaR(BDT_W_jet2_vec) : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_lep_topL_b_dR", 20, 0, 6.0, (BDT_topL_b_idx > 0 ? lep_vec       .DeltaR(BDT_topL_b_vec) : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "BDT_lep_topH_b_dR", 20, 0, 6.0, (BDT_topH_b_idx > 0 ? lep_vec       .DeltaR(BDT_topH_b_vec) : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_W_jj_dR",       20, 0, 6.0, (BDT_W_jet2_idx >= 0 ? BDT_W_jet1_vec.DeltaR(BDT_W_jet2_vec) : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_lep_topL_b_dR", 20, 0, 6.0, (BDT_topL_b_idx >= 0 ? lep_vec       .DeltaR(BDT_topL_b_vec) : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "BDT_lep_topH_b_dR", 20, 0, 6.0, (BDT_topH_b_idx >= 0 ? lep_vec       .DeltaR(BDT_topH_b_vec) : -1), cat_evt_wgt, false);
 	  if (BDT_H_lep_idx == 1)
-	    BookAndFill(tupF, "BDT_muH_topL_b_dR", 20, 0, 6.0, (BDT_topL_b_idx > 0 ? muH1_vec    .DeltaR(BDT_topL_b_vec) : -9), cat_evt_wgt, false);
+	    BookAndFill(tupF, "BDT_muH_topL_b_dR", 20, 0, 6.0, (BDT_topL_b_idx >= 0 ? muH1_vec    .DeltaR(BDT_topL_b_vec) : -1), cat_evt_wgt, false);
 	  else if (BDT_H_lep_idx == 2)
-	    BookAndFill(tupF, "BDT_muH_topL_b_dR", 20, 0, 6.0, (BDT_topL_b_idx > 0 ? muH2_vec    .DeltaR(BDT_topL_b_vec) : -9), cat_evt_wgt, false);
+	    BookAndFill(tupF, "BDT_muH_topL_b_dR", 20, 0, 6.0, (BDT_topL_b_idx >= 0 ? muH2_vec    .DeltaR(BDT_topL_b_vec) : -1), cat_evt_wgt, false);
 	  else
-	    BookAndFill(tupF, "BDT_muH_topL_b_dR", 20, 0, 6.0,                                                             -99, cat_evt_wgt, false);
+	    BookAndFill(tupF, "BDT_muH_topL_b_dR", 20, 0, 6.0,                                                              -2,  cat_evt_wgt, false);
 
 	  BookAndFill(tupF, "BDT_score_jj_blv",  22, -1.1, 1.0, BDT_score_jj_blv,  cat_evt_wgt, false);
 	  BookAndFill(tupF, "BDT_score_bjj_lv",  22, -1.1, 1.0, BDT_score_bjj_lv,  cat_evt_wgt, false);
@@ -1232,16 +1239,30 @@ void ttH_3l( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  BookAndFill(tupI, "BDT_best_match",    11, -1.5, 9.5, BDT_best_match,    cat_evt_wgt);
 
 	  // Top quark reconstruction variables in ttbar background events
-	  BookAndFill(tupF, "bjet1_muSS_dR",   20, 0, 6.0, (bjet1_idx > 0 ? muSS_vec.DeltaR(bjet1_vec) : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "bjet1_lep_dR",    20, 0, 6.0, (bjet1_idx > 0 ?  lep_vec.DeltaR(bjet1_vec) : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "bjet1_muSS_pt",   30, 0, 300, (bjet1_idx > 0 ? (muSS_vec+bjet1_vec).Pt()  : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "bjet1_lep_pt",    30, 0, 300, (bjet1_idx > 0 ?  (lep_vec+bjet1_vec).Pt()  : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "bjet1_muSS_mass", 30, 0, 300, (bjet1_idx > 0 ? (muSS_vec+bjet1_vec).M()   : -9), cat_evt_wgt, false);
-	  BookAndFill(tupF, "bjet1_lep_mass",  30, 0, 300, (bjet1_idx > 0 ?  (lep_vec+bjet1_vec).M()   : -9), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_lep_dR",    20, 0, 6.0, (bjet1_idx >= 0 ?  lep_vec.DeltaR(bjet1_vec) : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_muSS_dR",   20, 0, 6.0, (bjet1_idx >= 0 ? muSS_vec.DeltaR(bjet1_vec) : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_muOS_dR",   20, 0, 6.0, (bjet1_idx >= 0 ? muOS_vec.DeltaR(bjet1_vec) : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_lep_mass",  30, 0, 300, (bjet1_idx >= 0 ?  (lep_vec+bjet1_vec).M()   : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_muSS_mass", 30, 0, 300, (bjet1_idx >= 0 ? (muSS_vec+bjet1_vec).M()   : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_muOS_mass", 30, 0, 300, (bjet1_idx >= 0 ? (muOS_vec+bjet1_vec).M()   : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_lep_pt",    30, 0, 300, (bjet1_idx >= 0 ?  (lep_vec+bjet1_vec).Pt()  : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_muSS_pt",   30, 0, 300, (bjet1_idx >= 0 ? (muSS_vec+bjet1_vec).Pt()  : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet1_muOS_pt",   30, 0, 300, (bjet1_idx >= 0 ? (muOS_vec+bjet1_vec).Pt()  : -1), cat_evt_wgt, false);
+
+	  BookAndFill(tupF, "bjet2_lep_dR",    20, 0, 6.0, (bjet2_idx >= 0 ?  lep_vec.DeltaR(bjet2_vec) : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet2_muSS_dR",   20, 0, 6.0, (bjet2_idx >= 0 ? muSS_vec.DeltaR(bjet2_vec) : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet2_muOS_dR",   20, 0, 6.0, (bjet2_idx >= 0 ? muOS_vec.DeltaR(bjet2_vec) : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet2_lep_mass",  30, 0, 300, (bjet2_idx >= 0 ?  (lep_vec+bjet2_vec).M()   : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet2_muSS_mass", 30, 0, 300, (bjet2_idx >= 0 ? (muSS_vec+bjet2_vec).M()   : -1), cat_evt_wgt, false);
+	  BookAndFill(tupF, "bjet2_muOS_mass", 30, 0, 300, (bjet2_idx >= 0 ? (muOS_vec+bjet2_vec).M()   : -1), cat_evt_wgt, false);
 
           // Extra variables especially for Andrew's BDTs
           BookAndFill( b_map_flt, out_tree, h_pre, "muH1_eta_abs", abs(b_map_flt["muH1_eta"]) );
           BookAndFill( b_map_flt, out_tree, h_pre, "muH2_eta_abs", abs(b_map_flt["muH2_eta"]) );
+
+	  // Extra variables especially for Olivier Reiger's BDTs (Hamburg)
+	  BookAndFill(tupF, "muH1_pt_ratio", 30, 0, 3.0, (muH1_vec.Pt() / H_pair_vec.M()), cat_evt_wgt );
+	  BookAndFill(tupF, "muH2_pt_ratio", 30, 0, 1.5, (muH2_vec.Pt() / H_pair_vec.M()), cat_evt_wgt );
 
 	  // Evaluate MVA output values
 	  BookAndFill( b_map_flt, out_tree, h_pre, "BDT_v1_all_withMass", BDT_v1_all_withMass.Evaluate(b_map_flt, b_map_int) );

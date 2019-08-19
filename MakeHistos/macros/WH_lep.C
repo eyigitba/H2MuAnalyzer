@@ -29,7 +29,7 @@
 // const std::string YEAR = "2016";
 const std::string YEAR = "2018";
 // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
-R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
+R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
 
 
 // Hard-coded options for running locally / manually
@@ -73,12 +73,11 @@ const std::vector<std::string> OPT_CUTS = {"3lep"};
 //const std::vector<std::string> OPT_CUTS = {"3lep_allMass", "3mu_allMass", "e2mu_allMass"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
-// const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ5_noBtag",
-// 					    "medLepMVA_noZ10_noBtag",
-// 					    "hiPt_lepW20_medLepMVA_noZ10_noBtag" };
-//                                             "hiPt_lepW20_medLepMVA_onZ10_noBtag" };
-const std::vector<std::string> CAT_CUTS = { "hiPt_lepW20_medLepMVA_noZ10_noBtag",
-                                            "hiPt_lepW20_medLepMVA_onZ10_noBtag" };
+const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ5_noBtag",
+					    "medLepMVA_noZ10_noBtag",
+					    "hiPt_lepW20_medLepMVA_noZ10_noBtag" };
+// const std::vector<std::string> CAT_CUTS = { "medLepMVA_noZ10_noBtag",
+//                                             "medLepMVA_onZ10_noBtag" };
 
 
 // Command-line options for running in batch.  Running "root -b -l -q macros/ReadNTupleChain.C" will use hard-coded options above.
@@ -245,7 +244,7 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 
   std::cout << "\n******* About to enter the loop over " << in_chain->GetEntries() << " events *******" << std::endl;
   for (int iEvt = 0; iEvt < in_chain->GetEntries(); iEvt++) {
-    
+
     if (iEvt > max_evt && max_evt > 0) break;
     if ( (iEvt % prt_evt) == 0 ) {
       std::cout << "\n*********************" << std::endl;
