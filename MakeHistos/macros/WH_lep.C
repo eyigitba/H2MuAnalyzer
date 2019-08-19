@@ -29,7 +29,7 @@
 // const std::string YEAR = "2016";
 const std::string YEAR = "2018";
 // Load the library of the local, compiled H2MuAnalyzer/MakeHistos directory
-R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc700/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
+R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H2MuAnalyzerMakeHistos/libH2MuAnalyzerMakeHistos.so)
 
 
 // Hard-coded options for running locally / manually
@@ -69,8 +69,8 @@ const TString HIST_TREE = "HistTree"; // "Hist", "Tree", or "HistTree" to output
 // Cuts which every event must pass, applied in sequence
 const std::vector<std::string> SEL_CUTS = {"PreselRun2"};
 // Multiple selection cuts, applied independently in parallel
-// const std::vector<std::string> OPT_CUTS = {"3lep", "3mu", "e2mu", "3lep_allMass", "3mu_allMass", "e2mu_allMass"};
-const std::vector<std::string> OPT_CUTS = {"3mu_allMass", "e2mu_allMass"};
+const std::vector<std::string> OPT_CUTS = {"3lep"};
+//const std::vector<std::string> OPT_CUTS = {"3lep_allMass", "3mu_allMass", "e2mu_allMass"};
 // Category selection cuts, also applied in parallel
 // *** IMPORTANT!!! No category name may start with a sub-string which is identical to another entire category name! ***
 // const std::vector<std::string> CAT_CUTS = { "looseLepMVA_noZ5_noBtag",
@@ -291,8 +291,8 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
     }
 
     // Initialize the selected Higgs candidate dimuon pair
-    MuPairInfo        H_pair;     // When filling histograms, have only one candidate pair at a time
-    TLorentzVector    H_pair_vec;
+    MuPairInfo     H_pair;     // When filling histograms, have only one candidate pair at a time
+    TLorentzVector H_pair_vec(0,0,0,0);
 
     bool MU = false;  // Says whether event has 3 muons or 1 electron + 2 muons
 
@@ -424,21 +424,21 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  MuonInfo   muSS2;   // Same-sign muon with lower pT
 	  MuonInfo   muOS;    // Opposite-sign muon
 
-	  TLorentzVector H_GEN_vec;
-	  TLorentzVector Z_GEN_vec;
-	  TLorentzVector H_true_vec;
-	  TLorentzVector Z_true_vec;
-	  TLorentzVector muH1_vec;
-	  TLorentzVector muH2_vec;
-	  TLorentzVector lep_vec;      // Lepton not chosen to be in Higgs candidate pair
-	  TLorentzVector lep_vecT;     // Transverse component only (eta = 0, pZ = 0, mass = 0)
-	  TLorentzVector OS_pair_vec;  // OS lepton pair not chosen as Higgs candidate (mu-mu or ele-mu)
-	  TLorentzVector lepSS1_vec;   // SS lepton with higher pT
-	  TLorentzVector lepSS2_vec;   // SS lepton with lower pT
-	  TLorentzVector muSS_vec;     // SS muon from the chosen Higgs candidate pair
-	  TLorentzVector muSS_vecT;    // Transverse component only (eta = 0, pZ = 0, mass = 0)
-	  TLorentzVector muOS_vec;     // OS muon
-	  TLorentzVector muOS_vecT;    // Transverse component only (eta = 0, pZ = 0, mass = 0)
+	  TLorentzVector H_GEN_vec(0,0,0,0);
+	  TLorentzVector Z_GEN_vec(0,0,0,0);
+	  TLorentzVector H_true_vec(0,0,0,0);
+	  TLorentzVector Z_true_vec(0,0,0,0);
+	  TLorentzVector muH1_vec(0,0,0,0);
+	  TLorentzVector muH2_vec(0,0,0,0);
+	  TLorentzVector lep_vec(0,0,0,0);      // Lepton not chosen to be in Higgs candidate pair
+	  TLorentzVector lep_vecT(0,0,0,0);     // Transverse component only (eta = 0, pZ = 0, mass = 0)
+	  TLorentzVector OS_pair_vec(0,0,0,0);  // OS lepton pair not chosen as Higgs candidate (mu-mu or ele-mu)
+	  TLorentzVector lepSS1_vec(0,0,0,0);   // SS lepton with higher pT
+	  TLorentzVector lepSS2_vec(0,0,0,0);   // SS lepton with lower pT
+	  TLorentzVector muSS_vec(0,0,0,0);     // SS muon from the chosen Higgs candidate pair
+	  TLorentzVector muSS_vecT(0,0,0,0);    // Transverse component only (eta = 0, pZ = 0, mass = 0)
+	  TLorentzVector muOS_vec(0,0,0,0);     // OS muon
+	  TLorentzVector muOS_vecT(0,0,0,0);    // Transverse component only (eta = 0, pZ = 0, mass = 0)
 
 	  muH1     = br.muons->at(H_pair.iMu1);
 	  muH2     = br.muons->at(H_pair.iMu2);
@@ -488,8 +488,8 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	    // Find the muon not in the H pair, and the same-sign and opposite-sign muons
 	    for (const auto & mu : muons) {
 	      // Find the W muon candidate and the same-sign muon from the Higgs
-	      if ( mu.pt != muH1.pt && mu.eta != muH1.eta &&
-		   mu.pt != muH2.pt && mu.eta != muH2.eta ) {
+	      if ( (mu.phi != muH1.phi || mu.eta != muH1.eta) &&
+		   (mu.phi != muH2.phi || mu.eta != muH2.eta) ) {
 		ASSERT(muW.pt <= 0, "muW.pt <= 0"); // We should not have found a W candidate before
 		muW = mu;
 		lep_vec  = FourVec(mu, PTC);
@@ -679,9 +679,9 @@ void WH_lep( TString sample = "", TString in_dir = "", TString out_dir = "",
 	  TLorentzVector lep_MHT_vec = lep_vecT + MHT_vec;
 
 	  // Leptons ordered by pT
-	  TLorentzVector lep1_vec;
-	  TLorentzVector lep2_vec;
-	  TLorentzVector lep3_vec;
+	  TLorentzVector lep1_vec(0,0,0,0);
+	  TLorentzVector lep2_vec(0,0,0,0);
+	  TLorentzVector lep3_vec(0,0,0,0);
 
 	  if ( lepSS1_vec.Pt() > muOS_vec.Pt() ) {
 	    lep1_vec = lepSS1_vec;
