@@ -1,4 +1,29 @@
-### Limit Setting
+### updates with systematic uncertainties
+## XWZ 2019.08.19
+
+general instructions: 
+
+
+With the current update, datacards are written with several signal channels (by year and production mode), and one net bkg.
+This update is made only on mass-shape workspace and datacard.
+
+To run the limits:
+
+First run macros/PrepareSystematicsHists.py to prepare the histograms for systematics
+Then write a config file 
+Then run the macros/MakeWorkspaceDatacard.py with that config file (just like before)
+
+
+more details are below
+1. Added options for signals and sys_names in the config file. 
+It will be used in the class WorkspaceAndDatacardMaker and DataLoader
+2. Added class SystematicsConfig
+It contains all systematic uncertainties to be used in the datacard making, including theoretical, phenominological, and experimetal uncertainties
+3. changes in the DatacardHelper to write uncertainty values
+
+
+
+### Limit Setting (initial push)
 1. MakeWorkspaceDatacard.py creates workspace containing data, signal and background model and
    datacard for Higgs combine tool. You need to give a file path for your histogram root file and
    category at the end of the script. Then run it by doing 'python macros/MakeWorkspaceDatacard.py'
