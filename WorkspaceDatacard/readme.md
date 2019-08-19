@@ -15,7 +15,7 @@ Then write a config file
 
 Then run the macros/MakeWorkspaceDatacard.py with that config file (just like before)
 
-**Note that:** in DataLoader.py, the * * source == 'Sys_test' * * option is used so the other options are intact for Andrew's possible usage. Later it shoule be merged into the others.
+**Note that:** in DataLoader.py, the __ source == 'Sys_test' __ option is used so the other options are intact for Andrew's possible usage. Later it shoule be merged into the others.
 
 **more details are below**
 1. Added options for signals and sys_names in the config file. 
