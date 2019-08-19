@@ -19,30 +19,34 @@ class DataLoader:
     ##  Initialize based on user and configuration  ##
     ## ============================================ ##
 
-    def __init__(self, _user, _source, _in_dir, _in_file, _cat_loc, _dist, _min_max, _rebin):
+    def __init__(self, _user, _source, _in_dir, _in_file, _sys_dir, _sys_file, _signals, _sys_names, _cat_loc, _dist, _min_max, _rebin):
 
         print '\nInstantiating DataLoader with user = %s and source = %s' % (_user, _source)
 
-        self.user       = _user     ## Who is running the script: abrinke1, xzuo, pbortigno
-        self.source     = _source   ## Data source: abrinke1, xzuo, pbortigno, acarnes
-        self.in_dir     = _in_dir   ## Data input directory
-        self.in_file    = _in_file  ## Data input file (first initialized to the file name)
-        self.cat_loc    = _cat_loc  ## Full category name from input file to run over
-        self.dist       = _dist     ## Distribution to be used for signal extraction
-        self.min_max    = _min_max  ## Minimum and maximum variable values considered
-        self.sig_hists  = []        ## Signal histograms, including total stack in [0]
-        self.bkg_hists  = []        ## Background histograms, including total stack in [0]
-        self.data_hist  = 0         ## Rebinned data histogram
-        self.hists_sys  = []        ## Systematic-shifted versions of all histograms
-        self.rebin      = _rebin    ## Whether to rebin maximizing S^2/B
-        self.sig_rebin  = []        ## Rebinned signal histograms, including total stack in [0]
-        self.bkg_rebin  = []        ## Rebinned background histograms, including total stack in [0]
-        self.data_rebin = 0         ## Rebinned data histogram
-        self.rebin_sys  = []        ## Systematic-shifted versions of all rebinned histograms
+        self.user       = _user       ## Who is running the script: abrinke1, xzuo, pbortigno
+        self.source     = _source     ## Data source: abrinke1, xzuo, pbortigno, acarnes
+        self.in_dir     = _in_dir     ## Data input directory
+        self.in_file    = _in_file    ## Data input file (first initialized to the file name)
+	self.sys_dir	= _sys_dir    ## Systematics input directory
+	self.sys_file	= _sys_file   ## Systematics input file name
+	self.signals	= _signals    ## name of the signal in different channels
+	self.sys_names  = _sys_names  ## name of the systematics
+        self.cat_loc    = _cat_loc    ## Full category name from input file to run over
+        self.dist       = _dist       ## Distribution to be used for signal extraction
+        self.min_max    = _min_max    ## Minimum and maximum variable values considered
+        self.sig_hists  = []          ## Signal histograms, including total stack in [0]
+        self.bkg_hists  = []          ## Background histograms, including total stack in [0]
+        self.data_hist  = 0           ## Rebinned data histogram
+        self.hists_sys  = {}          ## Systematic-shifted versions of all histograms
+        self.rebin      = _rebin      ## Whether to rebin maximizing S^2/B
+        self.sig_rebin  = []          ## Rebinned signal histograms, including total stack in [0]
+        self.bkg_rebin  = []          ## Rebinned background histograms, including total stack in [0]
+        self.data_rebin = 0           ## Rebinned data histogram
+        self.rebin_sys  = []          ## Systematic-shifted versions of all rebinned histograms
 
         self.LoadHistograms()
 
-    ## End function: def __init__(self, _user, _source, _in_dir, _in_file, _cat_loc, _dist, _min_max, _rebin):
+    ## End function: def __init__(self, _user, _source, _in_dir, _in_file, _sys_dir, _sys_file, _signals, _sys_names, _cat_loc, _dist, _min_max, _rebin):
 
 
     ## ============================== ##
@@ -63,12 +67,17 @@ class DataLoader:
         self.source     = ''
         self.in_dir     = ''
         self.in_file    = None
+	self.sys_dir	= ''
+	self.sys_file	= None
+	self.signals 	= []
+	self.sys_names  = []
         self.cat_loc    = ''
         self.dist       = ''
         self.min_max    = []
         self.sig_hists  = []
         self.bkg_hists  = []
         self.data_hist  = 0
+	self.hists_sys  = {}
         self.rebin      = []
         self.sig_rebin  = []
         self.bkg_rebin  = []
@@ -83,6 +92,9 @@ class DataLoader:
 
         if   (self.source == 'abrinke1'):
             in_file_name = self.in_dir+'/plots/'+self.cat_loc+'/'+self.in_file
+	if   (self.source == 'Sys_test'):
+            in_file_name = self.in_dir+'/plots/'+self.cat_loc+'/'+self.in_file
+
         elif (self.source == 'abrinke1_TMVA'):
             in_file_name = self.in_dir+'/'+self.in_file
         elif (self.source == 'xzuo_mass' or self.source == 'xzuo_BDT' or self.source == 'xzuo_TMVA'):
@@ -141,6 +153,52 @@ class DataLoader:
                         self.bkg_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
         ## End conditional: if (self.source == 'abrinke1'):
 
+
+ 	
+	## This is using Andrew's mass StackPlots.root files, and with Xunwu's systematics. 
+	## Should later be renamed or merged into 'abrinke1'
+        if (self.source == 'Sys_test'):
+
+            print '  * Loading %s_Net_Data, %s_Net_Sig, and %s_Net_Bkg' % (self.dist, self.dist, self.dist)
+	    if not self.in_file.GetListOfKeys().Contains( self.dist+'_Net_Data' ):
+		self.data_hist = self.in_file.Get(self.dist+'_Net_Bkg').Clone('Net_Data')
+	    else:
+                self.data_hist = self.in_file.Get(self.dist+'_Net_Data').Clone('Net_Data')
+            #self.sig_hists.append(self.in_file.Get(self.dist+'_Net_Sig').Clone('Net_Sig'))
+            self.bkg_hists.append(self.in_file.Get(self.dist+'_Net_Bkg').Clone('Net_Bkg'))
+
+	    sys_shifts = []
+	    sys_shifts.append('noSys')
+	    for sys_name in self.sys_names:
+		sys_shifts.append( sys_name + '_up')
+		sys_shifts.append( sys_name + '_down')
+
+	    sys_file_name = self.sys_dir + '/' + self.sys_file
+	    sys_file = R.TFile.Open(sys_file_name, 'READ')
+
+	    for signal in self.signals:
+		for sys_shift in sys_shifts:
+		    hstr = signal + '_' + sys_shift + '_' + self.dist
+	    	    if sys_file.GetListOfKeys().Contains(hstr):
+			hist = sys_file.Get(hstr).Clone()
+		    else:
+			hist = R.TH1D(hstr, hstr, 100, 110, 160)
+		    hist.SetDirectory(0)
+		    if sys_shift == 'noSys':
+			self.sig_hists.append(  hist.Clone(signal)  )
+			self.sig_hists[-1].SetDirectory(0)
+			self.hists_sys[signal + '_' + sys_shift] = hist
+		    else:
+			self.hists_sys[signal + '_' + sys_shift] = hist
+	    print 'Finished loading all hists ---------------------------------'
+
+       ## End conditional: if (self.source == 'Sys_test'):
+
+
+
+
+
+
         ## Configuration from Andrew's TMVA training output file
         elif (self.source == 'abrinke1_TMVA'):
             h_str = '%s/Method_%s/%s/MVA_%s' % (self.cat_loc, self.dist, self.dist, self.dist)
@@ -163,17 +221,17 @@ class DataLoader:
             self.sig_hists.append(self.in_file.Get(self.dist+'_Net_Sig').Clone('Net_Sig'))
             self.bkg_hists.append(self.in_file.Get(self.dist+'_Net_Bkg').Clone('Net_Bkg'))
             ## Loop over group histograms that went into the stack
-            for hist in R.gDirectory.GetListOfKeys():
-                hstr = hist.GetName()
-	 	if '_Data' in hstr or '_Sig' in hstr or '_Bkg' in hstr: continue # Data, Sig, Bkg already in the _hists list
-                if hstr.startswith(self.dist):
-                    print '    - Loading group %s' % hstr
-                    if ('H' in  hstr or 'VBF' in hstr):
-                        self.sig_hists.append(self.in_file.Get(hstr).Clone())
-                        self.sig_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
-                    else:
-                        self.bkg_hists.append(self.in_file.Get(hstr).Clone())
-                        self.bkg_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
+#            for hist in R.gDirectory.GetListOfKeys():
+#                hstr = hist.GetName()
+#	 	if '_Data' in hstr or '_Sig' in hstr or '_Bkg' in hstr: continue # Data, Sig, Bkg already in the _hists list
+#                if hstr.startswith(self.dist):
+#                    print '    - Loading group %s' % hstr
+#                    if ('H' in  hstr or 'VBF' in hstr):
+#                        self.sig_hists.append(self.in_file.Get(hstr).Clone())
+#                        self.sig_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
+#                    else:
+#                        self.bkg_hists.append(self.in_file.Get(hstr).Clone())
+#                        self.bkg_hists[-1].SetName(hstr.replace(self.dist+'_', '').replace(' ', '_'))
 	## End conditional: if (self.source == 'xzuo_mass'):
 
 	## Configuration from Xunwu's BDT template stack files
@@ -183,14 +241,14 @@ class DataLoader:
             self.sig_hists.append(self.in_file.Get(self.dist+'/'+self.dist+'_Net_Sig').Clone('Net_Sig'))
             self.bkg_hists.append(self.in_file.Get(self.dist+'/'+self.dist+'_Net_Bkg').Clone('Net_Bkg'))
             ## Loop over group histograms that went into the stack
-	    bkg_stack = self.in_file.Get(self.dist+'/bkg_stack_'+self.dist)
-	    sig_stack = self.in_file.Get(self.dist+'/sig_stack_'+self.dist)
-	    for hist in bkg_stack.GetHists():
-		self.bkg_hists.append(hist.Clone())
-		self.bkg_hists[-1].SetName(hist.GetName().replace(self.dist+'_',''))
-	    for hist in sig_stack.GetHists():
-                self.sig_hists.append(hist.Clone())
-                self.sig_hists[-1].SetName(hist.GetName().replace(self.dist+'_',''))
+#	    bkg_stack = self.in_file.Get(self.dist+'/bkg_stack_'+self.dist)
+#	    sig_stack = self.in_file.Get(self.dist+'/sig_stack_'+self.dist)
+#	    for hist in bkg_stack.GetHists():
+#		self.bkg_hists.append(hist.Clone())
+#		self.bkg_hists[-1].SetName(hist.GetName().replace(self.dist+'_',''))
+#	    for hist in sig_stack.GetHists():
+#                self.sig_hists.append(hist.Clone())
+#                self.sig_hists[-1].SetName(hist.GetName().replace(self.dist+'_',''))
         ## End conditional: if (self.source == 'xzuo_BDT'):
 
         ## Configuration from Xunwu's TMVA training output file

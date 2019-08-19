@@ -11,32 +11,34 @@ sys.path.insert(1, '%s/../FitBackground/python' % os.getcwd())
 import FitFunctions as FF  ## From FitBackground/python/FitFunctions.py
 
 
-def DrawFits(sig_fit, bkg_fit, data_fit, cat, out_dir):
+def DrawFits(sig_fits, bkg_fit, data_fit, cat, out_dir):
 
     #-------------------------------------------------------------------
     ## Plot data and fit into a frame
 
-    c_sig  = R.TCanvas('c_%s_sig'  % cat, 'c_%s_sig'  % cat, 800, 600)
+    c_sigs = []
     c_bkg  = R.TCanvas('c_%s_bkg'  % cat, 'c_%s_bkg'  % cat, 800, 600)
     c_data = R.TCanvas('c_%s_data' % cat, 'c_%s_data' % cat, 800, 600)
 
     ## Signal
-    c_sig.cd()
-    fra_sig = sig_fit.var.frame()
-    sig_fit.dat  .plotOn (fra_sig)
-    sig_fit.model.plotOn (fra_sig, RF.LineColor(R.kBlue), RF.Range('FULL'))
-    ## Plot sub-components of signal model
-    if len(sig_fit.arg_sets) > 1:
-        sig_fit.model.plotOn (fra_sig, RF.Components(sig_fit.arg_sets[0]), RF.LineStyle(R.kDashed), RF.LineColor(R.kGreen),  RF.Range('FULL'))
-        sig_fit.model.plotOn (fra_sig, RF.Components(sig_fit.arg_sets[1]), RF.LineStyle(R.kDashed), RF.LineColor(R.kRed),    RF.Range('FULL'))
-    if len(sig_fit.arg_sets) > 2:
-        sig_fit.model.plotOn (fra_sig, RF.Components(sig_fit.arg_sets[2]), RF.LineStyle(R.kDashed), RF.LineColor(R.kViolet), RF.Range('FULL'))
-    sig_fit.model.paramOn(fra_sig, RF.Layout(0.55, 0.90, 0.90))
-    fra_sig.Draw()
-    sig_chi = R.TLatex(0.7, 0.3, "#chi^{2} = %.2f" % fra_sig.chiSquare())
-    sig_chi.SetNDC(R.kTRUE)
-    sig_chi.Draw()
-    c_sig.SaveAs(out_dir+'/plot/sig_fit_%s_%s_%d.png' % (cat, sig_fit.fit_type, sig_fit.order))
+    for sig_fit in sig_fits:
+	c_sigs.append(  R.TCanvas('c_%s_%s'  %(cat, sig_fit.name) , 'c_%s_%s'  %(cat, sig_fit.name), 800, 600)  )
+        c_sigs[-1].cd()
+        fra_sig = sig_fit.var.frame()
+        sig_fit.dat  .plotOn (fra_sig)
+        sig_fit.model.plotOn (fra_sig, RF.LineColor(R.kBlue), RF.Range('FULL'))
+        ## Plot sub-components of signal model
+        if len(sig_fit.arg_sets) > 1:
+            sig_fit.model.plotOn (fra_sig, RF.Components(sig_fit.arg_sets[0]), RF.LineStyle(R.kDashed), RF.LineColor(R.kGreen),  RF.Range('FULL'))
+            sig_fit.model.plotOn (fra_sig, RF.Components(sig_fit.arg_sets[1]), RF.LineStyle(R.kDashed), RF.LineColor(R.kRed),    RF.Range('FULL'))
+        if len(sig_fit.arg_sets) > 2:
+            sig_fit.model.plotOn (fra_sig, RF.Components(sig_fit.arg_sets[2]), RF.LineStyle(R.kDashed), RF.LineColor(R.kViolet), RF.Range('FULL'))
+        sig_fit.model.paramOn(fra_sig, RF.Layout(0.55, 0.90, 0.90))
+        fra_sig.Draw()
+        sig_chi = R.TLatex(0.7, 0.3, "#chi^{2} = %.2f" % fra_sig.chiSquare())
+        sig_chi.SetNDC(R.kTRUE)
+        sig_chi.Draw()
+        c_sigs[-1].SaveAs(out_dir+'/plot/%s_fit_%s_%s_%d.png' % (sig_fit.name, cat, sig_fit.fit_type, sig_fit.order))
 
     ## Background
     c_bkg.cd()
@@ -74,5 +76,5 @@ def DrawFits(sig_fit, bkg_fit, data_fit, cat, out_dir):
     data_chi.Draw()
     c_data.SaveAs(out_dir+'/plot/data_fit_%s_%s_%d.png' % (cat, data_fit.fit_type, data_fit.order))
 
-## End function: def DrawFits(sig_fit, bkg_fit, data_fit, cat):
+## End function: def DrawFits(sig_fits, bkg_fit, data_fit, cat):
 

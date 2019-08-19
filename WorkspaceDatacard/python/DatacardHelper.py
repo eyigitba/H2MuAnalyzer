@@ -36,25 +36,32 @@ def WriteHeader(card, cat, out_dir, in_file):
 ## End function: WriteHeader(card, cat, dist, fit):
 
 
-def WriteSigBkgBody(card, cat, dist, fit, width, nSig, nBkg):
+def WriteSigBkgBody(card, cat, dist, fit, width, sig_hists, nBkg, signals, sys_cfg):
 
     ## Category name (same for each process)
-    card.write('bin'.ljust(width))
-    card.write((cat).ljust(width))
+    card.write('bin'.ljust(2*width))
+    for sig_hist in sig_hists:
+      card.write((cat).ljust(width))
     card.write((cat).ljust(width))
     card.write('\n')
 
     ## Process names
-    card.write('process'.ljust(width))
+    card.write('process'.ljust(2*width))
 
     if   (fit == 'template_stack' or fit == 'rebin_stack'):
         card.write(('Net_Sig').ljust(width))
         card.write(('Net_Bkg').ljust(width))
     elif (fit == 'shape_MC'):
-        card.write(('sig_fit').ljust(width))
+	for sig_hist in sig_hists:
+	    hname = sig_hist.GetName()
+	    sig_name = hname.replace(('_%s' %cat),'').replace('_dimu_mass','').replace('mod_','').replace('_fit_','') 
+            card.write(sig_name.ljust(width))
         card.write(('bkg_fit').ljust(width))
     elif (fit == 'shape_data'):
-        card.write(('sig_fit').ljust(width))
+        for sig_hist in sig_hists:
+            hname = sig_hist.GetName()
+            sig_name = hname.replace(('_%s' %cat),'').replace('_dimu_mass','').replace('mod_','').replace('_fit_','')
+            card.write(sig_name.ljust(width))
         card.write(('data_fit').ljust(width))
     else:
         print '\n\nWriting datacard in category %s for %s, no valid fit type %s' % (cat, dist, fit)
@@ -62,26 +69,33 @@ def WriteSigBkgBody(card, cat, dist, fit, width, nSig, nBkg):
     card.write('\n')
 
     ## Process numbers (<= 0 for signal, > 0 for background)
-    card.write('process'.ljust(width))
-    card.write('0'.ljust(width))
+    card.write('process'.ljust(2*width))
+    for i in range(len(sig_hists)):
+      card.write(('%d' % (0-i)).ljust(width))
     card.write('1'.ljust(width))
     card.write('\n')
 
     ## Rate parameters (i.e. total integral) for each process
-    card.write('rate'.ljust(width))
-    card.write(('%f' % nSig).ljust(width))
+    card.write('rate'.ljust(2*width))
+    for sig_hist in sig_hists:
+      card.write(('%f' % sig_hist.Integral()).ljust(width))
     card.write(('%f' % nBkg).ljust(width))
     card.write('\n')
 
     card.write('----------------------------------------------------------------------------------------------------------------------------------\n')
 
-    ## Systematic uncertainties: only on rate per process
-    card.write(('bkg_norm').ljust(width-5))
-    card.write(('lnN  ').ljust(2))
-    card.write(('-').ljust(width))
-#    card.write(('9.99').ljust(width))
-    card.write(('1.2').ljust(width))
-    card.write('\n')
+    if (sys_cfg.sys_names[0] != 'Norminal'):
+	WriteSigSystematics(card, cat, dist, width, signals, sys_cfg)
+    else:
+    ## Norminal Systematic uncertainties: only on rate per process
+    ## this block can be moved into function WriteSigSystematics()  -- XWZ 2019.08.18
+        card.write(('bkg_norm').ljust(2*width-5))
+        card.write(('lnN  ').ljust(2))
+        card.write(('-').ljust(width))
+#        card.write(('9.99').ljust(width))
+#        card.write(('1.2').ljust(width))
+  	card.write(('1.05').ljust(width))
+        card.write('\n')
 
     ## Final line to add bin-by-bin MC stats uncertainties
     if ('template' in fit or 'rebin' in fit):
@@ -336,3 +350,30 @@ def WriteCutAndCount(card, cat, out_dir, dist, width, MASS_WINDOW, sig_hists, bk
     card.write('\n')
 
 ## End function: def WriteCutAndCount(card, cat, out_dir, dist, width, MASS_WINDOW, sig_hists, bkg_hists):
+
+
+
+
+
+def WriteSigSystematics(card, cat, dist, width, signals, sys_cfg):
+#    card.write(('bkg_norm').ljust(width-5))
+#    card.write(('lnN  ').ljust(2))
+#    card.write(('-').ljust(width))
+##    card.write(('9.99').ljust(width))
+#    card.write(('1.2').ljust(width))
+#    card.write('\n')
+
+    for sys_name in sys_cfg.sys_names:
+	card.write(sys_name.ljust(2*width-5))
+	card.write(('lnN  ').ljust(2))
+	for signal in signals:
+	    sys_value = sys_cfg.sys_values[sys_name][signal]
+	    card.write( sys_value.ljust(width) )
+	card.write(('-').ljust(width)) # for bkg
+	card.write('\n')
+## End function: def WriteSigSystematics(card, cat, dist, width, signals, sys_cfg):
+
+
+
+
+## End function: 
