@@ -40,8 +40,14 @@ const int MAX_FILE = 1;     // Maximum index of input files to process
 const int MAX_EVT  = 10000000;    // Maximum number of events to process
 const int PRT_EVT  = 1000;  // Print every N events
 const float SAMP_WGT = 1.0;
-const float LUMI = 41000; // pb-1   36814 for 2016, 41000 for 2017
 const bool verbose = false; // Print extra information
+
+
+//const TString IN_DIR    = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18.1.6.skim3l/ZH_HToMuMu_ZToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_ZH_125/190528_111720/0000";
+//const TString SAMPLE    = "H2Mu_ZH_125";
+
+//const TString IN_DIR   = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/ZH_HToMuMu_ZToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_ZH_125/190625_204256/0000";
+//const TString SAMPLE   = "H2Mu_ZH_125";
 
 const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZH_HToMuMu_ZToAll_M125_13TeV_powheg_pythia8/H2Mu_ZH_125";
 const TString SAMPLE   = "H2Mu_ZH_125";
@@ -51,12 +57,12 @@ const TString SAMPLE   = "H2Mu_ZH_125";
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 //const TString SAMPLE   = "SingleMu";
 const std::string YEAR = "2017";
-const std::string SLIM = "Slim"; // "Slim" or "notSlim" - original 2016 NTuples were in "Slim" format, some 2017 NTuples are "Slim"
+const std::string SLIM  = (YEAR == "2017" ? "Slim" : "notSlim");  // "Slim" or "notSlim" - Some 2017 NTuples are "Slim"
 const TString OUT_DIR  = "plots";
 const TString HIST_TREE = "Tree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both. Not in use in this macro
 
-const std::vector<std::string> SEL_CUTS = {"Presel2017"}; // Cuts which every event must pass
-const std::vector<std::string> OPT_CUTS = {"ZH_4l_ele"}; // Multiple selection cuts, applied independently in parallel
+const std::vector<std::string> SEL_CUTS = {"PreselRun2"}; // Cuts which every event must pass
+const std::vector<std::string> OPT_CUTS = {"ZH_4l_ele", "ZH_4l_mu"}; // Multiple selection cuts, applied independently in parallel
 const std::vector<std::string> CAT_CUTS = {"NONE"}; // Event selection categories, also applied in parallel
 
 
@@ -64,7 +70,7 @@ const std::vector<std::string> CAT_CUTS = {"NONE"}; // Event selection categorie
 void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out_dir = "",
 	     std::vector<TString> in_files = {}, TString out_file_str = "",
 	     int max_evt = 0, int prt_evt = 0, float samp_weight = 1.0,
-	     TString hist_tree = "" ) {
+	     TString hist_tree = "", std::string SYS = "" ) {
   
   // Set variables to hard-coded values if they are not initialized
   if (sample.Length()      == 0) sample      = SAMPLE;
@@ -140,9 +146,9 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   //   in_chain->Add( samp->filenames.at(i) );
     // Set branch addresses, from interface/LoadNTupleBranches.h
     if (sample.Contains("SingleMu"))
-      SetBranchAddresses(*in_chain, br, {YEAR, SLIM}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM}); // Options in {} include "JES", "Flags", and "SFs"
     else
-      SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, false); // Options in {} include "JES", "Flags", and "SFs"
+      SetBranchAddresses(*in_chain, br, {YEAR, SLIM, "GEN", "Wgts"}, (SYS.find("JES_") != std::string::npos ? SYS : "noSys"), false); // Options in {} include "JES", "Flags", and "SFs"
   }
 
   // creating output file
@@ -167,16 +173,19 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   ObjectSelectionConfig obj_sel;
   EventSelectionConfig  evt_sel;
   EventWeightConfig     evt_wgt;
-  ConfigureObjectSelection(obj_sel, YEAR);
+  ConfigureObjectSelection(obj_sel, YEAR, "lepMVA");
   ConfigureEventSelection (evt_sel, YEAR);
   ConfigureEventWeight    (evt_wgt, YEAR);
+
+  evt_wgt.muon_ID  = false;
+  evt_wgt.muon_Iso = false;
 
   evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
 // use default for ZZ validation
   obj_sel.mu_pt_min       =  10; // Lower muon pT threshold for muons not from Higgs, default 20
   obj_sel.mu_mIso_max      = 0.4;
 
-  //obj_sel.ele_pt_min = 20;
+  obj_sel.ele_pt_min = 20;
   obj_sel.ele_ID_cut = "loose";
   obj_sel.ele_mIso_max = 0.4;
 
@@ -185,6 +194,16 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   if (verbose) evt_wgt.Print();
 
   std::string PTC = obj_sel.mu_pt_corr; // Store muon pT correction in a shorter string; not changed later
+
+
+  std::cout << "\n******* About to load 2D LepMVA efficiency scale factor histograms *******" << std::endl;
+  std::map<std::string, TH2F *> lepSF;
+  lepSF["mu_T"]  = LoadSFsLepMVA(YEAR,  "mu", "T");
+  lepSF["mu_M"]  = LoadSFsLepMVA(YEAR,  "mu", "M");
+  lepSF["mu_L"]  = LoadSFsLepMVA(YEAR,  "mu", "L");
+  lepSF["ele_T"] = LoadSFsLepMVA(YEAR, "ele", "T");
+  lepSF["ele_M"] = LoadSFsLepMVA(YEAR, "ele", "M");
+  lepSF["ele_L"] = LoadSFsLepMVA(YEAR, "ele", "L");
 
   std::cout << "\n******* About to load XML files for signal-background BDTs *******" << std::endl;
   MVA::MVA BDT_noMass_v3( "data/XMLs/ZH_4l/Xunwu/2019_05_22/ZH_2017_lep_against_inclu_sel_angle_without_mass_all_sig_all_bkg_ge0j/",
@@ -239,6 +258,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
       
       // Get event weight for MC, defined in src/EventWeight.cc
       float event_wgt = ( sample.Contains("SingleMu") ? 1.0 : EventWeight(br, evt_wgt, verbose) );
+      float all_lepMVA_SF = 1.0;
       float xsec_norm = samp_weight;
       int Sample_ID = getSampleID(sample);
 
@@ -305,7 +325,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
         /////////////////////////
 	if (OPT_CUT == "ZH_4l_ele") {
           if (muons.size() != 2 or SelectedMuPairs(obj_sel, br).size() != 1 or SelectedEles(obj_sel, br).size() != 2) continue;
-	  if ( not (SelectedJets(obj_sel, br, "BTagMedium").size() == 0) ) continue;
+	  if ( SelectedJets(obj_sel, br, "BTagMedium").size() != 0 or SelectedJets(obj_sel, br, "BTagLoose").size() > 1 ) continue;
 
 	  for (const auto & electron : SelectedEles(obj_sel, br)) {  // this is for if more than 2 electrons, select highest pt ones
 	     if (electron.lepMVA > -1.0) { //-1.0 as a place holder
@@ -331,7 +351,12 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 	  dilep_vec = lep1_vec + lep2_vec;
 	  dilep_gen_ID = 0;
 	  dimu = SelectedCandPair(obj_sel, br);
-	  
+
+	  if ( not sample.Contains("SingleMu") ) {
+	    all_lepMVA_SF *= LepMVASF(lepSF["ele_L"], lep1_vec.Pt(), lep1_vec.Eta(), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+	    all_lepMVA_SF *= LepMVASF(lepSF["ele_L"], lep2_vec.Pt(), lep2_vec.Eta(), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );	  
+	  }
+
 	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_lepMVA", ele1.lepMVA);
 	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_charge", ele1.charge);
 	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_lepMVA", ele2.lepMVA);
@@ -346,7 +371,7 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
         if (OPT_CUT == "ZH_4l_mu") {
 	  if ( muons.size() != 4 or eles.size() != 0 ) continue;
 	  if ( SelectedMuPairs(obj_sel, br).size() != 4 ) continue; //two + and two -, comment out if more than 4 muons
-	  if ( not (SelectedJets(obj_sel, br, "BTagMedium").size() == 0) ) continue;
+	  if ( SelectedJets(obj_sel, br, "BTagMedium").size() != 0 or SelectedJets(obj_sel, br, "BTagLoose").size() > 1 ) continue;
 
 	  MuPairInfo Z_cand, H_cand;
 	  Z_cand.init();
@@ -391,6 +416,11 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 	    else if ( IsGenMatched(Z_cand, *br.muons, *br.genMuons, *br.genParents, "light_quark") ) dilep_gen_ID = 1;
           }
 
+	  if ( not sample.Contains("SingleMu") ) {
+            all_lepMVA_SF *= LepMVASF(lepSF["mu_L"], lep1_vec.Pt(), abs(lep1_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+            all_lepMVA_SF *= LepMVASF(lepSF["mu_L"], lep2_vec.Pt(), abs(lep2_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+          }
+
 	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_lepMVA", mu_3.lepMVA);
 	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_charge", mu_3.charge);
 	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_lepMVA", mu_4.lepMVA);
@@ -412,12 +442,6 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
         BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_pt", 		lep2_vec.Pt() 		);
         BookAndFill( b_map_flt, Out_Tree, h_pre, "lep2_abs_eta", 	abs(lep2_vec.Eta())	);
  
-	// ***************** auxiliary variables *****************
-	BookAndFill( b_map_flt, Out_Tree, h_pre, "event_wgt",   event_wgt);
-        BookAndFill( b_map_flt, Out_Tree, h_pre, "xsec_norm",   xsec_norm);
-        BookAndFill( b_map_int, Out_Tree, h_pre, "Sample_ID",   Sample_ID);
-        BookAndFill( b_map_str, Out_Tree, h_pre, "Sample_name",    sample);
-
 	// ***************** muon variables ********************
         dimu_vec = FourVec( dimu, PTC);
         if ( dimu_vec.M() < 105 ||        // 70-110 for ZZ validation, 105-160 for signal window
@@ -436,6 +460,11 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
         mu_2 = br.muons->at(dimu.iMu2);
         mu1_vec = FourVec(br.muons->at(dimu.iMu1), PTC);
         mu2_vec = FourVec(br.muons->at(dimu.iMu2), PTC);
+
+	if ( not sample.Contains("SingleMu") ) {
+          all_lepMVA_SF *= LepMVASF(lepSF["mu_L"], mu1_vec.Pt(), abs(mu1_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+          all_lepMVA_SF *= LepMVASF(lepSF["mu_L"], mu2_vec.Pt(), abs(mu2_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+        }
 
 	BookAndFill( b_map_int, Out_Tree, h_pre, "dimu_gen_ID", 	dimu_gen_ID				);
         BookAndFill( b_map_flt, Out_Tree, h_pre, "dimu_mass", 		dimu_vec.M()				);
@@ -551,6 +580,12 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 	BookAndFill( b_map_flt, Out_Tree, h_pre, "BDT_mass_min",       BDT_mass_min.Evaluate(b_map_flt, b_map_int) );
 	BookAndFill( b_map_flt, Out_Tree, h_pre, "BDT_and_mass",       BDT_and_mass.Evaluate(b_map_flt, b_map_int) );
 
+	// ***************** auxiliary variables *****************
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "event_wgt",   	event_wgt);
+        BookAndFill( b_map_flt, Out_Tree, h_pre, "xsec_norm",   	xsec_norm);
+	BookAndFill( b_map_flt, Out_Tree, h_pre, "all_lepMVA_SF", 	all_lepMVA_SF);
+        BookAndFill( b_map_int, Out_Tree, h_pre, "Sample_ID",   	Sample_ID);
+        BookAndFill( b_map_str, Out_Tree, h_pre, "Sample_name",    	sample);
 
 	//} // end for (const auto & muPair : SelectedMuPairs(obj_sel, br))
 
