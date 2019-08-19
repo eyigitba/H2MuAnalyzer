@@ -16,6 +16,38 @@ declare -a DCARDS=(
 
 ############################################
 
+    "out_files/ZH_Run2_lep_BDT_08_14/datacard/ZH_4l_BDT_and_mass_template_stack.txt"
+    "out_files/ZH_Run2_lep_BDT_08_14/datacard/ZH_4l_BDT_mass_min_template_stack.txt"
+    "out_files/ZH_Run2_lep_BDT_08_14/datacard/ZH_4l_BDT_mass_more_template_stack.txt"
+
+
+    "out_files/ZH_Run2_lep_08_14/datacard/ZH_2cats_BWZ_MC_0814.txt"
+    "out_files/ZH_Run2_lep_08_14/datacard/ZH_4l_dimu_mass_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+    "out_files/ZH_Run2_lep_08_14/datacard/ZH_4l_dimu_mass_Gaus3_frzCoefs_frzParams_Bern2_shape_MC.txt"
+    "out_files/ZH_Run2_lep_08_14/datacard/ZH_4l_dimu_mass_Gaus3_frzCoefs_frzParams_Bern3_shape_MC.txt"
+    "out_files/ZH_Run2_lep_08_14/datacard/ZH_4l_dimu_mass_BDT_n10_p05_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+    "out_files/ZH_Run2_lep_08_14/datacard/ZH_4l_dimu_mass_BDT_p05_p10_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_zoomH_Gaus3_frzCoefs_frzParams_BWZRed2_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_zoomH_Gaus3_frzCoefs_frzParams_Bern3_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_zoomH_Gaus3_frzCoefs_frzParams_expo2_shape_MC.txt"
+
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_BDT_n10_n02_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_BDT_n02_p02_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_BDT_p02_p06_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_BDT_p06_p10_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_BDT_p060_p068_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_BDT_p068_p076_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_3lep_H_pair_mass_BDT_p076_p10_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
+
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_4cats_BWZ_MC_0731.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_4cats_Bern2_MC_0731.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_4cats_Bern3_MC_0731.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_4cats_expo2_MC_0731.txt"
+#    "out_files/WH_Run2_3lep_07_31/datacard/WH_6cats_BWZ_MC_0731.txt"
+
+
 #    "out_files/WH_Run2_3lep_AWB_mass_07_10/datacard/WH_3lep_H_pair_mass_zoomH_Gaus3_frzCoefs_frzParams_BWZ1_shape_MC.txt"
 #    "out_files/WH_Run2_3lep_AWB_mass_07_10/datacard/WH_3lep_H_pair_mass_zoomH_Gaus3_frzCoefs_frzParams_Bern3_shape_MC.txt"
 #    "out_files/WH_Run2_3lep_AWB_mass_07_10/datacard/WH_3lep_H_pair_mass_zoomH_Gaus3_frzCoefs_frzParams_expo2_shape_MC.txt"
@@ -43,8 +75,8 @@ declare -a DCARDS=(
 #    "out_files/ttH_Run2_3lep_AWB_mass_07_10/datacard/ttH_4cats_Bern2_MC.txt"
 #    "out_files/ttH_Run2_3lep_AWB_mass_07_10/datacard/ttH_6cats_Bern2_MC.txt"
 
-    "out_files/ttH_Run2_3lep_AWB_mass_07_10/datacard/WH_ttH_BWZ_MC.txt"
-    "out_files/ttH_Run2_3lep_AWB_mass_07_10/datacard/WH_ttH_subcats_MC.txt"
+#    "out_files/ttH_Run2_3lep_AWB_mass_07_10/datacard/WH_ttH_BWZ_MC.txt"
+#    "out_files/ttH_Run2_3lep_AWB_mass_07_10/datacard/WH_ttH_subcats_MC.txt"
 
 
 
