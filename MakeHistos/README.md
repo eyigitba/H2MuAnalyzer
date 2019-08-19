@@ -9,6 +9,7 @@ The second time run the macro on signals only with SYS_SHIFTS specified in the b
 A detailed description of the changes are listed below
 
 1. histo making part 
+
 JES, PU_wgt, IsoMu_SF, LepMVA_SF are added to the histo making library.
 
 JES is achieved in src/LoadNTupleBranches.cc by writing up/down shifted objects/values to the jet related branches.
@@ -21,6 +22,7 @@ All these changes are compatible with older scripts. The only change needed for 
 
 
 2. batch part
+
 Added hard-coded configuration SYS_SHIFTS, which is to be taken as an argument in the macros.
 Modified names of sub_files and hadd_files to run different systematics setups on the same sample
 
