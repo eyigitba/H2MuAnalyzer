@@ -186,6 +186,7 @@ class WorkspaceAndDatacardMaker:
         bkg_fit  = FF.FitFunction('bkg_fit_%s'  % self.cat, self.in_data.bkg_hists[0], bkg_mod, bkg_ord, self.in_data.min_max, [],         'dimu_mass')
         data_fit = FF.FitFunction('data_fit_%s' % self.cat, self.in_data.data_hist,    bkg_mod, bkg_ord, self.in_data.min_max, self.blind, 'dimu_mass')
 
+	self.h_sig_fits = []
 	for sig_fit in sig_fits:
 	    print 'Doing fit of %s -------------------' % sig_fit.name
             FF.DoFit(sig_fit)
