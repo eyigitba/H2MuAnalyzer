@@ -65,8 +65,8 @@ if 'xzuo'     in os.getcwd(): USER = 'xzuo'
 #CONFIGS = ['ttH_Run2_3lep_AWB_mass_07_10']
 
 #CONFIGS = ['WH_Run2_3lep_07_31']
-CONFIGS = ['ZH_Run2_lep_08_14']
-#CONFIGS = ['ZH_Run2_lep_BDT_08_14']
+#CONFIGS = ['ZH_Run2_lep_08_14']
+CONFIGS = ['ZH_Run2_lep_BDT_08_14']
 
 #============================================
 # Main code
@@ -284,11 +284,11 @@ class WorkspaceAndDatacardMaker:
         DH.WriteHeader(card, self.cat, self.out_dir, self.cat+'_'+self.dist+'_'+model_str)
 
         if model_str == 'template_stack':
-            DH.WriteSigBkgBody(card, self.cat, self.dist, 'template_stack', width, self.in_data.sig_hists, self.in_data.bkg_hists[0].Integral())
+            DH.WriteSigBkgBody(card, self.cat, self.dist, 'template_stack', width, self.in_data.sig_hists, self.in_data.bkg_hists[0].Integral(), self.signals, self.sys_cfg)
         elif model_str == 'template_group':
             DH.WriteGroupBody(card, self.cat, self.dist, 'template_group', width, self.in_data.sig_hists, self.in_data.bkg_hists, len(self.in_data.hists_sys) > 0)
         elif model_str == 'rebin_stack':
-            DH.WriteSigBkgBody(card, self.cat, self.dist, 'rebin_stack', width, self.in_data.sig_rebin, self.in_data.bkg_rebin[0].Integral())
+            DH.WriteSigBkgBody(card, self.cat, self.dist, 'rebin_stack', width, self.in_data.sig_rebin, self.in_data.bkg_rebin[0].Integral(), self.signals, self.sys_cfg)
         elif model_str == 'rebin_group':
             DH.WriteGroupBody(card, self.cat, self.dist, 'rebin_group', width, self.in_data.sig_rebin, self.in_data.bkg_rebin, len(self.in_data.rebin_sys) > 0)
         else:
