@@ -37,11 +37,12 @@ R__LOAD_LIBRARY(../../../tmp/slc6_amd64_gcc630/src/H2MuAnalyzer/MakeHistos/src/H
 // Options passed in as arguments to ReadNTupleChain when running in batch mode
 const int MIN_FILE = 1;     // Minimum index of input files to process
 const int MAX_FILE = 1;     // Maximum index of input files to process
-const int MAX_EVT  = 10000000;    // Maximum number of events to process
+const int MAX_EVT  = 100000;    // Maximum number of events to process
 const int PRT_EVT  = 1000;  // Print every N events
 const float SAMP_WGT = 1.0;
 const bool verbose = false; // Print extra information
 
+const bool CR_validation = true; // whether we are plotting the validation control region or not
 
 //const TString IN_DIR    = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18.1.6.skim3l/ZH_HToMuMu_ZToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_ZH_125/190528_111720/0000";
 //const TString SAMPLE    = "H2Mu_ZH_125";
@@ -49,11 +50,11 @@ const bool verbose = false; // Print extra information
 //const TString IN_DIR   = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/ZH_HToMuMu_ZToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_ZH_125/190625_204256/0000";
 //const TString SAMPLE   = "H2Mu_ZH_125";
 
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZH_HToMuMu_ZToAll_M125_13TeV_powheg_pythia8/H2Mu_ZH_125";
-const TString SAMPLE   = "H2Mu_ZH_125";
+//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZH_HToMuMu_ZToAll_M125_13TeV_powheg_pythia8/H2Mu_ZH_125";
+//const TString SAMPLE   = "H2Mu_ZH_125";
 
-//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZZTo4L_13TeV_powheg_pythia8/ZZ_4l";
-//const TString SAMPLE   = "ZZ_4l";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZZTo4L_13TeV_powheg_pythia8/ZZ_4l";
+const TString SAMPLE   = "ZZ_4l";
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 //const TString SAMPLE   = "SingleMu";
 const std::string YEAR = "2017";
@@ -94,8 +95,8 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   }
   if (in_files.size() == 0) {
     for (int i = MIN_FILE; i <= MAX_FILE; i++) {
-      //in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
-      in_file_name.Form("%s/NTuple_0.root", in_dir.Data());
+      if (YEAR == "2017") in_file_name.Form("%s/NTuple_0.root", in_dir.Data());
+      else   		  in_file_name.Form("%s/tuple_%d.root", in_dir.Data(), i);
       std::cout << "Adding file " << in_file_name.Data() << std::endl;
       in_file_names.push_back(in_file_name.Data());
     }
@@ -180,9 +181,9 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
   evt_wgt.muon_ID  = false;
   evt_wgt.muon_Iso = false;
 
-  evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
-// use default for ZZ validation
-  obj_sel.mu_pt_min       =  10; // Lower muon pT threshold for muons not from Higgs, default 20
+  if (!CR_validation)  evt_sel.muPair_mass_min = 105; // Require at least one Higgs candidate pair, default 60
+  // use default for ZZ validation
+  obj_sel.mu_pt_min       =  20; // Lower muon pT threshold for muons not from Higgs, default 20
   obj_sel.mu_mIso_max      = 0.4;
 
   obj_sel.ele_pt_min = 20;
@@ -387,10 +388,14 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 	      }
 	    } // found the other pair
 	    if ( abs(muPair1.mass-91)<10 and abs(muPair2.mass-91)<10 ) {
-		Z_cand.init();
-		break;    // veto events with two Z-mass pairs
+	      if (CR_validation) { // if making the validation plots
+		H_cand = muPair1;  // pair 1 is higher pt
+                Z_cand = muPair2;  // pair 2 is lower pt
+	      }
+	      else Z_cand.init();
+	      break;    // veto events with two Z-mass pairs
 	    }
-	    if ( muPair1.mass > 105 and muPair1.mass < 160 and abs(muPair2.mass - 91)<Z_off) { 
+	    if ( !CR_validation and muPair1.mass > 110 and muPair1.mass < 160 and abs(muPair2.mass - 91)<Z_off) { // this part is only for signal region
 		H_cand = muPair1;   // muPair1 as H_cand, 70-110 for validation, 105-160 for signal window
                 Z_cand = muPair2;   // muPair2 as Z_cand, closest to 91 GeV 
 		Z_off = abs(Z_cand.mass - 91);
@@ -444,8 +449,8 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
  
 	// ***************** muon variables ********************
         dimu_vec = FourVec( dimu, PTC);
-        if ( dimu_vec.M() < 105 ||        // 70-110 for ZZ validation, 105-160 for signal window
-             dimu_vec.M() > 160 ) continue;    
+	if (CR_validation) {if ( dimu_vec.M() < 81  || dimu_vec.M() > 101 ) continue;}  // 70-110 for ZZ validation,
+	else 		   {if ( dimu_vec.M() < 110 || dimu_vec.M() > 160 ) continue;}  // 110-160 for signal window  
 
 	int dimu_gen_ID = 0;
         if (not sample.Contains("SingleMu")) {
