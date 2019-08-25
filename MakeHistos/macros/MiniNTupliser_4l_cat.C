@@ -42,22 +42,28 @@ const int PRT_EVT  = 1000;  // Print every N events
 const float SAMP_WGT = 1.0;
 const bool verbose = false; // Print extra information
 
-const bool CR_validation = true; // whether we are plotting the validation control region or not
+const bool CR_validation = false; // whether we are plotting the validation control region or not
 
 //const TString IN_DIR    = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18.1.6.skim3l/ZH_HToMuMu_ZToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_ZH_125/190528_111720/0000";
 //const TString SAMPLE    = "H2Mu_ZH_125";
 
-//const TString IN_DIR   = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/ZH_HToMuMu_ZToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_ZH_125/190625_204256/0000";
-//const TString SAMPLE   = "H2Mu_ZH_125";
+const TString IN_DIR   = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/ZH_HToMuMu_ZToAll_M125_TuneCP5_PSweights_13TeV_powheg_pythia8/H2Mu_ZH_125/190625_204256/0000";
+const TString SAMPLE   = "H2Mu_ZH_125";
 
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZH_HToMuMu_ZToAll_M125_13TeV_powheg_pythia8/H2Mu_ZH_125";
 //const TString SAMPLE   = "H2Mu_ZH_125";
 
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZZTo4L_13TeV_powheg_pythia8/ZZ_4l";
-const TString SAMPLE   = "ZZ_4l";
+//const TString IN_DIR    = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18.1.6.skim3l/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/ZZ_4l/190528_113414/0000";
+//const TString SAMPLE    = "ZZ_4l";
+
+//const TString IN_DIR    = "/eos/cms/store/user/bortigno/h2mm/ntuples/2016/94X_v3/STR/ZZTo4L_13TeV-amcatnloFXFX-pythia8/ZZ_4l_amc/190625_205403/0000";
+//const TString SAMPLE    = "ZZ_4l_amc";
+
+//const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_15_LepMVA_3l_test_v1/ZZTo4L_13TeV_powheg_pythia8/ZZ_4l";
+//const TString SAMPLE   = "ZZ_4l";
 //const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM/SingleMuon";
 //const TString SAMPLE   = "SingleMu";
-const std::string YEAR = "2017";
+const std::string YEAR = "2016";
 const std::string SLIM  = (YEAR == "2017" ? "Slim" : "notSlim");  // "Slim" or "notSlim" - Some 2017 NTuples are "Slim"
 const TString OUT_DIR  = "plots";
 const TString HIST_TREE = "Tree"; // "Hist", "Tree", or "HistTree" to output histograms, trees, or both. Not in use in this macro
@@ -353,9 +359,12 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 	  dilep_gen_ID = 0;
 	  dimu = SelectedCandPair(obj_sel, br);
 
+	  // veto events with electron pair from low mass resonances
+	  if (dilep_vec.M() < 12) continue;
+
 	  if ( not sample.Contains("SingleMu") ) {
-	    all_lepMVA_SF *= LepMVASF(lepSF["ele_L"], lep1_vec.Pt(), lep1_vec.Eta(), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
-	    all_lepMVA_SF *= LepMVASF(lepSF["ele_L"], lep2_vec.Pt(), lep2_vec.Eta(), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );	  
+	    all_lepMVA_SF *= LepMVASF(lepSF["ele_M"], lep1_vec.Pt(), lep1_vec.Eta(), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+	    all_lepMVA_SF *= LepMVASF(lepSF["ele_M"], lep2_vec.Pt(), lep2_vec.Eta(), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );	  
 	  }
 
 	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_lepMVA", ele1.lepMVA);
@@ -387,20 +396,29 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
 		break;
 	      }
 	    } // found the other pair
+
+	    // veto events with dimuon from low mass resonances
+	    if ( muPair1.mass < 12 or muPair2.mass <12 ) {
+	      Z_cand.init();
+	      break;
+	    }
+	    // for analysis, veto events with two Z-mass pairs; for validation, use them
 	    if ( abs(muPair1.mass-91)<10 and abs(muPair2.mass-91)<10 ) {
 	      if (CR_validation) { // if making the validation plots
 		H_cand = muPair1;  // pair 1 is higher pt
                 Z_cand = muPair2;  // pair 2 is lower pt
 	      }
 	      else Z_cand.init();
-	      break;    // veto events with two Z-mass pairs
+	      break;
 	    }
+	    // for analysis, take the combination with the pair closest to Z mass; for validation, skip this step
 	    if ( !CR_validation and muPair1.mass > 110 and muPair1.mass < 160 and abs(muPair2.mass - 91)<Z_off) { // this part is only for signal region
 		H_cand = muPair1;   // muPair1 as H_cand, 70-110 for validation, 105-160 for signal window
                 Z_cand = muPair2;   // muPair2 as Z_cand, closest to 91 GeV 
 		Z_off = abs(Z_cand.mass - 91);
             } // if muPair1 fits for H, and muPair2 fits for Z
 	  } // end for (const auto & muPair : SelectedMuPairs(obj_sel, br))
+
 	  if (Z_cand.mass == -999) continue; // no Z pair found
 
 	  mu_3 = br.muons->at(Z_cand.iMu1);
@@ -422,8 +440,8 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
           }
 
 	  if ( not sample.Contains("SingleMu") ) {
-            all_lepMVA_SF *= LepMVASF(lepSF["mu_L"], lep1_vec.Pt(), abs(lep1_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
-            all_lepMVA_SF *= LepMVASF(lepSF["mu_L"], lep2_vec.Pt(), abs(lep2_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+            all_lepMVA_SF *= LepMVASF(lepSF["mu_M"], lep1_vec.Pt(), abs(lep1_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+            all_lepMVA_SF *= LepMVASF(lepSF["mu_M"], lep2_vec.Pt(), abs(lep2_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
           }
 
 	  BookAndFill( b_map_flt, Out_Tree, h_pre, "lep1_lepMVA", mu_3.lepMVA);
@@ -467,8 +485,8 @@ void MiniNTupliser_4l_cat( TString sample = "", TString in_dir = "", TString out
         mu2_vec = FourVec(br.muons->at(dimu.iMu2), PTC);
 
 	if ( not sample.Contains("SingleMu") ) {
-          all_lepMVA_SF *= LepMVASF(lepSF["mu_L"], mu1_vec.Pt(), abs(mu1_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
-          all_lepMVA_SF *= LepMVASF(lepSF["mu_L"], mu2_vec.Pt(), abs(mu2_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+          all_lepMVA_SF *= LepMVASF(lepSF["mu_M"], mu1_vec.Pt(), abs(mu1_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
+          all_lepMVA_SF *= LepMVASF(lepSF["mu_M"], mu2_vec.Pt(), abs(mu2_vec.Eta()), (SYS.find("LepMVA_SF_") != std::string::npos ? SYS : "noSys") );
         }
 
 	BookAndFill( b_map_int, Out_Tree, h_pre, "dimu_gen_ID", 	dimu_gen_ID				);
