@@ -24,8 +24,9 @@ import ROOT.RooFit as RF
 R.gROOT.SetBatch(True)  ## Don't display histograms or canvases when drawn
 
 
-INDIR  = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/GenRecoPtDiffVsD0VsPt_2016_Sep01_v1/files'
-INFILE = 'histos_ZJets__NONE.root'
+# INDIR  = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2018/Histograms/GenRecoPtDiffVsD0VsPt_2016_Sep01_v1/files'
+INDIR  = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2016/Histograms/'
+INFILE = 'histos_ZJets_AMC__NONE_1_20.root'
 # INDIR  = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2018/Histograms/GenRecoPtDiffVsD0VsPt_Aug29_v2/files'
 # INFILE = 'histos_ZJets_AMC__NONE.root'
 
@@ -69,8 +70,8 @@ def main():
     # for var in ['dRelPt1p6', 'dRelPt1p8', 'dRelPt2p0', 'dRelPt2p2', 'dRelPt2p4', 'dPhi', 'dEta']:
     for var in ['dRelPt2p0']:
     # for var in ['dEta']:
-        for corr in ['PF', 'Roch']:
-        # for corr in ['Roch']:
+        # for corr in ['PF', 'Roch']:
+        for corr in ['PF']:
 
             ## Unique string identifying this canvas
             if (var == 'dPhi' or var == 'dEta'): c_str = var
@@ -82,7 +83,8 @@ def main():
             canv[c_str] = R.TCanvas(c_str, c_str, 800, 600)
 
             iPt = -1
-            for pt in ['pt_20_35', 'pt_35_42', 'pt_42_50', 'pt_50_inf']:
+            # for pt in ['pt_20_35']:
+            for pt in ['pt_20_35', 'pt_35_42', 'pt_42_50', 'pt_50_inf', 'inclusive']:
                 iPt += 1
 
                 ## Unique string identifying this graph
@@ -206,7 +208,8 @@ def main():
                 graph[g_str].Fit('f_%s' % g_str)
                 if (iPt == 0):
                     graph[g_str].GetXaxis().SetRangeUser(-20, 20)
-                    graph[g_str].GetYaxis().SetRangeUser(min(data[g_str]['y'])*1.2, max(data[g_str]['y'])*1.2)
+                    # graph[g_str].GetYaxis().SetRangeUser(min(data[g_str]['y'])*1.2, max(data[g_str]['y'])*1.2)
+                    graph[g_str].GetYaxis().SetRangeUser(-5, 5)
                     graph[g_str].Draw('AP')
                 else:
                     graph[g_str].Draw('Psame')
