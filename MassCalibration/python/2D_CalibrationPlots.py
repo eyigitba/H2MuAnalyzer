@@ -17,28 +17,32 @@ gROOT.SetBatch(True)
 if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
 if 'bortigno' in os.getcwd(): USER = 'bortigno'
 if 'xzuo'     in os.getcwd(): USER = 'xzuo'
+if 'eyigitba' in os.getcwd(): USER = 'eyigitba'
 
 ## Directory for input histograms and output plots
 if USER == 'abrinke1': PLOT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/2016/Histograms'
 if USER == 'xzuo':     PLOT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/2016/Histograms'
+if USER == 'eyigitba': PLOT_DIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2018/Histograms'
 
-LABEL = 'MassCal_KinRoch_approx/2D_muP_d0_muN_d0'
+LABEL = 'MassCal_KinRoch_approx/2D_muP_d0_muN_d0/files'
 nameX = "muP_d0"
 nameY = "muN_d0"
 CAT   = "NONE_NONE"
 
 def main():
-    file_dir = PLOT_DIR+"/"+LABEL
+    file_dir = PLOT_DIR+"/"+LABEL+"/HADD"
     out_file = TFile( file_dir + "/mass_cal_plots" + ".root", "RECREATE")
-    in_file  = TFile.Open( file_dir + "/all_samples" + ".root", "READ")
+    # in_file  = TFile.Open( file_dir + "/all_samples" + ".root", "READ")
+    in_file  = TFile.Open( file_dir + "/MassCal_hadd" + ".root", "READ")
 
     gen_dir  = out_file.mkdir("pull_gen")
-    cor_dir  = out_file.mkdir("data_over_MC")
+    # cor_dir  = out_file.mkdir("data_over_MC")
     ovl_dir  = out_file.mkdir("overlay")
     cal_dir  = out_file.mkdir("individual_cal_plots")
     fit_dir  = out_file.mkdir("fits_specifics")
 
-    samples = ["ZJets_AMC", "data"]
+    samples = ["ZJets_MG_1", "data"]
+    # samples = ["H2Mu_gg"]
     pt_cals = ["gen", "PF", "Roch", "Kinfit", "KinRoch", "KaMu", "KinKaMu"]
 
     summary_info = in_file.Get( pt_cals[0] + "/summary_" + samples[0] + "_" + CAT + "_" + pt_cals[0]).Clone()
@@ -119,45 +123,45 @@ def main():
 	pull_plots[sample+pt_cal].Write()
 
 
-    mean_dataMC = {}
-    reso_dataMC = {}
-    for pt_cal in pt_cals:
-      for sample in samples:
-	if pt_cal == "gen":  continue
-	if sample == "data": continue
-	mean_dataMC[sample+pt_cal] = summary_info.Clone("Mean_data_over_MC_" + sample + "_" + pt_cal)
-	mean_dataMC[sample+pt_cal].SetTitle("Mean_data_over_MC_" + sample + "_" + pt_cal)
-	reso_dataMC[sample+pt_cal] = summary_info.Clone("Reso_data_over_MC_" + sample + "_" + pt_cal)
-	reso_dataMC[sample+pt_cal].SetTitle("Reso_data_over_MC_" + sample + "_" + pt_cal)
+ #    mean_dataMC = {}
+ #    reso_dataMC = {}
+ #    for pt_cal in pt_cals:
+ #      for sample in samples:
+	# if pt_cal == "gen":  continue
+	# if sample == "data": continue
+	# mean_dataMC[sample+pt_cal] = summary_info.Clone("Mean_data_over_MC_" + sample + "_" + pt_cal)
+	# mean_dataMC[sample+pt_cal].SetTitle("Mean_data_over_MC_" + sample + "_" + pt_cal)
+	# reso_dataMC[sample+pt_cal] = summary_info.Clone("Reso_data_over_MC_" + sample + "_" + pt_cal)
+	# reso_dataMC[sample+pt_cal].SetTitle("Reso_data_over_MC_" + sample + "_" + pt_cal)
 	
-	for i in range(binningX.GetSize()-1):
-          for j in range(binningY.GetSize()-1):
-	    mass_data = mean_plots["data"+pt_cal].GetBinContent(i+1, j+1)
-	    mass_MC   = mean_plots[sample+pt_cal].GetBinContent(i+1, j+1)
+	# for i in range(binningX.GetSize()-1):
+ #          for j in range(binningY.GetSize()-1):
+	#     mass_data = mean_plots["data"+pt_cal].GetBinContent(i+1, j+1)
+	#     mass_MC   = mean_plots[sample+pt_cal].GetBinContent(i+1, j+1)
 
-	    reso_data = reso_plots["data"+pt_cal].GetBinContent(i+1, j+1)
-            reso_MC   = reso_plots[sample+pt_cal].GetBinContent(i+1, j+1)
+	#     reso_data = reso_plots["data"+pt_cal].GetBinContent(i+1, j+1)
+ #            reso_MC   = reso_plots[sample+pt_cal].GetBinContent(i+1, j+1)
 
-	    if mass_data == 0 or mass_MC == 0:
-		mean_dataMC[sample+pt_cal].SetBinContent(i+1,j+1, 0.0)
-	    else:
-		mean_dataMC[sample+pt_cal].SetBinContent(i+1,j+1, 100.0 * (mass_data - mass_MC)/mass_MC)
+	#     if mass_data == 0 or mass_MC == 0:
+	# 	mean_dataMC[sample+pt_cal].SetBinContent(i+1,j+1, 0.0)
+	#     else:
+	# 	mean_dataMC[sample+pt_cal].SetBinContent(i+1,j+1, 100.0 * (mass_data - mass_MC)/mass_MC)
 
-	    if reso_data == 0 or reso_MC == 0:
-		reso_dataMC[sample+pt_cal].SetBinContent(i+1,j+1, 0.0)
-            else:
-                reso_dataMC[sample+pt_cal].SetBinContent(i+1,j+1, 100.0 * (reso_data - reso_MC)/reso_MC)
+	#     if reso_data == 0 or reso_MC == 0:
+	# 	reso_dataMC[sample+pt_cal].SetBinContent(i+1,j+1, 0.0)
+ #            else:
+ #                reso_dataMC[sample+pt_cal].SetBinContent(i+1,j+1, 100.0 * (reso_data - reso_MC)/reso_MC)
 
-	cor_dir.cd()
-	gStyle.SetPaintTextFormat("4.2f%%")
-	mean_dataMC[sample+pt_cal].GetZaxis().SetRangeUser(-0.5,0.5)
-	mean_dataMC[sample+pt_cal].SetXTitle("d0_muPos")
-	mean_dataMC[sample+pt_cal].SetYTitle("d0_muNeg")
-	mean_dataMC[sample+pt_cal].Write()
-	reso_dataMC[sample+pt_cal].GetZaxis().SetRangeUser(-10,10)
-	reso_dataMC[sample+pt_cal].SetXTitle("d0_muPos")
-	reso_dataMC[sample+pt_cal].SetYTitle("d0_muNeg")
-	reso_dataMC[sample+pt_cal].Write()	
+	# cor_dir.cd()
+	# gStyle.SetPaintTextFormat("4.2f%%")
+	# mean_dataMC[sample+pt_cal].GetZaxis().SetRangeUser(-0.5,0.5)
+	# mean_dataMC[sample+pt_cal].SetXTitle("d0_muPos")
+	# mean_dataMC[sample+pt_cal].SetYTitle("d0_muNeg")
+	# mean_dataMC[sample+pt_cal].Write()
+	# reso_dataMC[sample+pt_cal].GetZaxis().SetRangeUser(-10,10)
+	# reso_dataMC[sample+pt_cal].SetXTitle("d0_muPos")
+	# reso_dataMC[sample+pt_cal].SetYTitle("d0_muNeg")
+	# reso_dataMC[sample+pt_cal].Write()	
 
 
 

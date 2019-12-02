@@ -31,25 +31,32 @@ from SampleHelper import GetNormForSample, GetSampleID
 if 'abrinke1' in os.getcwd(): USER = 'abrinke1'
 if 'bortigno' in os.getcwd(): USER = 'bortigno'
 if 'xzuo'     in os.getcwd(): USER = 'xzuo'
+if 'eyigitba'     in os.getcwd(): USER = 'eyigitba'
 
 ## Root macro to run from each job
 #MACRO = 'macros/ReadNTupleChain.C'
 #MACRO = 'macros/MC_data_comparison.C'
 #MACRO = 'macros/ggH_VBF_2l.C'
 #MACRO = 'macros/WH_lep.C'
-MACRO = 'macros/WH_lep_systematics.C'
+# MACRO = 'macros/WH_lep_systematics.C'
 #MACRO = 'macros/ttH_3l.C'
 #MACRO = 'macros/MiniNTupliser.C'
 #MACRO = 'macros/MiniNTupliser_4l_cat.C'
 #MACRO = 'macros/MassCalibration.C'
+MACRO = 'macros/Compared0BSd0PV.C'
 
 
-#LOC  = 'CERN'
-LOC  = 'CERN_3l'  ## Location of input files ('CERN', 'CERN_hiM', 'CERN_3l', or 'UF')
+LOC  = 'CERN'
+# LOC  = 'CERN_3l'  ## Location of input files ('CERN', 'CERN_hiM', 'CERN_3l', or 'UF')
 #LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
+# LOC  = 'CERN_lepMVA_test_v2_hiM'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
 #LOC  = 'CERN_lepMVA_3l_test_v1'
-YEAR = '2018'  ## Dataset year (2016, 2017, or 2018)
-LUMI = 59100   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+# YEAR = '2016'  ## Dataset year (2016, 2017, or 2018)
+YEAR = '2017'  ## Dataset year (2016, 2017, or 2018)
+# YEAR = '2018'  ## Dataset year (2016, 2017, or 2018)
+# LUMI = 36814   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+LUMI = 41500   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+# LUMI = 59100   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
 
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
@@ -62,6 +69,7 @@ PROD  = ''
 ## Directory for logs and output root files
 if USER == 'abrinke1': OUT_DIR = '/afs/cern.ch/work/a/abrinke1/public/H2Mu/%s/Histograms' % YEAR
 if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%s/Histograms' % YEAR
+if USER == 'eyigitba': OUT_DIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms' % YEAR
 
 #LABEL = 'ggH_VBF_2l_AWB_2019_04_17_v2'
 #LABEL = 'WH_lep_AWB_2019_07_08_sideband_v1'
@@ -75,7 +83,7 @@ if USER == 'xzuo':     OUT_DIR = '/afs/cern.ch/work/x/xzuo/public/H2Mu/%s/Histog
 #LABEL = 'MassCal_KinRoch_approx/2D_muP_d0_muN_d0'
 #LABEL = 'ZH_lep_2019_08_14'
 #LABEL = 'WH_lep_AWB_2018_data_from_skim_AD'
-LABEL = 'WH_lep_AWB_2019_08_19_signal_sys'
+LABEL = 'MassCal_ptVsd0_2D_DY_beforeAfter'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 # JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
@@ -89,16 +97,17 @@ HIST_TREE = '"HistTree"'  ## Ouptut histograms, trees, or both
 
 DATA_ONLY = False  ## Only process data samples, not MC
 MC_ONLY   = False  ## Only process MC samples, not data
-SIG_ONLY  = True  ## Only process signal MC samples, no others
+SIG_ONLY  = False  ## Only process signal MC samples, no others
 SAMP_LIST = []  ## Leave [] empty to process multiple samples
 
 #SAMP_LIST = ['SingleMu_2018A', 'SingleMu_2018B', 'SingleMu_2018C', 'SingleMu_2018D', 'ZJets_MG_1'] #masscal study on 2018 data
 #SAMP_LIST = ['SingleMu_2017B', 'SingleMu_2017D', 'SingleMu_2017E', 'SingleMu_2017F', 'ZJets_AMC'] #masscal study on 2017 data
 #SAMP_LIST = ['SingleMu_2016B', 'SingleMu_2016C', 'SingleMu_2016D', 'SingleMu_2016E', 'SingleMu_2016F', 'SingleMu_2016G', 'SingleMu_2016H', 'ZJets_AMC'] #masscal study on 2016 data
-#SAMP_LIST = ['ZJets_hiM_MG']
+SAMP_LIST = ['ZJets_AMC']
+#SAMP_LIST = ['ZJets_MG__1']
 
-#SYS_SHIFTS = ['noSys']
-SYS_SHIFTS = ['noSys', 'JES_up', 'JES_down', 'PU_wgt_up', 'PU_wgt_down', 'IsoMu_SF_up', 'IsoMu_SF_down', 'LepMVA_SF_up', 'LepMVA_SF_down']
+SYS_SHIFTS = ['noSys']
+# SYS_SHIFTS = ['noSys', 'JES_up', 'JES_down', 'PU_wgt_up', 'PU_wgt_down', 'IsoMu_SF_up', 'IsoMu_SF_down', 'LepMVA_SF_up', 'LepMVA_SF_down']
 
 VERBOSE = False ## Verbose printout
 
@@ -152,6 +161,65 @@ def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_
     sub_files[-1].write( 'output      = $(out_dir)/out/sub_%d_%s_%s.out\n' % (job_num, samp_name, sys_shift) )
     sub_files[-1].write( 'error       = $(out_dir)/err/sub_%d_%s_%s.err\n' % (job_num, samp_name, sys_shift) )
     sub_files[-1].write( 'log         = $(out_dir)/log/sub_%d_%s_%s.log\n' % (job_num, samp_name, sys_shift) )
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
+    # sub_files[-1].write( '+MaxRuntime = %d\n' % max(2400, job_size*5) )  ## Use for WH_lep with more categories
+    sub_files[-1].write( '+MaxRuntime = %d\n' % max(3600, job_size*20) )  ## Use for ttH with BDT reconstruction
+    sub_files[-1].write( 'queue\n' )
+    sub_files[-1].close()
+    # print 'Wrote file %s' % sub_files[-1].name
+    os.chmod(sub_files[-1].name, 0o777)
+
+
+## End function: WriteSingleJob
+## Function to write the launcher script for a single job, and add that job to the main submit_all.sh script
+def WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp_name, in_dir_name, file_list, job_size, samp_wgt):
+
+    out_dir = OUT_DIR+'/'+LABEL
+
+    job_num       = len(run_files)
+    job_name      = 'run_%d_%s' % (job_num, samp_name)
+    launcher_name = 'batch/launchers/%s.sh' % job_name
+
+    ## In submit_all.sh (subs_file), write a line that will submit a job (bsub) to the queue of lxplus machines
+    ## that run jobs for up to 1 hour (-q 1nh), specifying the log and error output file location (-o, -e) and
+    ## the script that will be run by this job (${run_dir}/batch/launchers/%s.sh)
+    subs_file.write( '\ncondor_submit ${run_dir}/batch/launchers/sub_%d_%s.sub' % (job_num, samp_name) )
+    runs_file.write( '\n${run_dir}/batch/launchers/%s.sh' % job_name )
+    for cat in hadd_files.keys():
+        hadd_files[cat].write( ' histos_%s_%s_%d.root' % (samp_name, cat, job_num) )
+
+    run_files.append( open(launcher_name, 'w') )
+
+    ## Write the line defining how to run MACRO, specifying the sample and input files to run over
+    run_macro  = "\nroot -b -l -q '%s/%s(" % (os.getcwd(), MACRO)
+    run_macro += ('"'+samp_name+'", "'+in_dir_name+'", "'+OUT_DIR+'/'+LABEL+'/files", {"')  ## sample, in_dir, out_dir
+    for in_file in file_list:  ## in_files
+        run_macro += (in_file+'", "')
+    run_macro  = run_macro[:-4]  ## Remove last ", "
+    run_macro += '"}, "%d", %d, %d, ' % (job_num, MAX_EVT, PRT_EVT)  ## out_file_str, max_evt, prt_evt
+    run_macro += "%f, %s)'" % (samp_wgt, HIST_TREE)  ## sample_wgt, hist_tree
+
+    run_files[-1].write('#!/bin/sh\n')
+    run_files[-1].write('\nrun_dir="%s"' % os.getcwd())
+    run_files[-1].write('\ncd ${run_dir}')
+    run_files[-1].write('\neval `scramv1 runtime -sh`')
+    run_files[-1].write(run_macro)
+    run_files[-1].close()
+    # print 'Wrote file %s' % run_files[-1].name
+    os.chmod(run_files[-1].name, 0o777)
+
+    ## Write a condor file to submit this particular job
+    sub_files.append( open('batch/launchers/sub_%d_%s.sub' % (job_num, samp_name), 'w') )
+
+    ## See following resources for more info on Condor:
+    ##  * http://batchdocs.web.cern.ch/batchdocs/
+    ##  * https://indico.cern.ch/event/635217/
+    sub_files[-1].write( '\n')
+    sub_files[-1].write( 'out_dir     = %s\n' % out_dir )
+    sub_files[-1].write( 'executable  = %s\n' % run_files[-1].name )
+    sub_files[-1].write( 'output      = $(out_dir)/out/sub_%d_%s.out\n' % (job_num, samp_name) )
+    sub_files[-1].write( 'error       = $(out_dir)/err/sub_%d_%s.err\n' % (job_num, samp_name) )
+    sub_files[-1].write( 'log         = $(out_dir)/log/sub_%d_%s.log\n' % (job_num, samp_name) )
     # sub_files[-1].write( '+MaxRuntime = %d\n' % max(1200, job_size*2) )  ## Default 20 min, else 2s/MB
     # sub_files[-1].write( '+MaxRuntime = %d\n' % max(2400, job_size*5) )  ## Use for WH_lep with more categories
     sub_files[-1].write( '+MaxRuntime = %d\n' % max(3600, job_size*20) )  ## Use for ttH with BDT reconstruction
@@ -256,20 +324,18 @@ def main():
 
     hadd_files = {}
     for cat in cats:
-      for sys_shift in SYS_SHIFTS:
         if not 'Hist' in HIST_TREE: continue
-	hf_key = cat + '_' + sys_shift
-        hadd_file.write('\n${run_dir}/batch/hadders/hadd_%s.sh' % hf_key )
-        hadd_files[hf_key] = open(   'batch/hadders/hadd_%s.sh' % hf_key, 'w')
-        hadd_files[hf_key].write('\npwd_cmd="/bin/pwd"')
-        hadd_files[hf_key].write('\nrun_dir=`${pwd_cmd}`')
-        hadd_files[hf_key].write('\nout_dir="%s/files"\n' % out_dir)
-        hadd_files[hf_key].write('\necho "\nNavigating to ${out_dir}"')
-        hadd_files[hf_key].write('\ncd ${out_dir}\n\n')
-        if (YEAR == '2016'): hadd_files[hf_key].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_15_patch2/external/slc6_amd64_gcc700/bin/hadd -f')
-        if (YEAR == '2017'): hadd_files[hf_key].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
-        if (YEAR == '2018'): hadd_files[hf_key].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_11_patch1/external/slc6_amd64_gcc700/bin/hadd -f')
-        hadd_files[hf_key].write( ' HADD/histos_%s.root' % hf_key )
+        hadd_file.write('\n${run_dir}/batch/hadders/hadd_%s.sh' % cat )
+        hadd_files[cat] = open(      'batch/hadders/hadd_%s.sh' % cat, 'w')
+        hadd_files[cat].write('\npwd_cmd="/bin/pwd"')
+        hadd_files[cat].write('\nrun_dir=`${pwd_cmd}`')
+        hadd_files[cat].write('\nout_dir="%s/files"\n' % out_dir)
+        hadd_files[cat].write('\necho "\nNavigating to ${out_dir}"')
+        hadd_files[cat].write('\ncd ${out_dir}\n\n')
+        if (YEAR == '2016'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_15_patch2/external/slc6_amd64_gcc700/bin/hadd -f')
+        if (YEAR == '2017'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
+        if (YEAR == '2018'): hadd_files[cat].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw-patch/CMSSW_10_2_11_patch1/external/slc6_amd64_gcc700/bin/hadd -f')
+        hadd_files[cat].write( ' HADD/histos_%s.root' % cat)
 
     run_files = [] ## Separate submission script for each job
     sub_files = [] ## Separate condor script for each job
@@ -324,9 +390,6 @@ def main():
             if len(versions) > 0:
                 if VERBOSE: print versions
                 if VERBOSE: print "\n"
-		if len(PROD) != 0:
-		  for i in reversed( range( len(versions) ) ):  ## loop from last to first so the index is not changed by pop()
-		    if versions[i][0] != int(PROD): versions.pop(i)
                 versions.sort(key = itemgetter(0, 1), reverse=True)  ## Choose the latest crab submission
             else:
                 print '\n\nWARNING!!!  No crab output found for sample %s, from DAS %s' % (samp.name, samp.DAS_name)
@@ -334,13 +397,11 @@ def main():
                 continue
         
             if VERBOSE: print 'Chose version %d_%06d' % (versions[0][0], versions[0][1])
-#	if samp.name is 'SingleMu_2017F':
-#		in_dir_name += '/180802_164117'
-#	if samp.name is 'ZJets_AMC':        # temporary for 2017 WH
-#		in_dir_name += '/180802_165055'
-	if PROD == '190521' and samp.name is "SingleMu_2018D":
-		in_dir_name += '/190522_140309'
-	else:
+# if samp.name is 'SingleMu_2017F':
+#   in_dir_name += '/180802_164117'
+# if samp.name is 'ZJets_AMC':        # temporary for 2017 WH
+#   in_dir_name += '/180802_165055'
+# else:
             in_dir_name += '/%d_%06d' % (versions[0][0], versions[0][1])
  
         in_files = [] ## List of input files with their size in MB
@@ -377,22 +438,20 @@ def main():
         job_size  = 0.  ## Size of jobs in each input file in MB
         job_files = []  ## Files submitted to a single job 
         ## Get XSec / nProcessed for all files used in the sample, not only for this job
-	samp_wgt = GetNormForSample(samp.name, samp.xsec, LUMI, in_dir_name, in_files)
+        samp_wgt = GetNormForSample(samp.name, samp.xsec, LUMI, in_dir_name, in_files)
         for iFile in range(len(in_files)):
             if (len(run_files) >= NJOBS - 1 and NJOBS > 0):
                 break
             if ( (job_size > JOBSIZE and JOBSIZE > 0) or len(job_files) >= 50 ):  ## ROOT doesn't like vectors of file names that are too long
                 if VERBOSE: print 'In loop, writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
-		for sys_shift in SYS_SHIFTS:
-                    WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, job_size, samp_wgt, sys_shift)
+                WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, job_size, samp_wgt)
                 job_size  = 0.
                 job_files = []
             job_files.append( in_files[iFile][0] )
             job_size += in_files[iFile][1]
         ## End loop: for iFile in range(len(in_files))
         if VERBOSE: print 'After loop, writing job for sample %s, %d job files from %s to %s' % (samp.name, len(job_files), job_files[0], job_files[-1])
-	for sys_shift in SYS_SHIFTS:
-            WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, job_size, samp_wgt, sys_shift)
+        WriteSingleJob(subs_file, runs_file, hadd_files, run_files, sub_files, samp.name, in_dir_name, job_files, job_size, samp_wgt)
 
         print 'We have now written a total of %d launcher files' % len(run_files)
 
@@ -416,22 +475,21 @@ def main():
 
     ## Write the output files
     if 'Tree' in HIST_TREE:
-      for sys_shift in SYS_SHIFTS:
-        hadd_file.            write('\n${run_dir}/batch/hadders/hadd_tuples_%s.sh' % sys_shift)
-        hadd_files['tuple_' + sys_shift] = open( 'batch/hadders/hadd_tuples_%s.sh' % sys_shift, 'w')
-        hadd_files['tuple_' + sys_shift].write('\npwd_cmd="/bin/pwd"')
-        hadd_files['tuple_' + sys_shift].write('\nrun_dir=`${pwd_cmd}`')
-        hadd_files['tuple_' + sys_shift].write('\nout_dir="%s/files"\n' % out_dir)
-        hadd_files['tuple_' + sys_shift].write('\necho "\nNavigating to ${out_dir}"')
-        hadd_files['tuple_' + sys_shift].write('\ncd ${out_dir}\n\n')
-        hadd_files['tuple_' + sys_shift].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
-        hadd_files['tuple_' + sys_shift].write( ' HADD/tuples_%s.root tuple_*_%s_*.root' %(sys_shift, sys_shift))
+        hadd_file.write('\n${run_dir}/batch/hadders/hadd_tuples.sh')
+        hadd_files['tuple'] = open(  'batch/hadders/hadd_tuples.sh', 'w')
+        hadd_files['tuple'].write('\npwd_cmd="/bin/pwd"')
+        hadd_files['tuple'].write('\nrun_dir=`${pwd_cmd}`')
+        hadd_files['tuple'].write('\nout_dir="%s/files"\n' % out_dir)
+        hadd_files['tuple'].write('\necho "\nNavigating to ${out_dir}"')
+        hadd_files['tuple'].write('\ncd ${out_dir}\n\n')
+        hadd_files['tuple'].write('/cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_10/external/slc6_amd64_gcc630/bin/hadd -f')
+        hadd_files['tuple'].write( ' HADD/tuples.root tuple_*.root')
 
-    for hf_key in hadd_files.keys():
-        hadd_files[hf_key].write('\n\necho "Navigating back to ${run_dir}"')
-        hadd_files[hf_key].write('\ncd ${run_dir}')
-        hadd_files[hf_key].close()
-        os.chmod(hadd_files[hf_key].name, 0o777)
+    for cat in hadd_files.keys():
+        hadd_files[cat].write('\n\necho "Navigating back to ${run_dir}"')
+        hadd_files[cat].write('\ncd ${run_dir}')
+        hadd_files[cat].close()
+        os.chmod(hadd_files[cat].name, 0o777)
 
     subs_file.close()
     runs_file.close()
@@ -450,8 +508,8 @@ def main():
         for sub_file in sub_files:
             print sub_file.name
             print ''
-        for hf_key in hadd_files.keys():
-            print hadd_files[hf_key].name
+        for cat in hadd_files.keys():
+            print hadd_files[cat].name
 
         
 ## End function: main()

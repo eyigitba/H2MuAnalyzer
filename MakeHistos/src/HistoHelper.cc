@@ -58,12 +58,12 @@ void FillHisto( TH2 * hist, double valX, double valY, const float weight, const 
     // Set values of "valX" and "valY" inside histogram x-axis and y-axis ranges
     int binX_lo = 1;
     int binX_hi = hist->GetNbinsX() + 1;
-    if (valX < hist->GetXaxis()->GetBinLowEdge(binX_lo)) valX = hist->GetXaxis()->GetBinLowEdge(binX_lo) + 0.1 * hist->GetBinWidth(binX_lo);
-    if (valX > hist->GetXaxis()->GetBinLowEdge(binX_hi)) valX = hist->GetXaxis()->GetBinLowEdge(binX_hi) - 0.1 * hist->GetBinWidth(binX_hi);
+    if (valX < hist->GetXaxis()->GetBinLowEdge(binX_lo)) valX = hist->GetXaxis()->GetBinLowEdge(binX_lo) + 0.1 * hist->GetXaxis()->GetBinWidth(binX_lo);
+    if (valX > hist->GetXaxis()->GetBinLowEdge(binX_hi)) valX = hist->GetXaxis()->GetBinLowEdge(binX_hi) - 0.1 * hist->GetXaxis()->GetBinWidth(binX_hi);
     int binY_lo = 1;
     int binY_hi = hist->GetNbinsY() + 1;
-    if (valY < hist->GetYaxis()->GetBinLowEdge(binY_lo)) valY = hist->GetYaxis()->GetBinLowEdge(binY_lo) + 0.1 * hist->GetBinWidth(binY_lo);
-    if (valY > hist->GetYaxis()->GetBinLowEdge(binY_hi)) valY = hist->GetYaxis()->GetBinLowEdge(binY_hi) - 0.1 * hist->GetBinWidth(binY_hi);
+    if (valY < hist->GetYaxis()->GetBinLowEdge(binY_lo)) valY = hist->GetYaxis()->GetBinLowEdge(binY_lo) + 0.1 * hist->GetYaxis()->GetBinWidth(binY_lo);
+    if (valY > hist->GetYaxis()->GetBinLowEdge(binY_hi)) valY = hist->GetYaxis()->GetBinLowEdge(binY_hi) - 0.1 * hist->GetYaxis()->GetBinWidth(binY_hi);
   }
 
   hist->Fill(valX, valY, weight);

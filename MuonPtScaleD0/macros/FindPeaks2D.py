@@ -71,7 +71,7 @@ def main():
     for var in ['dRelPt2p0']:
     # for var in ['dEta']:
         # for corr in ['PF', 'Roch']:
-        for corr in ['PF']:
+        for corr in ['Roch', 'RochKin']:
 
             ## Unique string identifying this canvas
             if (var == 'dPhi' or var == 'dEta'): c_str = var

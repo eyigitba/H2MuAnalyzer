@@ -27,7 +27,7 @@ YEAR = '2016'
 # YEAR = '2017'
 # YEAR = '2018'
 
-INDIR = 'plots_fineBinned_%s' % YEAR
+INDIR = 'plots_fineBinned_fullD0Range__tanhFit_%s' % YEAR
 
 INFILE = 'FindPeaks.root'
 
@@ -59,13 +59,13 @@ def main():
 
             ## Unique string identifying this graph
             # c_str = c_str
-            for eta in ['eta_0_0p9', 'eta_0p9_1p7', 'eta_1p7_inf', 'eta_inc']: # |eta| binned
+            for eta in ['eta_0_0p9', 'eta_0p9_1p7', 'eta_1p7_inf']: # |eta| binned
                 c_str = eta + '_' + p_str 
                 ## Canvas for the graphs of peak vs. d0
                 # canv[c_str] = R.TCanvas(c_str, c_str, 1600, 1200)
                 # iPt = -1
-                # for pt in ['pt_20_35']:
-                for pt in ['inclusive', 'pt_20_35', 'pt_35_42', 'pt_42_50', 'pt_50_inf']:
+                for pt in ['inclusive']:
+                # for pt in ['inclusive', 'pt_20_35', 'pt_35_42', 'pt_42_50', 'pt_50_inf']:
                     # iPt += 1
                     g_str = pt + '_' + c_str
 
@@ -80,12 +80,14 @@ def main():
                     # print graph.GetName()
 
                     out_file.write('f_%s : \n' % g_str)
-                    out_file.write('Chi2 : ' + str(f.GetChisquare()) + '\n')
-                    out_file.write('NDF : ' + str(f.GetNDF()) + '\n')
-                    out_file.write('intercept : ' + str(f.GetParameter(0)) + '\n')
-                    out_file.write('intercept_err : ' + str(f.GetParError(0)) + '\n')
-                    out_file.write('slope : ' + str(f.GetParameter(1)) + '\n')
-                    out_file.write('slope_err : ' + str(f.GetParError(1)) + '\n\n')
+                    out_file.write('Chi2 : ' + str(round(f.GetChisquare(),4)) + '\n')
+                    out_file.write('NDF : ' + str(round(f.GetNDF(),4)) + '\n')
+                    out_file.write('intercept : ' + str(round(f.GetParameter(0),4)) + '\n')
+                    out_file.write('intercept_err : ' + str(round(f.GetParError(0),4)) + '\n')
+                    out_file.write('amp : ' + str(round(f.GetParameter(1),4)) + '\n')
+                    out_file.write('amp_err : ' + str(round(f.GetParError(1),4)) + '\n\n')
+                    out_file.write('slope : ' + str(round(f.GetParameter(2),4)) + '\n')
+                    out_file.write('slope_err : ' + str(round(f.GetParError(2),4)) + '\n\n')
 
                 # End loop for pt
                 out_file.write('\n\n')

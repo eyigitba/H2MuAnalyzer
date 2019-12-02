@@ -38,8 +38,8 @@ def GetSamples(location = 'CERN', year = '2017'):
     elif (location == 'CERN'):
         if   (year == 'Leg2016'):
             in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13'
-	elif (year == '2016'):
-	    in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7'
+        elif (year == '2016'):
+            in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7'
         elif (year == '2017'):
             in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17'
         elif (year == '2018'):
@@ -66,6 +66,11 @@ def GetSamples(location = 'CERN', year = '2017'):
     elif (location == 'CERN_lepMVA_test_v2'):
         if (year == '2017'):
             in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_test_v2'
+    elif (location == 'CERN_lepMVA_hiM_test_v2'):
+        if (year == '2017'):
+            in_dir = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
+
+
 
     if ( in_dir == '' ):
         print 'Invalid location (%s) and/or year (%s)!!!  Exiting.' % (location, year)
@@ -183,6 +188,7 @@ def GetSamples(location = 'CERN', year = '2017'):
         samples.append( SampleInfo('H2Mu_ttH_120', 'ttHToMuMu_M120'+ttH_gen, 0.0001103, year, in_dir, 'Sig') )  ## 0.5071 x 0.0002176 from YR4 (125 GeV)
         samples.append( SampleInfo('H2Mu_ttH_125', 'ttHToMuMu_M125'+ttH_gen, 0.0001103, year, in_dir, 'Sig') )  ## 0.5071 x 0.0002176 from YR4 (125 GeV)
         samples.append( SampleInfo('H2Mu_ttH_130', 'ttHToMuMu_M130'+ttH_gen, 0.0001103, year, in_dir, 'Sig') )  ## 0.5071 x 0.0002176 from YR4 (125 GeV)
+        samples.append( SampleInfo('H2Mu_ttH', 'ttHToMuMu_M125'+ttH_gen, 0.0001103, year, in_dir, 'Sig') )  ## 0.5071 x 0.0002176 from YR4 (125 GeV)
 
     
     ####################
@@ -356,26 +362,26 @@ def GetSamples(location = 'CERN', year = '2017'):
     ###  Shorter lists of samples for special tests  ###
     ####################################################
 
-    CERN_lepMVA_test_v1_list = [ 'SingleMu_2017B', 'SingleMu_2017C', 'SingleMu_2017D', 'SingleMu_2017E', 'SingleMu_2017F',
-                                 'H2Mu_gg', 'H2Mu_ZH_120', 'H2Mu_ZH_125', 'H2Mu_ZH_130', 'H2Mu_WH_pos_120',
-                                 'H2Mu_WH_pos_125', 'H2Mu_WH_pos_130' 'H2Mu_WH_neg_125', 'H2Mu_WH_neg_130', 'H2Mu_ttH_125',
-                                 'ZJets_AMC', 'tt_ll_MG', 'tt_ll_POW', 'tt_ljj_POW_1', 'tt_ljj_POW_2', 'tW_neg', 'tW_pos',
-                                 'WZ_3l', 'ZZ_4l' ]
+    # CERN_lepMVA_test_v1_list = [ 'SingleMu_2017B', 'SingleMu_2017C', 'SingleMu_2017D', 'SingleMu_2017E', 'SingleMu_2017F',
+    #                              'H2Mu_gg', 'H2Mu_ZH_120', 'H2Mu_ZH_125', 'H2Mu_ZH_130', 'H2Mu_WH_pos_120',
+    #                              'H2Mu_WH_pos_125', 'H2Mu_WH_pos_130' 'H2Mu_WH_neg_125', 'H2Mu_WH_neg_130', 'H2Mu_ttH_125',
+    #                              'ZJets_AMC', 'tt_ll_MG', 'tt_ll_POW', 'tt_ljj_POW_1', 'tt_ljj_POW_2', 'tW_neg', 'tW_pos',
+    #                              'WZ_3l', 'ZZ_4l' ]
     
-    CERN_lepMVA_test_v2_list = [ 'SingleMu_2017B', 'SingleMu_2017C', 'SingleMu_2017D', 'SingleMu_2017E', 'SingleMu_2017F',
-                                 'ZJets_AMC', 'tt_ll_MG', 'tt_ll_POW', 'tt_ljj_POW_1', 'tt_ljj_POW_2', 'tW_neg', 'tW_pos' ]
+    # CERN_lepMVA_test_v2_list = [ 'SingleMu_2017B', 'SingleMu_2017C', 'SingleMu_2017D', 'SingleMu_2017E', 'SingleMu_2017F',
+    #                              'ZJets_AMC', 'tt_ll_MG', 'tt_ll_POW', 'tt_ljj_POW_1', 'tt_ljj_POW_2', 'tW_neg', 'tW_pos' ]
 
-    new_samples = []
-    if (location == 'CERN_lepMVA_test_v1' and year == '2017'):
-        for i in range( len(CERN_lepMVA_test_v1_list) ):
-            if samples.at(i).name in CERN_lepMVA_test_v1_list:
-                new_samples.append( samples.at(i) )
-        samples = new_samples
-    if (location == 'CERN_lepMVA_test_v2' and year == '2017'):
-        for i in range( len(CERN_lepMVA_test_v2_list) ):
-            if samples.at(i).name in CERN_lepMVA_test_v2_list:
-                new_samples.append( samples.at(i) )
-        samples = new_samples
+    # new_samples = []
+    # if (location == 'CERN_lepMVA_test_v1' and year == '2017'):
+    #     for i in range( len(CERN_lepMVA_test_v1_list) ):
+    #         if samples.at(i).name in CERN_lepMVA_test_v1_list:
+    #             new_samples.append( samples.at(i) )
+    #     samples = new_samples
+    # if (location == 'CERN_lepMVA_test_v2' and year == '2017'):
+    #     for i in range( len(CERN_lepMVA_test_v2_list) ):
+    #         if samples.at(i).name in CERN_lepMVA_test_v2_list:
+    #             new_samples.append( samples.at(i) )
+    #     samples = new_samples
 
 
     # ##################################################################################

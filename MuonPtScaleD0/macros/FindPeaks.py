@@ -24,44 +24,45 @@ import ROOT.RooFit as RF
 R.gROOT.SetBatch(True)  ## Don't display histograms or canvases when drawn
 
 
-# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2016/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY/files/HADD/'
-# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2017/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY/files/HADD/'
-# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2018/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY_MG/files/HADD/'
-
-# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2016/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY_doubleBin/files/HADD/'
-# # INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2017/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY_doubleBin/files/HADD/'
-# # INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2018/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY_MG_doubleBin/files/HADD/'
-
-# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2016/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY_doubleBin_fullD0Range/files/HADD/'
-# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2017/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY_doubleBin_fullD0Range/files/HADD/'
-INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/2018/Histograms/MassCal_ptVsd0_etaBinned_no3l_withHiMDY_MG_doubleBin_fullD0Range/files/HADD/'
-
-
 # YEAR = '2016'
-# YEAR = '2017'
-YEAR = '2018'
+YEAR = '2017'
+# YEAR = '2018'
+
+# Bugfix DY samples
+# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_DY_PUbinned_bugFix/files/HADD' %YEAR
+
+# DY samples with d0_BS
+# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_d0BS/files/HADD' %YEAR
+
+# ttbar samples
+# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_ttbar_PUbinned_bugFix/files/HADD' %YEAR
+
+# ttH samples
+# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_ttH/files/HADD' %YEAR
 
 INFILE = 'histos_ZJets_hadd.root'
+# INFILE = 'histos_ttbar_hadd.root'
+# INFILE = 'histos_ttH_hadd.root'
 
 ## Main function executed by ./macros/FindPeaks.py
 def main():
 
-    print '\n\n*** Inside FindPeakss.py ***'
+    print '\n\n*** Inside FindPeaks.py ***'
 
     ## Import root file with dPt and dPhi distributions
     print '\nOpening file %s' % (INDIR+'/'+INFILE)
     in_file = R.TFile(INDIR+'/'+INFILE)
 
-    print '\nCreating output root file plots_fineBinned_fullD0Range_0p002_%s/FindPeaks.root' % YEAR
-    if not os.path.exists('plots_fineBinned_fullD0Range_0p002_%s' % YEAR):
-      os.makedirs('plots_fineBinned_fullD0Range_0p002_%s' % YEAR)
-    out_file = R.TFile('plots_fineBinned_fullD0Range_0p002_%s/FindPeaks.root' % YEAR, 'recreate')
+    print '\nCreating output root file plots_DY_d0BS_linear_%s/FindPeaks.root' % YEAR
+    if not os.path.exists('plots_DY_d0BS_linear_%s' % YEAR):
+      os.makedirs('plots_DY_d0BS_linear_%s' % YEAR)
+    out_file = R.TFile('plots_DY_d0BS_linear_%s/FindPeaks.root' % YEAR, 'recreate')
     out_file.cd()
 
-    if not os.path.exists('plots_fineBinned_fullD0Range_0p002_%s/png' % YEAR):
-        print '\nCreating output folders plots_fineBinned_fullD0Range_0p002_%s/png'  % YEAR
-        os.makedirs('plots_fineBinned_fullD0Range_0p002_%s/png' % YEAR)
-        os.makedirs('plots_fineBinned_fullD0Range_0p002_%s/png/histos' % YEAR)
+    if not os.path.exists('plots_DY_d0BS_linear_%s/png' % YEAR):
+        print '\nCreating output folders plots_DY_d0BS_linear_%s/png'  % YEAR
+        os.makedirs('plots_DY_d0BS_linear_%s/png' % YEAR)
+        os.makedirs('plots_DY_d0BS_linear_%s/png/histos' % YEAR)
         # os.makedirs('plots/pdf')
 
     ## Input histograms and canvases to draw on
@@ -107,6 +108,7 @@ def main():
                 # for pt in ['pt_20_35']:
                 # for pt in ['inclusive', 'pt_20_35', 'pt_35_42', 'pt_42_50', 'pt_50_inf']:
                 for pt in ['inclusive']:
+                # for pt in ['nVtx_0_21', 'nVtx_22_26', 'nVtx_34_inf']:
                     iPt += 1
                     g_str = pt + '_' + c_str
 
@@ -146,32 +148,72 @@ def main():
                         data[g_str]['x'][iDat] = h_x.GetMean()
                         data[g_str]['xerr'][iDat] = h_x.GetStdDev()
 
-                        # yMax = 0 ## Maximum integral over 11 bins
-                        # iMax = 0 ## Central bin of maximum integral (i.e. the center of the peak)
-                        # for i in range(6, h_y.GetNbinsX() - 4):  ## Don't include over- or under-flow
-                        #     if (h_y.Integral(i-5, i+5) > yMax):
-                        #         yMax = h_y.Integral(i-5, i+5)
-                        #         iMax = i
-                        # iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - 2*sqrt(yMax)
-                        # iHi = 0                ## Highest bin with integral > yMax - 2*sqrt(yMax)
-                        # for i in range(6, h_y.GetNbinsX() - 4):  ## Don't include over- or under-flow
-                        #     if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iLo = min(iLo, i)
-                        #     if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iHi = max(iHi, i)
+                        yMax = 0 ## Maximum integral over 101 bins  
+                        iMax = 0 ## Central bin of maximum integral (i.e. the center of the peak) 
+                        iLo = 0
+                        iHi = 0
+                        if (iDat > 29 and iDat < 49):
+                            for i in range(52, h_y.GetNbinsX() - 50):  ## Don't include over- or under-flow
+                                if (h_y.Integral(i-50, i+50) > yMax):
+                                    yMax = h_y.Integral(i-50, i+50)
+                                    iMax = i
+                            iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - 2*sqrt(yMax)
+                            iHi = 0                ## Highest bin with integral > yMax - 2*sqrt(yMax)
+                            for i in range(52, h_y.GetNbinsX() - 50):  ## Don't include over- or under-flow
+                                if (h_y.Integral(i-50, i+50) > yMax - 2*math.sqrt(yMax)): iLo = min(iLo, i)
+                                if (h_y.Integral(i-50, i+50) > yMax - 2*math.sqrt(yMax)): iHi = max(iHi, i)
+                        else:
+                            if h_y.GetNbinsX() >= 4000:
+                              h_y.Rebin(10)
+                            for i in range(7, h_y.GetNbinsX() - 5):  ## Don't include over- or under-flow
+                                if (h_y.Integral(i-5, i+5) > yMax):
+                                    yMax = h_y.Integral(i-5, i+5)
+                                    iMax = i
+                            iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - 2*sqrt(yMax)
+                            iHi = 0                ## Highest bin with integral > yMax - 2*sqrt(yMax)
+                            for i in range(7, h_y.GetNbinsX() - 5):  ## Don't include over- or under-flow
+                                if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iLo = min(iLo, i)
+                                if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iHi = max(iHi, i)
+                        # if (iDat > 29 and iDat < 49):
+                        #     for i in range(51, h_y.GetNbinsX() - 49):  ## Don't include over- or under-flow
+                        #         if (h_y.Integral(i-50, i+50) > yMax):
+                        #             yMax = h_y.Integral(i-50, i+50)
+                        #             iMax = i
+                        #     iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - 2*sqrt(yMax)
+                        #     iHi = 0                ## Highest bin with integral > yMax - 2*sqrt(yMax)
+                        #     for i in range(51, h_y.GetNbinsX() - 49):  ## Don't include over- or under-flow
+                        #         if (h_y.Integral(i-50, i+50) > yMax - 2*math.sqrt(yMax)): iLo = min(iLo, i)
+                        #         if (h_y.Integral(i-50, i+50) > yMax - 2*math.sqrt(yMax)): iHi = max(iHi, i)
+                        # # elif (iDat < 9 and iDat > 69):
+                        # #     if h_y.GetNbinsX() == 4000:
+                        # #       h_y.Rebin(40)
+                        # #     for i in range(6, h_y.GetNbinsX() - 4):  ## Don't include over- or under-flow
+                        # #         if (h_y.Integral(i-5, i+5) > yMax):
+                        # #             yMax = h_y.Integral(i-5, i+5)
+                        # #             iMax = i
+                        # #     iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - 2*sqrt(yMax)
+                        # #     iHi = 0                ## Highest bin with integral > yMax - 2*sqrt(yMax)
+                        # #     for i in range(6, h_y.GetNbinsX() - 4):  ## Don't include over- or under-flow
+                        # #         if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iLo = min(iLo, i)
+                        # #         if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iHi = max(iHi, i)
+                        # else:
+                        #     if h_y.GetNbinsX() == 4000:
+                        #       h_y.Rebin(40)
+                        #     for i in range(6, h_y.GetNbinsX() - 4):  ## Don't include over- or under-flow
+                        #         if (h_y.Integral(i-5, i+5) > yMax):
+                        #             yMax = h_y.Integral(i-5, i+5)
+                        #             iMax = i
+                        #     iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - 2*sqrt(yMax)
+                        #     iHi = 0                ## Highest bin with integral > yMax - 2*sqrt(yMax)
+                        #     for i in range(6, h_y.GetNbinsX() - 4):  ## Don't include over- or under-flow
+                        #         if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iLo = min(iLo, i)
+                        #         if (h_y.Integral(i-5, i+5) > yMax - 2*math.sqrt(yMax)): iHi = max(iHi, i)
 
-                        yMax = 0 ## Maximum integral over 101 bins
-                        iMax = 0 ## Central bin of maximum integral (i.e. the center of the peak)
-                        for i in range(51, h_y.GetNbinsX() - 49):  ## Don't include over- or under-flow
-                            if (h_y.Integral(i-50, i+50) > yMax):
-                                yMax = h_y.Integral(i-50, i+50)
-                                iMax = i
-                        iLo = h_y.GetNbinsX()  ## Lowest bin with integral > yMax - 2*sqrt(yMax)
-                        iHi = 0                ## Highest bin with integral > yMax - 2*sqrt(yMax)
-                        for i in range(51, h_y.GetNbinsX() - 49):  ## Don't include over- or under-flow
-                            if (h_y.Integral(i-50, i+50) > yMax - 2*math.sqrt(yMax)): iLo = min(iLo, i)
-                            if (h_y.Integral(i-50, i+50) > yMax - 2*math.sqrt(yMax)): iHi = max(iHi, i)
+                        
 
                         data[g_str]['y'][iDat] = h_y.GetBinCenter(iMax)
                         data[g_str]['yerr'][iDat] = (h_y.GetBinLowEdge(iHi+1) - h_y.GetBinLowEdge(iLo)) / 2.
+                        # print h_y.GetNbinsX()
 
                         # # ## Canvas with the original histogram and its peak range
                         # h_can = R.TCanvas(g_str+'_'+d0, g_str+'_'+d0, 800, 600)
@@ -188,7 +230,7 @@ def main():
                         # # h_y_peak.SetLineWidth(2)
                         # # h_y_peak.SetLineColor(R.kBlue)
                         # # h_y_peak.Draw('same')
-                        # h_can.SaveAs('plots_fineBinned_fullD0Range_0p002_%s/png/histos/%s_%s.png' % (YEAR, g_str, d0))
+                        # h_can.SaveAs('plots_DY_d0BS_linear_%s/png/histos/%s_%s.png' % (YEAR, g_str, d0))
                         # # h_can.SaveAs('plots/pdf/%s_%s.pdf' % (g_str, d0))
 
 
@@ -258,17 +300,31 @@ def main():
 
                     ## Create a linear fit to the points on the graph
                     # fit[g_str] = R.TF1('f_%s' % g_str, '[0] + [1]*x', min(data[g_str]['x']), max(data[g_str]['x']))
-                    fit[g_str] = R.TF1('f_%s' % g_str, '[0] + [1]*x', -0.002, 0.002)
-                    fit_left[g_str] = R.TF1('fl_%s' % g_str, '[0] + [1]*x', -0.008, -0.002)
-                    fit_right[g_str] = R.TF1('fr_%s' % g_str, '[0] + [1]*x', 0.002, 0.008)
+                    fit[g_str] = R.TF1('f_%s' % g_str, '[0] + [1]*x', -0.01, 0.01)
+                    # fit[g_str] = R.TF1('f_%s' % g_str, '[0] + [1]*x + [2]*tanh([3]*x)', -0.008, 0.008)
+                    # fit[g_str] = R.TF1('f_%s' % g_str, '[0] + [1]*tanh([2]*x) + [3]*x', -0.009, 0.009)
+                    # fit_left[g_str] = R.TF1('fl_%s' % g_str, '[0] + [1]*x', -0.008, -0.0025)
+                    # fit_right[g_str] = R.TF1('fr_%s' % g_str, '[0] + [1]*x', 0.0025, 0.008)
                     fit[g_str].SetParameter(0, 0)
-                    fit_left[g_str].SetParameter(0, 0)
-                    fit_right[g_str].SetParameter(0, 0)
+                    # fit_left[g_str].SetParameter(0, 0)
+                    # fit_right[g_str].SetParameter(0, 0)
                     # fit[g_str].SetParameter(1, (data[g_str]['y'][13] - data[g_str]['y'][4]) / (data[g_str]['x'][13] - data[g_str]['x'][4]) ) # for 20 bins
                     # fit[g_str].SetParameter(1, (data[g_str]['y'][25] - data[g_str]['y'][15]) / (data[g_str]['x'][25] - data[g_str]['x'][15]) ) # for 40 bins
-                    fit[g_str].SetParameter(1, (data[g_str]['y'][45] - data[g_str]['y'][35]) / (data[g_str]['x'][45] - data[g_str]['x'][35]) ) # for 80 bins
-                    fit_left[g_str].SetParameter(1, (data[g_str]['y'][30] - data[g_str]['y'][5]) / (data[g_str]['x'][30] - data[g_str]['x'][5]) ) # for 80 bins
-                    fit_right[g_str].SetParameter(1, (data[g_str]['y'][75] - data[g_str]['y'][50]) / (data[g_str]['x'][75] - data[g_str]['x'][50]) ) # for 80 bins
+                    # fit[g_str].SetParameter(1, (data[g_str]['y'][45] - data[g_str]['y'][35]) / (data[g_str]['x'][45] - data[g_str]['x'][35]) ) # for 80 bins
+                    # fit_left[g_str].SetParameter(1, (data[g_str]['y'][30] - data[g_str]['y'][5]) / (data[g_str]['x'][30] - data[g_str]['x'][5]) ) # for 80 bins
+                    # fit_right[g_str].SetParameter(1, (data[g_str]['y'][75] - data[g_str]['y'][50]) / (data[g_str]['x'][75] - data[g_str]['x'][50]) ) # for 80 bins
+                    if eta == 'eta_0_0p9':
+                      # fit[g_str].SetParameter(1, 3) # tanh
+                      # fit[g_str].SetParameter(2, 500) # tanh
+                      fit[g_str].SetParameter(1, 100) # linear
+                    elif eta == 'eta_0p9_1p7':
+                      # fit[g_str].SetParameter(1, 3) # tanh
+                      # fit[g_str].SetParameter(2, 500) # tanh
+                      fit[g_str].SetParameter(1, 400) # linear
+                    elif eta == 'eta_1p7_inf':
+                      # fit[g_str].SetParameter(1, 3) # tanh
+                      # fit[g_str].SetParameter(2, 500) # tanh
+                      fit[g_str].SetParameter(1, 500) # linear
 
                     ## Draw the graph onto the canvas
                     # canv[c_str].cd()
@@ -278,21 +334,21 @@ def main():
                     # graph[g_str].GetYaxis().SetRangeUser(min(data[g_str]['y'])*2.0, max(data[g_str]['y'])*2.0)
                     # graph[g_str].Fit('f_%s' % g_str)
                     # graph[g_str].Draw()
-                    # else:
-                        # graph[g_str].SetLineColor(R.kRed)
-                        # fit[g_str].SetLineColor(R.kRed)
-                        # graph[g_str].Fit('f_%s' % g_str)
+                    else:
+                        graph[g_str].SetLineColor(R.kRed)
+                        fit[g_str].SetLineColor(R.kRed)
+                        graph[g_str].Fit('f_%s' % g_str)
                         # graph[g_str].Draw('same')
                     graph[g_str].SetLineColor(iPt+1)
                     graph[g_str].SetMarkerColor(iPt+1)
                     graph[g_str].SetMarkerStyle(8)
                     graph[g_str].SetMarkerSize(0.7)
                     fit[g_str].SetLineColor(iPt+1)
-                    fit_left[g_str].SetLineColor(iPt+1)
-                    fit_right[g_str].SetLineColor(iPt+1)
+                    # fit_left[g_str].SetLineColor(iPt+1)
+                    # fit_right[g_str].SetLineColor(iPt+1)
                     graph[g_str].Fit('f_%s' % g_str,"R")
-                    graph[g_str].Fit('fl_%s' % g_str,"R+")
-                    graph[g_str].Fit('fr_%s' % g_str,"R+")
+                    # graph[g_str].Fit('fl_%s' % g_str,"R+")
+                    # graph[g_str].Fit('fr_%s' % g_str,"R+")
                     print 'Writing: %s' % g_str
                     out_file.cd()
                     graph[g_str].Write()
@@ -300,30 +356,34 @@ def main():
                     g_canv = R.TCanvas(g_str, g_str, 1600, 1200)
                     g_canv.cd()
                     graph[g_str].GetXaxis().SetLimits(-0.011, 0.011)
-                    graph[g_str].GetYaxis().SetRangeUser(-20, 20)
+                    graph[g_str].GetYaxis().SetRangeUser(-15, 15)
+                    # graph[g_str].GetYaxis().SetRangeUser(-20, 20)
                     graph[g_str].Draw('AP')
-                    g_leg = R.TLegend(0.12,0.66,0.52,0.88)
+                    g_leg = R.TLegend(0.12,0.76,0.72,0.88)
                     # f_str = g_str.replace(c_str, '')
                     # print f_str
                     # g_leg.AddEntry( fit[g_str], '%s = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (g_str.replace(('_' + c_str), '').replace('_','-').replace('pt-','p_T ='), fit[g_str].GetParameter(0), fit[g_str].GetParError(0), fit[g_str].GetParameter(1), fit[g_str].GetParError(1)) )
                     # g_leg.AddEntry( fit_left[g_str], '%s = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (g_str.replace(('_' + c_str), '').replace('_','-').replace('pt-','p_T ='), fit_left[g_str].GetParameter(0), fit_left[g_str].GetParError(0), fit_left[g_str].GetParameter(1), fit_left[g_str].GetParError(1)) )
                     # g_leg.AddEntry( fit_right[g_str], '%s = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (g_str.replace(('_' + c_str), '').replace('_','-').replace('pt-','p_T ='), fit_right[g_str].GetParameter(0), fit_right[g_str].GetParError(0), fit_right[g_str].GetParameter(1), fit_right[g_str].GetParError(1)) )
-                    g_leg.AddEntry( fit[g_str], 'middle = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (fit[g_str].GetParameter(0), fit[g_str].GetParError(0), fit[g_str].GetParameter(1), fit[g_str].GetParError(1)) )
-                    g_leg.AddEntry( fit_left[g_str], 'left = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (fit_left[g_str].GetParameter(0), fit_left[g_str].GetParError(0), fit_left[g_str].GetParameter(1), fit_left[g_str].GetParError(1)) )
-                    g_leg.AddEntry( fit_right[g_str], 'right = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (fit_right[g_str].GetParameter(0), fit_right[g_str].GetParError(0), fit_right[g_str].GetParameter(1), fit_right[g_str].GetParError(1)) )
+                    # g_leg.AddEntry( fit_left[g_str], 'left = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (fit_left[g_str].GetParameter(0), fit_left[g_str].GetParError(0), fit_left[g_str].GetParameter(1), fit_left[g_str].GetParError(1)) )
+                    # g_leg.AddEntry( fit[g_str], 'middle = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (fit[g_str].GetParameter(0), fit[g_str].GetParError(0), fit[g_str].GetParameter(1), fit[g_str].GetParError(1)) )
+                    # g_leg.AddEntry( fit_right[g_str], 'right = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (fit_right[g_str].GetParameter(0), fit_right[g_str].GetParError(0), fit_right[g_str].GetParameter(1), fit_right[g_str].GetParError(1)) )
+                    # g_leg.AddEntry( fit[g_str], '\LARGE{y = %.2f + %.2f *d0 + %.2f * tanh(d0* %.2f)}' % (fit[g_str].GetParameter(0), fit[g_str].GetParameter(3), fit[g_str].GetParameter(1), fit[g_str].GetParameter(2)) )
+                    g_leg.AddEntry( fit[g_str], '\LARGE{y = %.2f + %.2f *d0}' % (fit[g_str].GetParameter(0), fit[g_str].GetParameter(1)) )
                     g_leg.Draw('same')
                     g_latex = R.TLatex()
                     g_latex.SetTextAlign(12)
                     g_latex.SetTextSize(0.04)
-                    g_latex.DrawLatex(0.001, 16, eta_str)
-                    g_canv.SaveAs('plots_fineBinned_fullD0Range_0p002_%s/png/histos/%s.png' % (YEAR, g_str))
+                    g_latex.DrawLatex(-0.01, 8, eta_str)
+                    g_canv.SaveAs('plots_DY_d0BS_linear_%s/png/histos/%s.png' % (YEAR, g_str))
                     
                     canv[c_str].cd()
                     if (iPt == 0):
                         # graph[g_str].GetXaxis().SetRangeUser(-0.06, 0.06)
                         graph[g_str].GetXaxis().SetLimits(-0.011, 0.011)
                         # graph[g_str].GetYaxis().SetRangeUser(min(data[g_str]['y'])*1.2, max(data[g_str]['y'])*1.2)
-                        graph[g_str].GetYaxis().SetRangeUser(-20, 20)
+                        # graph[g_str].GetYaxis().SetRangeUser(-20, 20)
+                        graph[g_str].GetYaxis().SetRangeUser(-15, 15)
                         # graph[g_str].GetYaxis().SetLimits(-5, 5)
                         graph[g_str].Draw('AP')
                     else:
@@ -332,7 +392,7 @@ def main():
                     latex = R.TLatex()
                     latex.SetTextAlign(12)
                     latex.SetTextSize(0.04)
-                    latex.DrawLatex(0.001, 16, eta_str)
+                    latex.DrawLatex(-0.01, 8, eta_str)
                     
                     
 
@@ -342,13 +402,13 @@ def main():
                 # f1 = fit[g_str+'_mu1']
                 # f2 = fit[g_str+'_mu2']
                 # f1 = fit[c_str]
-                f5 = fit['inclusive_'+c_str]
-                # f1 = fit['pt_20_35_'+c_str]
-                # f2 = fit['pt_35_42_'+c_str]
-                # f3 = fit['pt_42_50_'+c_str]
-                # f4 = fit['pt_50_inf_'+c_str]
+                # f5 = fit['inclusive_'+c_str]
+                # f1 = fit['nVtx_0_21_'+c_str]
+                # f2 = fit['nVtx_22_26_'+c_str]
+                # f3 = fit['nVtx_27_33_'+c_str]
+                # f4 = fit['nVtx_34_inf_'+c_str]
 
-                # par_file = R.TFile('plots_fineBinned_fullD0Range_0p002_%s/fit_param.txt' % YEAR, 'recreate')
+                # par_file = R.TFile('plots_DY_d0BS_linear_%s/fit_param.txt' % YEAR, 'recreate')
                 # par_file
 
 
@@ -359,14 +419,20 @@ def main():
                 # leg.AddEntry(graph[c_str+'_mu2'], 'Lower pT muon')
                 # leg.AddEntry( f1, '%.2f \pm %.2f + d0 * %.0f \pm %.0f' % (f1.GetParameter(0), f1.GetParError(0), f1.GetParameter(1), f1.GetParError(1)) )
                 # leg.AddEntry( f2, '%.2f \pm %.2f + d0 * %.0f \pm %.0f' % (f2.GetParameter(0), f2.GetParError(0), f2.GetParameter(1), f2.GetParError(1)) )
-                leg.AddEntry( f5, 'inclusive = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f5.GetParameter(0), f5.GetParError(0), f5.GetParameter(1), f5.GetParError(1)) )
-                # leg.AddEntry( f1, 'p_{T}=20-35 = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f1.GetParameter(0), f1.GetParError(0), f1.GetParameter(1), f1.GetParError(1)) )
-                # leg.AddEntry( f2, 'p_{T}=35-42 = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f2.GetParameter(0), f2.GetParError(0), f2.GetParameter(1), f2.GetParError(1)) )
-                # leg.AddEntry( f3, 'p_{T}=42-50 = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f3.GetParameter(0), f3.GetParError(0), f3.GetParameter(1), f3.GetParError(1)) )
-                # leg.AddEntry( f4, 'p_{T}=50-inf = %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f4.GetParameter(0), f4.GetParError(0), f4.GetParameter(1), f4.GetParError(1)) )
-                leg.Draw('same')
+                # leg.AddEntry( f5, 'inclusive: y = %.2f + %.2f *d0 + %.2f * tanh(d0* %.2f)' % (f5.GetParameter(0), f5.GetParameter(3), f5.GetParameter(1), f5.GetParameter(2)) )
+                # leg.AddEntry( f1, '0 <= nVtx <= 21: y = %.2f + %.2f *d0 + %.2f * tanh(d0* %.2f)' % (f1.GetParameter(0), f1.GetParameter(3), f1.GetParameter(1), f1.GetParameter(2)) )
+                # leg.AddEntry( f2, '22 <= nVtx <= 26: y = %.2f + %.2f *d0 + %.2f * tanh(d0* %.2f)' % (f2.GetParameter(0), f2.GetParameter(3), f2.GetParameter(1), f2.GetParameter(2)) )
+                # leg.AddEntry( f3, '27 <= nVtx <= 33: y = %.2f + %.2f *d0 + %.2f * tanh(d0* %.2f)' % (f3.GetParameter(0), f3.GetParameter(3), f3.GetParameter(1), f3.GetParameter(2)) )
+                # leg.AddEntry( f4, '34 <= nVtx: y = %.2f + %.2f *d0 + %.2f * tanh(d0* %.2f)' % (f4.GetParameter(0), f4.GetParameter(3), f4.GetParameter(1), f4.GetParameter(2)) )
 
-                canv[c_str].SaveAs('plots_fineBinned_fullD0Range_0p002_%s/png/%s.png' % (YEAR, c_str))
+                # leg.AddEntry( f5, 'inclusive: %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f5.GetParameter(0), f5.GetParError(0), f5.GetParameter(1), f5.GetParError(1)) )
+                # leg.AddEntry( f1, '0 <= nVtx <= 21: %.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f1.GetParameter(0), f1.GetParError(0), f1.GetParameter(1), f1.GetParError(1)) )
+                # leg.AddEntry( f2, '22 <= nVtx <= 26:%.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f2.GetParameter(0), f2.GetParError(0), f2.GetParameter(1), f2.GetParError(1)) )
+                # leg.AddEntry( f3, '27 <= nVtx <= 33:%.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f3.GetParameter(0), f3.GetParError(0), f3.GetParameter(1), f3.GetParError(1)) )
+                # leg.AddEntry( f4, '34 <= nVtx:%.2f \pm %.2f + d0 * %.2f \pm %.2f' % (f4.GetParameter(0), f4.GetParError(0), f4.GetParameter(1), f4.GetParError(1)) )
+                # leg.Draw('same')
+
+                canv[c_str].SaveAs('plots_DY_d0BS_linear_%s/png/%s.png' % (YEAR, c_str))
                 # canv[c_str].SaveAs('plots/pdf/%s.pdf' % c_str)
                 # canv[c_str].Write()
             #End loop for eta
