@@ -83,7 +83,7 @@ if USER == 'eyigitba': OUT_DIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Hi
 #LABEL = 'MassCal_KinRoch_approx/2D_muP_d0_muN_d0'
 #LABEL = 'ZH_lep_2019_08_14'
 #LABEL = 'WH_lep_AWB_2018_data_from_skim_AD'
-LABEL = 'MassCal_ptVsd0_2D_DY_beforeAfter'
+LABEL = 'MassCal_ptVsd0_2D_ttH_beforeAfter'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 # JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
@@ -103,8 +103,10 @@ SAMP_LIST = []  ## Leave [] empty to process multiple samples
 #SAMP_LIST = ['SingleMu_2018A', 'SingleMu_2018B', 'SingleMu_2018C', 'SingleMu_2018D', 'ZJets_MG_1'] #masscal study on 2018 data
 #SAMP_LIST = ['SingleMu_2017B', 'SingleMu_2017D', 'SingleMu_2017E', 'SingleMu_2017F', 'ZJets_AMC'] #masscal study on 2017 data
 #SAMP_LIST = ['SingleMu_2016B', 'SingleMu_2016C', 'SingleMu_2016D', 'SingleMu_2016E', 'SingleMu_2016F', 'SingleMu_2016G', 'SingleMu_2016H', 'ZJets_AMC'] #masscal study on 2016 data
-SAMP_LIST = ['ZJets_AMC']
+# SAMP_LIST = ['ZJets_AMC']
 #SAMP_LIST = ['ZJets_MG__1']
+# SAMP_LIST = ['H2Mu_ttH_125']
+SAMP_LIST = ['H2Mu_ttH']
 
 SYS_SHIFTS = ['noSys']
 # SYS_SHIFTS = ['noSys', 'JES_up', 'JES_down', 'PU_wgt_up', 'PU_wgt_down', 'IsoMu_SF_up', 'IsoMu_SF_down', 'LepMVA_SF_up', 'LepMVA_SF_down']
@@ -407,6 +409,7 @@ def main():
         in_files = [] ## List of input files with their size in MB
         ls_files = Popen(['ls', in_dir_name], stdout=PIPE)
         for subdir in ls_files.communicate()[0].split():
+            if subdir != '0000' : continue
             if VERBOSE: print '  * subdir = %s' % subdir
 
             if HADD_IN and 'NTuple' in subdir and '.root' in subdir:
