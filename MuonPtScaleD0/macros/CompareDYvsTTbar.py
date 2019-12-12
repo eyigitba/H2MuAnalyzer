@@ -23,22 +23,22 @@ import ROOT as R
 import ROOT.RooFit as RF
 R.gROOT.SetBatch(True)  ## Don't display histograms or canvases when drawn
 
-YEAR = '2016'
+# YEAR = '2016'
 # YEAR = '2017'
-# YEAR = '2018'
+YEAR = '2018'
 
 # Bugfix DY samples
 INDIR = '/afs/cern.ch/user/e/eyigitba/Hmm/CMSSW_9_4_13/src/H2MuAnalyzer/MuonPtScaleD0/plots_2D_DY_%s' %YEAR
 
 # ttbar samples
-INDIR_TT = '/afs/cern.ch/user/e/eyigitba/Hmm/CMSSW_9_4_13/src/H2MuAnalyzer/MuonPtScaleD0/plots_2D_ttbar_%s' %YEAR
+# INDIR_TT = '/afs/cern.ch/user/e/eyigitba/Hmm/CMSSW_9_4_13/src/H2MuAnalyzer/MuonPtScaleD0/plots_2D_ttbar_%s' %YEAR
 
 # ttH samples
-# INDIR_TT = '/afs/cern.ch/user/e/eyigitba/Hmm/CMSSW_9_4_13/src/H2MuAnalyzer/MuonPtScaleD0/plots_2D_ttH_%s' %YEAR
+INDIR_TT = '/afs/cern.ch/user/e/eyigitba/Hmm/CMSSW_9_4_13/src/H2MuAnalyzer/MuonPtScaleD0/plots_2D_ttH_%s' %YEAR
 
 INFILE = 'FindPeaks.root'
 
-OUTDIR = 'plots_DY_ttbar_final_%s' % YEAR
+OUTDIR = 'plots_DY_ttH_final_%s' % YEAR
 
 
 D0_BINS = 19
@@ -61,8 +61,8 @@ def main():
     canv = {}
     pad1 = {}
     pad2 = {}
-    h_1 = R.TH1F('h_1', 'h_1', 22, -0.011, 0.011)
-    h_2 = R.TH1F('h_2', 'h_2', 22, -0.011, 0.011)
+    h_1 = R.TH1F('h_1', 'h_1', 22, -0.012, 0.012)
+    h_2 = R.TH1F('h_2', 'h_2', 22, -0.012, 0.012)
 
     # for var in ['dPt',  'dRelPt2p0', 'dRelPt1p0']: #, 'dPhi', 'dEta']:  ## Variables plotted vs. RECO d0 * charge
     for var in ['dRelPt2p0']: #, 'dPhi', 'dEta']:  ## Variables plotted vs. RECO d0 * charge
@@ -157,10 +157,10 @@ def main():
                     # data['ratio']['xerr'][i] = data['nVtx_0_21_'+c_str]['xerr'][i]
                     # data['ratio']['y'][i] = data['nVtx_34_inf_'+c_str]['y'][i]/data['nVtx_0_21_'+c_str]['y'][i]
                     # data['ratio']['yerr'][i] = ((data['nVtx_34_inf_'+c_str]['yerr'][i]/data['nVtx_34_inf_'+c_str]['y'][i])+(data['nVtx_0_21_'+c_str]['yerr'][i]/data['nVtx_0_21_'+c_str]['y'][i]))*data['ratio']['y'][i]
-                    h_1.SetBinContent(i+2, y_1[i])
-                    h_1.SetBinError(i+2, yerr_1[i])
-                    h_2.SetBinContent(i+2, y_2[i])
-                    h_2.SetBinError(i+2, yerr_2[i])
+                    h_1.SetBinContent(i+3, y_1[i])
+                    h_1.SetBinError(i+3, yerr_1[i])
+                    h_2.SetBinContent(i+3, y_2[i])
+                    h_2.SetBinError(i+3, yerr_2[i])
                 
                 # pad1[c_str].cd()
                 # h_1.Draw('ep')
@@ -187,6 +187,7 @@ def main():
                 h_ratio.GetYaxis().SetLabelFont(43)
                 h_ratio.GetYaxis().SetLabelSize(15)
 
+                h_ratio.GetYaxis().SetTitle('d0_BS * muon charge')
                 h_ratio.GetXaxis().SetTitleSize(20)
                 h_ratio.GetXaxis().SetTitleFont(43)
                 h_ratio.GetXaxis().SetTitleOffset(4.)

@@ -115,6 +115,7 @@ def GetSamples(location = 'CERN', year = '2017'):
     ################
     ###  Signal  ###
     ################
+    # if (year == '2017'): mH = ''
 
     if (year == '2017'): mH = '_125'
     else:                mH = ''
@@ -130,7 +131,7 @@ def GetSamples(location = 'CERN', year = '2017'):
     else:                     ggH_gen = '_TuneCP5_PSweights_13TeV_amcatnloFXFX_pythia8'
 
     if (year == 'Leg2016'): VBF_gen = '_13TeV_powheg_pythia8'
-    else:                   VBF_gen = '_TuneCP5_PSweights_13TeV_amcatnlo_pythia8'
+    else:                   VBF_gen = '_13TeV_amcatnlo_pythia8'
 
     if (year == 'Leg2016'): ggH_str = 'GluGlu_HToMuMu_'
     else:                   ggH_str = 'GluGluHToMuMu_'
@@ -155,6 +156,8 @@ def GetSamples(location = 'CERN', year = '2017'):
 
 
     ## H2Mu_gg
+    if (year == '2017'):
+      samples.append( SampleInfo('H2Mu_gg', ggH_str+'M125'+ggH_gen, 0.009618, year, in_dir, 'Sig') )
     samples.append( SampleInfo('H2Mu_gg'+mH +ORD, ggH_str+'M125'+ggH_gen, 0.009618, year, in_dir, 'Sig') )
     samples.append( SampleInfo('H2Mu_gg_120'+ORD, ggH_str+'M120'+ggH_gen, 0.009618, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
     samples.append( SampleInfo('H2Mu_gg_130'+ORD, ggH_str+'M130'+ggH_gen, 0.009618, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
@@ -165,6 +168,7 @@ def GetSamples(location = 'CERN', year = '2017'):
         samples.append( SampleInfo('H2Mu_VBF_125_NLO_2', VBF_str+'HToMuMu_M125'+VBF_gen, 0.0008208, year, in_dir, 'Sig') )
         samples.append( SampleInfo('H2Mu_VBF_120_NLO_2', VBF_str+'HToMuMu_M120'+VBF_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
         samples.append( SampleInfo('H2Mu_VBF_130_NLO_2', VBF_str+'HToMuMu_M130'+VBF_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
+        samples.append( SampleInfo('H2Mu_VBF',           VBF_str+'HToMuMu_M125'+VBF_gen, 0.0008208, year, in_dir, 'Sig') )
     else:
         samples.append( SampleInfo('H2Mu_VBF'+mH,        VBF_str+'HToMuMu_M125'+VBF_gen, 0.0008208, year, in_dir, 'Sig') )
         samples.append( SampleInfo('H2Mu_VBF_120',       VBF_str+'HToMuMu_M120'+VBF_gen, 0.0008208, year, in_dir, 'Sig') ) ## Presumably incorrect? - AWB 16.09.2018
