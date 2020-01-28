@@ -41,14 +41,14 @@ const float SAMP_WGT = 1.0;
 const bool verbose = false; // Print extra information
 
 
-// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7/SingleMuon/SingleMu_2016B/190714_182320/0000/";
-const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/190714_182527/0000/";
+const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7/SingleMuon/SingleMu_2016B/190714_182320/0000/";
+// const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2016/94X_v3/prod-v16.0.7/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/190714_182527/0000/";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18-pre-tag/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/tt_ll_POW/190521_174438/0000/";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2018/102X/prod-v18-pre-tag/ttHToMuMu_M125_TuneCP5_PSweights_13TeV-powheg-pythia8/H2Mu_ttH_125/190521_173336/0000/";
-const TString SAMPLE   = "ZJets_AMC";
+// const TString SAMPLE   = "ZJets_AMC";
 // const TString SAMPLE   = "H2Mu_ttH_125";
 // const TString SAMPLE   = "tt_ll_POW";
-// const TString SAMPLE   = "SingleMu_2016B";
+const TString SAMPLE   = "SingleMu_2016B";
 // const TString IN_DIR   = "/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/data_2017_and_mc_fall17/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/180802_165055/0000";
 // const TString SAMPLE   = "ZJets_AMC";
 // const TString OUT_DIR  = "plots";
@@ -219,24 +219,24 @@ void d0VsPtStudies2D( TString sample = "", TString in_dir = "", TString out_dir 
     gen_vec.SetPtEtaPhiM(0,0,0,-999);
 
     // Z parent matching
-    // if (not isData) {
-    //   for (const auto & genPa : *br.genParents) {
-    //     if (genPa.ID != 23 or genPa.daughter_1_ID + genPa.daughter_2_ID != 0) continue;  // legit Z 
-    //     if (genPa.daughter_1_ID != 13 and genPa.daughter_1_ID != -13) continue;         // decays to dimuon
-    //     if (genPa.daughter_1_idx < 0 or genPa.daughter_2_idx < 0) continue;             // present in genMuons collection
-    //     TLorentzVector gen_vec1 = FourVec( br.genMuons->at(genPa.daughter_1_idx) );
-    //     genMu1 = br.genMuons->at(genPa.daughter_1_idx);
-    //     TLorentzVector gen_vec2 = FourVec( br.genMuons->at(genPa.daughter_2_idx) );
-    //     genMu2 = br.genMuons->at(genPa.daughter_2_idx);
-    //     if ( mu_vec1.DeltaR(gen_vec1)<0.05 and mu_vec2.DeltaR(gen_vec2)<0.05 ) gen_dimu = genPa;
-    //     else if ( mu_vec1.DeltaR(gen_vec2)<0.05 and mu_vec2.DeltaR(gen_vec1)<0.05 ) {
-    //       gen_dimu = genPa;
-    //       genMuDummy = genMu1;
-    //       genMu1 = genMu2;
-    //       genMu2 = genMuDummy;
-    //     }
-    //   }
-    // }
+    if (not isData) {
+      for (const auto & genPa : *br.genParents) {
+        if (genPa.ID != 23 or genPa.daughter_1_ID + genPa.daughter_2_ID != 0) continue;  // legit Z 
+        if (genPa.daughter_1_ID != 13 and genPa.daughter_1_ID != -13) continue;         // decays to dimuon
+        if (genPa.daughter_1_idx < 0 or genPa.daughter_2_idx < 0) continue;             // present in genMuons collection
+        TLorentzVector gen_vec1 = FourVec( br.genMuons->at(genPa.daughter_1_idx) );
+        genMu1 = br.genMuons->at(genPa.daughter_1_idx);
+        TLorentzVector gen_vec2 = FourVec( br.genMuons->at(genPa.daughter_2_idx) );
+        genMu2 = br.genMuons->at(genPa.daughter_2_idx);
+        if ( mu_vec1.DeltaR(gen_vec1)<0.05 and mu_vec2.DeltaR(gen_vec2)<0.05 ) gen_dimu = genPa;
+        else if ( mu_vec1.DeltaR(gen_vec2)<0.05 and mu_vec2.DeltaR(gen_vec1)<0.05 ) {
+          gen_dimu = genPa;
+          genMuDummy = genMu1;
+          genMu1 = genMu2;
+          genMu2 = genMuDummy;
+        }
+      }
+    }
 
     // H parent matching
     // if (not isData) {
@@ -259,17 +259,17 @@ void d0VsPtStudies2D( TString sample = "", TString in_dir = "", TString out_dir 
     // }
 
     // for ttbar MC samples W parent matching
-    if (not isData) {
-      for (const auto & genMuon : *br.genMuons) {
-        if (abs(genMuon.mother_ID != 24)) continue; // comes from legit W
-        gen_vec = FourVec( genMuon );
-        if ( abs(mu_vec1.DeltaR(gen_vec)) < 0.05 and genMuon.charge == mu1.charge) genMu1 = genMuon;
-        else if ( abs(mu_vec2.DeltaR(gen_vec)) < 0.05 and genMuon.charge == mu2.charge) genMu2 = genMuon;
-      }
-    }
+    // if (not isData) {
+    //   for (const auto & genMuon : *br.genMuons) {
+    //     if (abs(genMuon.mother_ID != 24)) continue; // comes from legit W
+    //     gen_vec = FourVec( genMuon );
+    //     if ( abs(mu_vec1.DeltaR(gen_vec)) < 0.05 and genMuon.charge == mu1.charge) genMu1 = genMuon;
+    //     else if ( abs(mu_vec2.DeltaR(gen_vec)) < 0.05 and genMuon.charge == mu2.charge) genMu2 = genMuon;
+    //   }
+    // }
 
-    if ( gen_vec.M() == -999 and not isData) continue;
-    // if ( gen_dimu.mass == -999 and not isData) continue;
+    // if ( gen_vec.M() == -999 and not isData) continue;
+    if ( gen_dimu.mass == -999 and not isData) continue;
 
     // gen match found
 
@@ -327,131 +327,97 @@ void d0VsPtStudies2D( TString sample = "", TString in_dir = "", TString out_dir 
         /////////////////////////////////
 
         // Muon pT plots first
-        for(int iMuon = 0; iMuon < 2; iMuon++){
-          MuonInfo mu;
-          GenMuonInfo genMu;
-          if (iMuon == 0) {
-            mu = mu1;
-            genMu = genMu1;
-          }
-          else{
-            mu = mu2;
-            genMu = genMu2;
-          }
-          TLorentzVector mu_vec = FourVec( mu, "PF" );
-          gen_vec = FourVec( genMu );
-          if (abs(mu_vec.DeltaR(gen_vec)) > 0.05) continue;
+        // for(int iMuon = 0; iMuon < 2; iMuon++){
+        //   MuonInfo mu;
+        //   GenMuonInfo genMu;
+        //   if (iMuon == 0) {
+        //     mu = mu1;
+        //     genMu = genMu1;
+        //   }
+        //   else{
+        //     mu = mu2;
+        //     genMu = genMu2;
+        //   }
+        //   TLorentzVector mu_vec = FourVec( mu, "PF" );
+        //   gen_vec = FourVec( genMu );
+        //   if (abs(mu_vec.DeltaR(gen_vec)) > 0.05) continue;
 
-          //See if muon passes the eta cuts
-          if (eta[0] <= fabs(mu.eta) && fabs(mu.eta) < eta[1]){
-            float mu_pt_KinRoch  = mu.pt_kinfit * mu.pt_Roch / mu.pt;
-            float mu_pt_KinKaMu  = mu.pt_kinfit * mu.pt_KaMu / mu.pt;
+        //   //See if muon passes the eta cuts
+        //   if (eta[0] <= fabs(mu.eta) && fabs(mu.eta) < eta[1]){
+        //     float mu_pt_KinRoch  = mu.pt_kinfit * mu.pt_Roch / mu.pt;
+        //     float mu_pt_KinKaMu  = mu.pt_kinfit * mu.pt_KaMu / mu.pt;
             
-            // Corrections derived from DY MC 
-            float mu_ptCorr = 0.0;
-            if ( fabs(mu.eta) < 0.9 ) {
-              if ( YEAR == "2016" ) mu_ptCorr = mu.pt_Roch - 411.343/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge ;
-              if ( YEAR == "2017" ) mu_ptCorr = mu.pt_Roch - 582.32/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge ;
-              if ( YEAR == "2018" ) mu_ptCorr = mu.pt_Roch - 650.839/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
-            if ( 0.9 < fabs(mu.eta) && fabs(mu.eta) < 1.7){
-              if ( YEAR == "2016" ) mu_ptCorr = mu.pt_Roch - 673.398/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2017" ) mu_ptCorr = mu.pt_Roch - 974.047/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2018" ) mu_ptCorr = mu.pt_Roch - 988.369/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
-            if ( 1.7 < fabs(mu.eta) ){
-              if ( YEAR == "2016" ) mu_ptCorr = mu.pt_Roch - 1098.984/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2017" ) mu_ptCorr = mu.pt_Roch - 1263.388/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2018" ) mu_ptCorr = mu.pt_Roch - 1484.616/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
+        //     // Corrections derived from DY MC 
+        //     float mu_ptCorr = 0.0;
+        //     if ( fabs(mu.eta) < 0.9 ) {
+        //       if ( YEAR == "2016" ) mu_ptCorr = mu.pt_Roch - 411.343/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge ;
+        //       if ( YEAR == "2017" ) mu_ptCorr = mu.pt_Roch - 582.32/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge ;
+        //       if ( YEAR == "2018" ) mu_ptCorr = mu.pt_Roch - 650.839/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
+        //     }
+        //     if ( 0.9 < fabs(mu.eta) && fabs(mu.eta) < 1.7){
+        //       if ( YEAR == "2016" ) mu_ptCorr = mu.pt_Roch - 673.398/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
+        //       if ( YEAR == "2017" ) mu_ptCorr = mu.pt_Roch - 974.047/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
+        //       if ( YEAR == "2018" ) mu_ptCorr = mu.pt_Roch - 988.369/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
+        //     }
+        //     if ( 1.7 < fabs(mu.eta) ){
+        //       if ( YEAR == "2016" ) mu_ptCorr = mu.pt_Roch - 1098.984/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
+        //       if ( YEAR == "2017" ) mu_ptCorr = mu.pt_Roch - 1263.388/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
+        //       if ( YEAR == "2018" ) mu_ptCorr = mu.pt_Roch - 1484.616/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
+        //     }
 
-            // Corrections derived from DY MC new
-            float mu_ptCorr_new = 0.0;
-            if ( fabs(mu.eta) < 0.9 ) {
-              if ( YEAR == "2016" ) mu_ptCorr_new = mu.pt_Roch - 410.15/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge ;
-              if ( YEAR == "2017" ) mu_ptCorr_new = mu.pt_Roch - 577.37/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge ;
-              if ( YEAR == "2018" ) mu_ptCorr_new = mu.pt_Roch - 635.59/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
-            if ( 0.9 < fabs(mu.eta) && fabs(mu.eta) < 1.7){
-              if ( YEAR == "2016" ) mu_ptCorr_new = mu.pt_Roch - 663.98/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2017" ) mu_ptCorr_new = mu.pt_Roch - 1004.36/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2018" ) mu_ptCorr_new = mu.pt_Roch - 993.38/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
-            if ( 1.7 < fabs(mu.eta) ){
-              if ( YEAR == "2016" ) mu_ptCorr_new = mu.pt_Roch - 1062.40/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2017" ) mu_ptCorr_new = mu.pt_Roch - 1243.40/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2018" ) mu_ptCorr_new = mu.pt_Roch - 1463.67/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
-
-            // Corrections derived from ttH MC 
-            float mu_ptCorr_ttH = 0.0;
-            if ( fabs(mu.eta) < 0.9 ) {
-              if ( YEAR == "2016" ) mu_ptCorr_ttH = mu.pt_Roch - 388.91/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge ;
-              if ( YEAR == "2017" ) mu_ptCorr_ttH = mu.pt_Roch - 557.02/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge ;
-              if ( YEAR == "2018" ) mu_ptCorr_ttH = mu.pt_Roch - 626.41/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
-            if ( 0.9 < fabs(mu.eta) && fabs(mu.eta) < 1.7){
-              if ( YEAR == "2016" ) mu_ptCorr_ttH = mu.pt_Roch - 499.54/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2017" ) mu_ptCorr_ttH = mu.pt_Roch - 768.05/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2018" ) mu_ptCorr_ttH = mu.pt_Roch - 964.92/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
-            if ( 1.7 < fabs(mu.eta) ){
-              if ( YEAR == "2016" ) mu_ptCorr_ttH = mu.pt_Roch - 772.44/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2017" ) mu_ptCorr_ttH = mu.pt_Roch - 1243.44/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-              if ( YEAR == "2018" ) mu_ptCorr_ttH = mu.pt_Roch - 1501.62/10000 * mu.pt_Roch * mu.pt_Roch * mu.d0_BS * mu.charge;
-            }
-            if (nVtx[0] <= nVertices && nVertices <= nVtx[1]){
+        //     if (nVtx[0] <= nVertices && nVertices <= nVtx[1]){
         
-              // BookAndFill( h_map_2D, h_pre+"dRelPt2p0_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dRelPt2p0_Roch_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"pt_Roch_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu.pt_Roch,event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dRelPt1p0_Roch_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu.pt_Roch      - genMu.pt) /(genMu.pt),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dPt_Roch_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu.pt_Roch      - genMu.pt),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dRelPt2p0_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       BookAndFill( h_map_2D, h_pre+"dRelPt2p0_Roch_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       BookAndFill( h_map_2D, h_pre+"dRelPt2p0_Roch_vs_d0_PV", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_PV*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"pt_Roch_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu.pt_Roch,event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dRelPt1p0_Roch_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu.pt_Roch      - genMu.pt) /(genMu.pt),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dPt_Roch_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu.pt_Roch      - genMu.pt),event_wgt );
               
-              BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu_ptCorr      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"pt_corr_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu_ptCorr,event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu_ptCorr      - genMu.pt) /(genMu.pt),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dPt_corr_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu_ptCorr      - genMu.pt),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu_ptCorr      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"pt_corr_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu_ptCorr,event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu_ptCorr      - genMu.pt) /(genMu.pt),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dPt_corr_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu_ptCorr      - genMu.pt),event_wgt );
               
-              BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_new_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu_ptCorr_new      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"pt_corr_new_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu_ptCorr_new,event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_new_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu_ptCorr_new      - genMu.pt) /(genMu.pt),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dPt_corr_new_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu_ptCorr_new      - genMu.pt),event_wgt );
-              
-
-              BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_ttH_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu_ptCorr_ttH      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"pt_corr_ttH_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu_ptCorr_ttH,event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_ttH_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu_ptCorr_ttH      - genMu.pt) /(genMu.pt),event_wgt );
-              BookAndFill( h_map_2D, h_pre+"dPt_corr_ttH_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu_ptCorr_ttH      - genMu.pt),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_new_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu_ptCorr_new      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"pt_corr_new_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu_ptCorr_new,event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_new_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu_ptCorr_new      - genMu.pt) /(genMu.pt),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dPt_corr_new_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu_ptCorr_new      - genMu.pt),event_wgt );
               
 
-              if (mu.pt_Roch < 100){
-                  BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu_ptCorr      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-                  BookAndFill( h_map_2D, h_pre+"pt_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu_ptCorr,event_wgt );
-                  BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu_ptCorr      - genMu.pt) /(genMu.pt),event_wgt );
-                  BookAndFill( h_map_2D, h_pre+"dPt_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu_ptCorr      - genMu.pt),event_wgt );
-              }
-              else{
-                  BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-                  BookAndFill( h_map_2D, h_pre+"pt_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu.pt_Roch,event_wgt );
-                  BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu.pt_Roch      - genMu.pt) /(genMu.pt),event_wgt );
-                  BookAndFill( h_map_2D, h_pre+"dPt_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu.pt_Roch      - genMu.pt),event_wgt );
-              }
+        //       // BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_ttH_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu_ptCorr_ttH      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"pt_corr_ttH_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu_ptCorr_ttH,event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_ttH_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu_ptCorr_ttH      - genMu.pt) /(genMu.pt),event_wgt );
+        //       // BookAndFill( h_map_2D, h_pre+"dPt_corr_ttH_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu_ptCorr_ttH      - genMu.pt),event_wgt );
+              
+
+        //       // if (mu.pt_Roch < 100){
+        //       //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu_ptCorr      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       //     BookAndFill( h_map_2D, h_pre+"pt_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu_ptCorr,event_wgt );
+        //       //     BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu_ptCorr      - genMu.pt) /(genMu.pt),event_wgt );
+        //       //     BookAndFill( h_map_2D, h_pre+"dPt_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu_ptCorr      - genMu.pt),event_wgt );
+        //       // }
+        //       // else{
+        //       //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       //     BookAndFill( h_map_2D, h_pre+"pt_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    15, 300, mu.d0_BS*mu.charge, mu.pt_Roch,event_wgt );
+        //       //     BookAndFill( h_map_2D, h_pre+"dRelPt1p0_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, 100*(mu.pt_Roch      - genMu.pt) /(genMu.pt),event_wgt );
+        //       //     BookAndFill( h_map_2D, h_pre+"dPt_corr_lowPt_vs_d0_BS", 400, -0.01,  0.01, 4000,    -100, 100, mu.d0_BS*mu.charge, (mu.pt_Roch      - genMu.pt),event_wgt );
+        //       // }
 
 
-              // if (mu.charge > 0){
-              //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_Roch_vs_d0_BS_muP", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-              //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_KinRoch_vs_d0_BS_muP", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge,  10000*(mu_pt_KinRoch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       // if (mu.charge > 0){
+        //       //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_Roch_vs_d0_BS_muP", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_KinRoch_vs_d0_BS_muP", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge,  10000*(mu_pt_KinRoch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
 
-              // }
-              // else if (mu.charge < 0){
-              //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_Roch_vs_d0_BS_muN", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
-              //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_KinRoch_vs_d0_BS_muN", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge,  10000*(mu_pt_KinRoch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       // }
+        //       // else if (mu.charge < 0){
+        //       //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_Roch_vs_d0_BS_muN", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge, 10000*(mu.pt_Roch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
+        //       //     BookAndFill( h_map_2D, h_pre+"dRelPt2p0_KinRoch_vs_d0_BS_muN", 400, -0.01,  0.01, 4000,    -40, 40, mu.d0_BS*mu.charge,  10000*(mu_pt_KinRoch      - genMu.pt) / pow(genMu.pt, 2.0),event_wgt );
 
-              // }
-            }
-          } // End eta cuts
-        }// End iMuon loop 
+        //       // }
+        //     }
+        //   } // End eta cuts
+        // }// End iMuon loop 
 
         // Dimuon mass plots
         if (ETA_CUTS.at(iEta).find("eta_inc") != string::npos){
@@ -489,76 +455,7 @@ void d0VsPtStudies2D( TString sample = "", TString in_dir = "", TString out_dir 
             if ( YEAR == "2017" ) mu2_ptCorr = mu2.pt_Roch - 1484.616/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
             if ( YEAR == "2018" ) mu2_ptCorr = mu2.pt_Roch - 1263.388/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
           }
-          
-          // Corrections derived from DY MC new
-          float mu1_ptCorr_new = 0.0;
-          float mu2_ptCorr_new = 0.0;
-          if ( fabs(mu1.eta) < 0.9 ) {
-            if ( YEAR == "2016" ) mu1_ptCorr_new = mu1.pt_Roch - 410.15/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge ;
-            if ( YEAR == "2017" ) mu1_ptCorr_new = mu1.pt_Roch - 577.37/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge ;
-            if ( YEAR == "2018" ) mu1_ptCorr_new = mu1.pt_Roch - 635.59/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-          }
-          if ( 0.9 <= fabs(mu1.eta) && fabs(mu1.eta) < 1.7){
-            if ( YEAR == "2016" ) mu1_ptCorr_new = mu1.pt_Roch - 663.98/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-            if ( YEAR == "2017" ) mu1_ptCorr_new = mu1.pt_Roch - 1004.36/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-            if ( YEAR == "2018" ) mu1_ptCorr_new = mu1.pt_Roch - 993.38/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-          }
-          if ( 1.7 <= fabs(mu1.eta) ){
-            if ( YEAR == "2016" ) mu1_ptCorr_new = mu1.pt_Roch - 1062.40/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-            if ( YEAR == "2017" ) mu1_ptCorr_new = mu1.pt_Roch - 1243.40/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-            if ( YEAR == "2018" ) mu1_ptCorr_new = mu1.pt_Roch - 1463.67/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-          }
 
-          if ( fabs(mu2.eta) < 0.9 ) {
-            if ( YEAR == "2016" ) mu2_ptCorr_new = mu2.pt_Roch - 410.15/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge ;
-            if ( YEAR == "2017" ) mu2_ptCorr_new = mu2.pt_Roch - 577.37/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge ;
-            if ( YEAR == "2018" ) mu2_ptCorr_new = mu2.pt_Roch - 635.59/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-          }
-          if ( 0.9 <= fabs(mu2.eta) && fabs(mu2.eta) < 1.7){
-            if ( YEAR == "2016" ) mu2_ptCorr_new = mu2.pt_Roch - 663.98/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-            if ( YEAR == "2017" ) mu2_ptCorr_new = mu2.pt_Roch - 1004.36/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-            if ( YEAR == "2018" ) mu2_ptCorr_new = mu2.pt_Roch - 993.38/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-          }
-          if ( 1.7 <= fabs(mu2.eta) ){
-            if ( YEAR == "2016" ) mu2_ptCorr_new = mu2.pt_Roch - 1062.40/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-            if ( YEAR == "2017" ) mu2_ptCorr_new = mu2.pt_Roch - 1243.40/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-            if ( YEAR == "2018" ) mu2_ptCorr_new = mu2.pt_Roch - 1463.67/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-          }
-
-          // Corrections derived from ttH MC 
-          float mu1_ptCorr_ttH = 0.0;
-          float mu2_ptCorr_ttH = 0.0;
-          if ( fabs(mu1.eta) < 0.9 ) {
-            if ( YEAR == "2016" ) mu1_ptCorr_ttH = mu1.pt_Roch - 388.91/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge ;
-            if ( YEAR == "2017" ) mu1_ptCorr_ttH = mu1.pt_Roch - 557.02/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge ;
-            if ( YEAR == "2018" ) mu1_ptCorr_ttH = mu1.pt_Roch - 626.41/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-          }
-          if ( 0.9 <= fabs(mu1.eta) && fabs(mu1.eta) < 1.7){
-            if ( YEAR == "2016" ) mu1_ptCorr_ttH = mu1.pt_Roch - 499.54/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-            if ( YEAR == "2017" ) mu1_ptCorr_ttH = mu1.pt_Roch - 768.05/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-            if ( YEAR == "2018" ) mu1_ptCorr_ttH = mu1.pt_Roch - 964.92/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-          }
-          if ( 1.7 <= fabs(mu1.eta) ){
-            if ( YEAR == "2016" ) mu1_ptCorr_ttH = mu1.pt_Roch - 772.44/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-            if ( YEAR == "2017" ) mu1_ptCorr_ttH = mu1.pt_Roch - 1243.44/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-            if ( YEAR == "2018" ) mu1_ptCorr_ttH = mu1.pt_Roch - 1501.62/10000 * mu1.pt_Roch * mu1.pt_Roch * mu1.d0_BS * mu1.charge;
-          }  
-          
-          if ( fabs(mu2.eta) < 0.9 ) {
-            if ( YEAR == "2016" ) mu2_ptCorr_ttH = mu2.pt_Roch - 388.91/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge ;
-            if ( YEAR == "2017" ) mu2_ptCorr_ttH = mu2.pt_Roch - 557.02/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge ;
-            if ( YEAR == "2018" ) mu2_ptCorr_ttH = mu2.pt_Roch - 626.41/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-          }
-          if ( 0.9 <= fabs(mu2.eta) && fabs(mu2.eta) < 1.7){
-            if ( YEAR == "2016" ) mu2_ptCorr_ttH = mu2.pt_Roch - 499.54/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-            if ( YEAR == "2017" ) mu2_ptCorr_ttH = mu2.pt_Roch - 768.05/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-            if ( YEAR == "2018" ) mu2_ptCorr_ttH = mu2.pt_Roch - 964.92/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-          }
-          if ( 1.7 <= fabs(mu2.eta) ){
-            if ( YEAR == "2016" ) mu2_ptCorr_ttH = mu2.pt_Roch - 772.44/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-            if ( YEAR == "2017" ) mu2_ptCorr_ttH = mu2.pt_Roch - 1243.44/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-            if ( YEAR == "2018" ) mu2_ptCorr_ttH = mu2.pt_Roch - 1501.62/10000 * mu2.pt_Roch * mu2.pt_Roch * mu2.d0_BS * mu2.charge;
-          } 
 
           TLorentzVector mu1_vec_Roch, mu2_vec_Roch, mu1_vec_corr, mu2_vec_corr, mu1_vec_corr_new, mu2_vec_corr_new, mu1_vec_corr_ttH, mu2_vec_corr_ttH;
           TLorentzVector dimu_vec_Roch, dimu_vec_corr, dimu_vec_corr_new, dimu_vec_corr_ttH, dimu_vec_corr_lowPt, dimu_vec_corr_tail, dimu_vec_corr_core;
@@ -571,43 +468,45 @@ void d0VsPtStudies2D( TString sample = "", TString in_dir = "", TString out_dir 
           mu2_vec_corr.SetPtEtaPhiM(mu2_ptCorr,mu2.eta,mu2.phi,0.105658367);
           dimu_vec_corr = mu1_vec_corr + mu2_vec_corr;
 
-          mu1_vec_corr_new.SetPtEtaPhiM(mu1_ptCorr_new,mu1.eta,mu1.phi,0.105658367);
-          mu2_vec_corr_new.SetPtEtaPhiM(mu2_ptCorr_new,mu2.eta,mu2.phi,0.105658367);
-          dimu_vec_corr_new = mu1_vec_corr_new + mu2_vec_corr_new;
+          BookAndFill( h_map_2D, h_pre+"dimu_mass_Roch_vs_d0_BS", 400, -0.01,  0.01, 40,    80, 100, mu1.d0_BS*mu1.charge+mu2.d0_BS*mu2.charge, dimu_vec_Roch.M(),event_wgt );
+          BookAndFill( h_map_2D, h_pre+"dimu_mass_corr_vs_d0_BS", 400, -0.01,  0.01, 40,    80, 100, mu1.d0_BS*mu1.charge+mu2.d0_BS*mu2.charge, dimu_vec_corr.M(),event_wgt );
 
-          mu1_vec_corr_ttH.SetPtEtaPhiM(mu1_ptCorr_ttH,mu1.eta,mu1.phi,0.105658367);
-          mu2_vec_corr_ttH.SetPtEtaPhiM(mu2_ptCorr_ttH,mu2.eta,mu2.phi,0.105658367);
-          dimu_vec_corr_ttH = mu1_vec_corr_ttH + mu2_vec_corr_ttH;
+          float mu_d0_BS = 0;
+          if (mu1.charge > 0) mu_d0_BS = mu1.d0_BS;
+          else mu_d0_BS = mu2.d0_BS;
+          BookAndFill( h_map_2D, h_pre+"dimu_mass_Roch_vs_d0_BS_muP", 400, -0.01,  0.01, 40,    80, 100, mu_d0_BS, dimu_vec_Roch.M(),event_wgt );
+          BookAndFill( h_map_2D, h_pre+"dimu_mass_corr_vs_d0_BS_muP", 400, -0.01,  0.01, 40,    80, 100, mu_d0_BS, dimu_vec_corr.M(),event_wgt );
 
-          if      ( mu1.pt_Roch <  100 && mu2.pt_Roch <  100 ) dimu_vec_corr_lowPt = mu1_vec_corr + mu2_vec_corr; 
-          else if ( mu1.pt_Roch <  100 && mu2.pt_Roch >= 100 ) dimu_vec_corr_lowPt = mu1_vec_corr + mu2_vec_Roch; 
-          else if ( mu1.pt_Roch >= 100 && mu2.pt_Roch <  100 ) dimu_vec_corr_lowPt = mu1_vec_Roch + mu2_vec_corr; 
-          else                                                 dimu_vec_corr_lowPt = mu1_vec_Roch + mu2_vec_Roch;
+        
+          // if      ( mu1.pt_Roch <  100 && mu2.pt_Roch <  100 ) dimu_vec_corr_lowPt = mu1_vec_corr + mu2_vec_corr; 
+          // else if ( mu1.pt_Roch <  100 && mu2.pt_Roch >= 100 ) dimu_vec_corr_lowPt = mu1_vec_corr + mu2_vec_Roch; 
+          // else if ( mu1.pt_Roch >= 100 && mu2.pt_Roch <  100 ) dimu_vec_corr_lowPt = mu1_vec_Roch + mu2_vec_corr; 
+          // else                                                 dimu_vec_corr_lowPt = mu1_vec_Roch + mu2_vec_Roch;
 
-          if      ( abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004 ) dimu_vec_corr_core = mu1_vec_corr + mu2_vec_corr; 
-          else if ( abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) >= 0.004 ) dimu_vec_corr_core = mu1_vec_corr + mu2_vec_Roch; 
-          else if ( abs(mu1.d0_BS * mu1.charge) >= 0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004 ) dimu_vec_corr_core = mu1_vec_Roch + mu2_vec_corr; 
-          else                                                                                     dimu_vec_corr_core = mu1_vec_Roch + mu2_vec_Roch;
+          // if      ( abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004 ) dimu_vec_corr_core = mu1_vec_corr + mu2_vec_corr; 
+          // else if ( abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) >= 0.004 ) dimu_vec_corr_core = mu1_vec_corr + mu2_vec_Roch; 
+          // else if ( abs(mu1.d0_BS * mu1.charge) >= 0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004 ) dimu_vec_corr_core = mu1_vec_Roch + mu2_vec_corr; 
+          // else                                                                                     dimu_vec_corr_core = mu1_vec_Roch + mu2_vec_Roch;
 
-          if      ( abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004 ) dimu_vec_corr_tail = mu1_vec_Roch + mu2_vec_Roch; 
-          else if ( abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) >= 0.004 ) dimu_vec_corr_tail = mu1_vec_Roch + mu2_vec_corr; 
-          else if ( abs(mu1.d0_BS * mu1.charge) >= 0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004 ) dimu_vec_corr_tail = mu1_vec_corr + mu2_vec_Roch; 
-          else                                                                                     dimu_vec_corr_tail = mu1_vec_corr + mu2_vec_corr;
+          // if      ( abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004 ) dimu_vec_corr_tail = mu1_vec_Roch + mu2_vec_Roch; 
+          // else if ( abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) >= 0.004 ) dimu_vec_corr_tail = mu1_vec_Roch + mu2_vec_corr; 
+          // else if ( abs(mu1.d0_BS * mu1.charge) >= 0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004 ) dimu_vec_corr_tail = mu1_vec_corr + mu2_vec_Roch; 
+          // else                                                                                     dimu_vec_corr_tail = mu1_vec_corr + mu2_vec_corr;
 
-          BookAndFill( h_map_1D, h_pre+"dimu_mass_Roch", 4000,    20, 200, dimu_vec_Roch.M(),event_wgt );
-          BookAndFill( h_map_1D, h_pre+"dimu_mass_corr", 4000,    20, 200, dimu_vec_corr.M(),event_wgt );
-          BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_new", 4000,    20, 200, dimu_vec_corr_new.M(),event_wgt );
-          BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_ttH", 4000,    20, 200, dimu_vec_corr_ttH.M(),event_wgt );
-          BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_lowPt", 4000,    20, 200, dimu_vec_corr_lowPt.M(),event_wgt );
-          BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_core", 4000,    20, 200, dimu_vec_corr_core.M(),event_wgt );
-          BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_tail", 4000,    20, 200, dimu_vec_corr_tail.M(),event_wgt );
+          // BookAndFill( h_map_1D, h_pre+"dimu_mass_Roch", 4000,    20, 200, dimu_vec_Roch.M(),event_wgt );
+          // BookAndFill( h_map_1D, h_pre+"dimu_mass_corr", 4000,    20, 200, dimu_vec_corr.M(),event_wgt );
+          // BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_new", 4000,    20, 200, dimu_vec_corr_new.M(),event_wgt );
+          // BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_ttH", 4000,    20, 200, dimu_vec_corr_ttH.M(),event_wgt );
+          // BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_lowPt", 4000,    20, 200, dimu_vec_corr_lowPt.M(),event_wgt );
+          // BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_core", 4000,    20, 200, dimu_vec_corr_core.M(),event_wgt );
+          // BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_tail", 4000,    20, 200, dimu_vec_corr_tail.M(),event_wgt );
 
-          if (abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004){
-            BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_coreOnly", 4000,    20, 200, dimu_vec_corr.M(),event_wgt );
-          }
-          else{
-            BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_tailOnly", 4000,    20, 200, dimu_vec_corr.M(),event_wgt );
-          }
+          // if (abs(mu1.d0_BS * mu1.charge) <  0.004 && abs(mu2.d0_BS * mu2.charge) <  0.004){
+          //   BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_coreOnly", 4000,    20, 200, dimu_vec_corr.M(),event_wgt );
+          // }
+          // else{
+          //   BookAndFill( h_map_1D, h_pre+"dimu_mass_corr_tailOnly", 4000,    20, 200, dimu_vec_corr.M(),event_wgt );
+          // }
         }
       } // End iEta loop
     } // End iCat loop

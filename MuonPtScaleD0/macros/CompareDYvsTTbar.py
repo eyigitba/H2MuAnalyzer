@@ -38,7 +38,7 @@ INDIR_TT = '/afs/cern.ch/user/e/eyigitba/Hmm/CMSSW_9_4_13/src/H2MuAnalyzer/MuonP
 
 INFILE = 'FindPeaks.root'
 
-OUTDIR = 'plots_DY_ttH_final_%s' % YEAR
+OUTDIR = 'plots_DY_ttH_AN_%s' % YEAR
 
 
 D0_BINS = 19
@@ -83,13 +83,13 @@ def main():
             for eta in ['eta_0_0p9', 'eta_0p9_1p7', 'eta_1p7_inf', 'eta_inc']: # |eta| binned
                 c_str = eta + '_' + p_str 
                 ## Canvas for the graphs of peak vs. d0
-                canv[c_str] = R.TCanvas(c_str, c_str, 1600, 1200)
-                pad1[c_str] = R.TPad(c_str+'_1', c_str+'_1', 0, 0.3, 1, 1.0)
+                canv[c_str] = R.TCanvas(c_str, c_str, 1200, 1200)
+                pad1[c_str] = R.TPad(c_str+'_1', c_str+'_1', 0, 0.31, 1, 1.0)
                 pad2[c_str] = R.TPad(c_str+'_2', c_str+'_2', 0, 0.05, 1, 0.3)
 
-                pad1[c_str].SetBottomMargin(0)
+                pad1[c_str].SetBottomMargin(0.02)
                 pad1[c_str].Draw()
-                pad2[c_str].SetTopMargin(0);
+                pad2[c_str].SetTopMargin(0.02);
                 pad2[c_str].SetBottomMargin(0.2);
                 pad2[c_str].Draw();
                 iPt = -1
@@ -117,7 +117,11 @@ def main():
                     graph_tt.GetFunction('f_'+g_str).SetLineColor(2)
 
                     pad1[c_str].cd()
+                    graph_DY.SetTitle('')
                     graph_DY.GetYaxis().SetRangeUser(-15, 15)
+                    graph_DY.GetYaxis().SetTitleOffset(1.1)
+                    graph_DY.GetXaxis().SetLabelSize(0)
+                    graph_DY.GetXaxis().SetTitle('d0_{BS} (cm) #times charge')
 
                     graph_DY.Draw('AP')
                     graph_tt.Draw('Psame')
@@ -136,14 +140,21 @@ def main():
                     fit_tt = graph_tt.GetFunction('f_' + g_str)
                     g_leg = R.TLegend(0.12,0.76,0.72,0.88)
                     g_leg.AddEntry( graph_DY, 'DY : y = %.2f + %.2f \pm %.2f *d0' % (fit_DY.GetParameter(0), fit_DY.GetParameter(1), fit_DY.GetParError(1)), 'LAP' )
-                    g_leg.AddEntry( graph_tt, 'ttbar : y = %.2f + %.2f \pm %.2f *d0' % (fit_tt.GetParameter(0), fit_tt.GetParameter(1), fit_tt.GetParError(1)), 'LAP' )
+                    g_leg.AddEntry( graph_tt, 'ttH : y = %.2f + %.2f \pm %.2f *d0' % (fit_tt.GetParameter(0), fit_tt.GetParameter(1), fit_tt.GetParError(1)), 'LAP' )
                     # g_leg.AddEntry( graph_DY, 'DY sample', 'LAP'  )
                     # g_leg.AddEntry( graph_tt, 'ttbar sample' , 'LAP' )
                     g_leg.Draw('same')
                     g_latex = R.TLatex()
-                    g_latex.SetTextAlign(12)
+                    g_latex.SetTextAlign(10)
                     g_latex.SetTextSize(0.04)
-                    g_latex.DrawLatex(-0.01, 8, eta_str)
+                    g_latex.DrawLatex(-0.01, 8, '#font[42]{%s}' % eta_str)
+
+                    cms_latex = R.TLatex()
+                    cms_latex.SetTextAlign(11)
+                    cms_latex.SetTextSize(0.03)
+                    cms_latex.DrawLatexNDC(0.11, 0.93, '#scale[1.5]{CMS}')
+                    cms_latex.DrawLatexNDC(0.18, 0.93,'#font[52]{#scale[1.2]{preliminary simulation}}')
+                    cms_latex.DrawLatexNDC(0.84, 0.93,'#scale[1.3]{%s}' % YEAR)
                   
                 # End loop for pt
 
@@ -180,19 +191,20 @@ def main():
                 h_ratio.Divide(h_2)
 
                 h_ratio.GetYaxis().SetTitle('Ratio')
+                h_ratio.GetYaxis().CenterTitle(1)
                 h_ratio.GetYaxis().SetNdivisions(505)
-                h_ratio.GetYaxis().SetTitleSize(20)
+                h_ratio.GetYaxis().SetTitleSize(40)
                 h_ratio.GetYaxis().SetTitleFont(43)
-                h_ratio.GetYaxis().SetTitleOffset(1.55)
+                h_ratio.GetYaxis().SetTitleOffset(1.1)
                 h_ratio.GetYaxis().SetLabelFont(43)
-                h_ratio.GetYaxis().SetLabelSize(15)
+                h_ratio.GetYaxis().SetLabelSize(25)
 
-                h_ratio.GetYaxis().SetTitle('d0_BS * muon charge')
-                h_ratio.GetXaxis().SetTitleSize(20)
+                h_ratio.GetXaxis().SetTitle('d0_{BS} (cm) * charge')
+                h_ratio.GetXaxis().SetTitleSize(30)
                 h_ratio.GetXaxis().SetTitleFont(43)
-                h_ratio.GetXaxis().SetTitleOffset(4.)
+                h_ratio.GetXaxis().SetTitleOffset(3.2)
                 h_ratio.GetXaxis().SetLabelFont(43)
-                h_ratio.GetXaxis().SetLabelSize(15)
+                h_ratio.GetXaxis().SetLabelSize(25)
                 # h_ratio.SetMarkerStyle(21)
                 # r = R.TGraphErrors(len(data['ratio']['x']), data['ratio']['x'], data['ratio']['y'], data['ratio']['xerr'], data['ratio']['yerr'])
                 # r.SetLineColor(1)
@@ -202,6 +214,7 @@ def main():
                 # canv[c_str].SaveAs('%s/png/%s.png' % (OUTDIR, c_str))
 
                 canv[c_str].SaveAs('%s/%s.png' % (OUTDIR, c_str))
+                canv[c_str].SaveAs('%s/%s.pdf' % (OUTDIR, c_str))
             #End loop for eta
         ## End loop: for corr in ['PF', 'Roch']:
     ## End loop: for var in ['dPt', 'dRelPt', 'dRelPt2', 'dPhi']:

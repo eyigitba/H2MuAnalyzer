@@ -51,12 +51,12 @@ LOC  = 'CERN'
 #LOC  = 'CERN_lepMVA_test_v2'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
 # LOC  = 'CERN_lepMVA_test_v2_hiM'  ## Location of input files ('CERN', 'CERN_hiM', or 'UF', or 'CERN_lepMVA_test_v1')
 #LOC  = 'CERN_lepMVA_3l_test_v1'
-# YEAR = '2016'  ## Dataset year (2016, 2017, or 2018)
+YEAR = '2016'  ## Dataset year (2016, 2017, or 2018)
 # YEAR = '2017'  ## Dataset year (2016, 2017, or 2018)
-YEAR = '2018'  ## Dataset year (2016, 2017, or 2018)
-# LUMI = 36814   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+# YEAR = '2018'  ## Dataset year (2016, 2017, or 2018)
+LUMI = 36814   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
 # LUMI = 41500   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
-LUMI = 59100   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
+# LUMI = 59100   ## 36814 for 2016, 41500 for 2017, 59100 for 2018
 
 ## Override default sample location from SampleDatabase.py (use IN_DIR = '' to keep default)
 #IN_DIR  = '/eos/cms/store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/2017/94X_v2/2019_01_14_LepMVA_2l_hiM_test_v2'
@@ -83,7 +83,7 @@ if USER == 'eyigitba': OUT_DIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Hi
 #LABEL = 'MassCal_KinRoch_approx/2D_muP_d0_muN_d0'
 #LABEL = 'ZH_lep_2019_08_14'
 #LABEL = 'WH_lep_AWB_2018_data_from_skim_AD'
-LABEL = 'MassCal_ptVsd0_2D_ttbar_beforeAfter_withMass'
+LABEL = 'MassCal_dimu_mass_2D_DY_withData'
 
 NJOBS   =   -1  ## Maximum number of jobs to generate
 # JOBSIZE = 1000  ## Size of input NTuples in MB, per job (default 1000)
@@ -102,14 +102,14 @@ SAMP_LIST = []  ## Leave [] empty to process multiple samples
 
 #SAMP_LIST = ['SingleMu_2018A', 'SingleMu_2018B', 'SingleMu_2018C', 'SingleMu_2018D', 'ZJets_MG_1'] #masscal study on 2018 data
 #SAMP_LIST = ['SingleMu_2017B', 'SingleMu_2017D', 'SingleMu_2017E', 'SingleMu_2017F', 'ZJets_AMC'] #masscal study on 2017 data
-#SAMP_LIST = ['SingleMu_2016B', 'SingleMu_2016C', 'SingleMu_2016D', 'SingleMu_2016E', 'SingleMu_2016F', 'SingleMu_2016G', 'SingleMu_2016H', 'ZJets_AMC'] #masscal study on 2016 data
+SAMP_LIST = ['SingleMu_2016B', 'SingleMu_2016C', 'SingleMu_2016D', 'SingleMu_2016E', 'SingleMu_2016F', 'SingleMu_2016G', 'SingleMu_2016H', 'ZJets_AMC'] #masscal study on 2016 data
 # SAMP_LIST = ['ZJets_AMC']
 # SAMP_LIST = ['ZJets_MG_1']
 # SAMP_LIST = ['H2Mu_ttH_125']
 # SAMP_LIST = ['H2Mu_ttH']
 # SAMP_LIST = ['H2Mu_gg']
 # SAMP_LIST = ['H2Mu_VBF']
-SAMP_LIST = ['tt_ll_AMC', 'tt_ll_POW']
+# SAMP_LIST = ['tt_ll_AMC', 'tt_ll_POW']
 
 SYS_SHIFTS = ['noSys']
 # SYS_SHIFTS = ['noSys', 'JES_up', 'JES_down', 'PU_wgt_up', 'PU_wgt_down', 'IsoMu_SF_up', 'IsoMu_SF_down', 'LepMVA_SF_up', 'LepMVA_SF_down']

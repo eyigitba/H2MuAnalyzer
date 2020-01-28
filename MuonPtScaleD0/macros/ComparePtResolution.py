@@ -36,19 +36,23 @@ YEAR = '2018'
 # INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_ttH_beforeAfter_withMass/files/HADD/' % YEAR
 
 # 2D ggH samples
-INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_ggH_beforeAfter_withMass/files/HADD/' % YEAR
+# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_ggH_beforeAfter_withMass/files/HADD/' % YEAR
 
 # 2D VBF samples
 # INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_VBF_beforeAfter_withMass/files/HADD/' % YEAR
+
+# 2D ttbar samples
+INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_ttbar_beforeAfter_withMass/files/HADD/' % YEAR
 
 
 # INFILE = 'histos_ZJets_hadd.root'
 # INFILE = 'histos_ttbar_hadd.root'
 # INFILE = 'histos_ttH_hadd.root'
-INFILE = 'histos_ggH_hadd.root'
+# INFILE = 'histos_ggH_hadd.root'
 # INFILE = 'histos_VBF_hadd.root'
+INFILE = 'histos_ttbar_hadd.root'
 
-OUTDIR = 'plots_ggH_pT_resolution_%s' % YEAR
+OUTDIR = 'plots_ttbar_pT_resolution_%s' % YEAR
 
 D0_BINS = 19
 

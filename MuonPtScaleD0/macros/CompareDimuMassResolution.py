@@ -36,16 +36,20 @@ YEAR = '2018'
 # INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_ttH_beforeAfter_withMass/files/HADD/' % YEAR
 
 # 2D ggH samples
-INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_ggH_beforeAfter_withMass/files/HADD/' % YEAR
+# INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_ggH_beforeAfter_withMass/files/HADD/' % YEAR
+
+# 2D ttbar samples
+INDIR = '/afs/cern.ch/work/e/eyigitba/public/H2Mu/%s/Histograms/MassCal_ptVsd0_2D_ttbar_beforeAfter_withMass/files/HADD/' % YEAR
 
 
 # INFILE = 'histos_ZJets_hadd.root'
 # INFILE = 'histos_ttbar_hadd.root'
 # INFILE = 'histos_ttH_hadd.root'
-INFILE = 'histos_ggH_hadd.root'
+# INFILE = 'histos_ggH_hadd.root'
 # INFILE = 'histos_VBF_hadd.root'
+INFILE = 'histos_ttbar_hadd.root'
 
-OUTDIR = 'plots_ggH_mass_resolution_%s' % YEAR
+OUTDIR = 'plots_ttbar_mass_resolution_%s' % YEAR
 
 ## Main function executed by ./macros/FindPeaks.py
 def main():
@@ -110,6 +114,9 @@ def main():
                     if INFILE == 'histos_ZJets_hadd.root' :
                         h.GetXaxis().SetRangeUser(86.2,96.2)
                         h_base.GetXaxis().SetRangeUser(86.2,96.2)
+                    elif INFILE == 'histos_ttbar_hadd.root':
+                        h.GetXaxis().SetRangeUser(50,150)
+                        h_base.GetXaxis().SetRangeUser(50,150)
                     else :
                         h.GetXaxis().SetRangeUser(121.2,128.4)
                         h_base.GetXaxis().SetRangeUser(121.2,128.4)
@@ -145,6 +152,8 @@ def main():
                         sample_str = 'ttH'
                     elif INFILE == 'histos_VBF_hadd.root':
                         sample_str = 'VBF'
+                    elif INFILE == 'histos_ttbar_hadd.root':
+                        sample_str = 'ttbar'
 
                     h.SetName('%s' % corr_str)
                     h_base.SetName('Baseline')

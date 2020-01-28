@@ -33,7 +33,7 @@ INFILE = 'histos_ZJets_hadd.root'
 # INFILE = 'histos_ttbar_hadd.root'
 # INFILE = 'histos_ttH_hadd.root'
 
-OUTDIR = 'plots_muP_vs_muN_%s' % YEAR
+OUTDIR = 'plots_muP_vs_muN_AN_%s' % YEAR
 
 D0_BINS = 19
 
@@ -46,15 +46,16 @@ def main():
     print '\nOpening file %s' % (INDIR+'/'+INFILE)
     in_file = R.TFile(INDIR+'/'+INFILE)
 
-    print '\nCreating output root file %s/FindPeaks.root' % OUTDIR
+    print '\nCreating output root file %s/%s.root' % (OUTDIR,OUTDIR)
     if not os.path.exists(OUTDIR):
       os.makedirs(OUTDIR)
-    out_file = R.TFile('%s/FindPeaks.root' % OUTDIR, 'recreate')
+    out_file = R.TFile('%s/%s.root' % (OUTDIR,OUTDIR), 'recreate')
     out_file.cd()
 
     if not os.path.exists('%s/png' % OUTDIR):
         print '\nCreating output folders %s/png'  % OUTDIR
         os.makedirs('%s/png' % OUTDIR)
+        os.makedirs('%s/pdf' % OUTDIR)
 
     ## Input histograms and canvases to draw on
     hist = {}
@@ -87,13 +88,13 @@ def main():
             for eta in ['eta_0_0p9', 'eta_0p9_1p7', 'eta_1p7_inf', 'eta_inc']: # |eta| binned
                 c_str = eta + '_' + p_str 
                 ## Canvas for the graphs of peak vs. d0
-                canv[c_str] = R.TCanvas(c_str, c_str, 1600, 1200)
-                pad1[c_str] = R.TPad(c_str+'_1', c_str+'_1', 0, 0.3, 1, 1.0)
+                canv[c_str] = R.TCanvas(c_str, c_str, 1200, 1200)
+                pad1[c_str] = R.TPad(c_str+'_1', c_str+'_1', 0, 0.31, 1, 1.0)
                 pad2[c_str] = R.TPad(c_str+'_2', c_str+'_2', 0, 0.05, 1, 0.3)
 
-                pad1[c_str].SetBottomMargin(0)
+                pad1[c_str].SetBottomMargin(0.02)
                 pad1[c_str].Draw()
-                pad2[c_str].SetTopMargin(0);
+                pad2[c_str].SetTopMargin(0.02);
                 pad2[c_str].SetBottomMargin(0.2);
                 pad2[c_str].Draw();
 
@@ -192,9 +193,10 @@ def main():
                             eta_str = '1.7 < |\eta|'
 
 
-                        graph[g_str].SetTitle('%s  %s  vs.  d0' % (var_str, corr_str))
-                        graph[g_str].GetXaxis().SetTitle('RECO muon d0 (cm) * charge')
+                        graph[g_str].SetTitle('')
+                        graph[g_str].GetXaxis().SetTitle('d0_{BS} (cm) #times charge')
                         graph[g_str].GetYaxis().SetTitle('%s %s' % (var_str, corr_str))
+                        graph[g_str].GetYaxis().SetTitleOffset(1.1)
 
                         ## Create a fit to the points on the graph
                         fit[g_str] = R.TF1('f_%s' % g_str, '[0] + [1]*x', -0.01, 0.01) # linear fit
@@ -227,6 +229,7 @@ def main():
                         g_canv.cd()
                         graph[g_str].GetXaxis().SetLimits(-0.011, 0.011)
                         graph[g_str].GetYaxis().SetRangeUser(-15, 15)
+                        graph[g_str].GetXaxis().SetLabelSize(0)
                         graph[g_str].Draw('AP')
                         
                         g_leg = R.TLegend(0.12,0.76,0.72,0.88)
@@ -239,6 +242,12 @@ def main():
                         g_canv.SaveAs('%s/png/%s.png' % (OUTDIR, g_str))
                         
                         pad1[c_str].cd()
+                        cms_latex = R.TLatex()
+                        cms_latex.SetTextAlign(11)
+                        cms_latex.SetTextSize(0.03)
+                        cms_latex.DrawLatexNDC(0.11, 0.93, '#scale[1.5]{CMS}')
+                        cms_latex.DrawLatexNDC(0.18, 0.93,'#font[52]{#scale[1.2]{preliminary simulation}}')
+                        cms_latex.DrawLatexNDC(0.84, 0.93,'#scale[1.3]{%s}' % YEAR)
                         if (iPt == 0):
                             graph[g_str].GetXaxis().SetLimits(-0.011, 0.011)
                             graph[g_str].GetYaxis().SetRangeUser(-15, 15)
@@ -253,9 +262,9 @@ def main():
 
 
                         latex = R.TLatex()
-                        latex.SetTextAlign(12)
+                        latex.SetTextAlign(10)
                         latex.SetTextSize(0.04)
-                        latex.DrawLatex(-0.01, 8, eta_str)
+                        latex.DrawLatex(-0.01, 8, '#font[42]{%s}' % eta_str)
 
                     # End loop for charge
 
@@ -295,18 +304,20 @@ def main():
                 h_ratio.Divide(h_2)
 
                 h_ratio.GetYaxis().SetTitle('Ratio')
+                h_ratio.GetYaxis().CenterTitle(1)
                 h_ratio.GetYaxis().SetNdivisions(505)
-                h_ratio.GetYaxis().SetTitleSize(20)
+                h_ratio.GetYaxis().SetTitleSize(40)
                 h_ratio.GetYaxis().SetTitleFont(43)
-                h_ratio.GetYaxis().SetTitleOffset(1.55)
+                h_ratio.GetYaxis().SetTitleOffset(1.1)
                 h_ratio.GetYaxis().SetLabelFont(43)
-                h_ratio.GetYaxis().SetLabelSize(15)
+                h_ratio.GetYaxis().SetLabelSize(25)
 
-                h_ratio.GetXaxis().SetTitleSize(20)
+                h_ratio.GetXaxis().SetTitle('d0_{BS} (cm) * charge')
+                h_ratio.GetXaxis().SetTitleSize(30)
                 h_ratio.GetXaxis().SetTitleFont(43)
-                h_ratio.GetXaxis().SetTitleOffset(4.)
+                h_ratio.GetXaxis().SetTitleOffset(3.2)
                 h_ratio.GetXaxis().SetLabelFont(43)
-                h_ratio.GetXaxis().SetLabelSize(15)
+                h_ratio.GetXaxis().SetLabelSize(25)
                 # h_ratio.SetMarkerStyle(21)
                 # r = R.TGraphErrors(len(data['ratio']['x']), data['ratio']['x'], data['ratio']['y'], data['ratio']['xerr'], data['ratio']['yerr'])
                 # r.SetLineColor(1)
@@ -314,6 +325,7 @@ def main():
                 # r.Draw('AP')
                 h_ratio.Draw('ep')
                 canv[c_str].SaveAs('%s/png/%s.png' % (OUTDIR, c_str))
+                canv[c_str].SaveAs('%s/pdf/%s.pdf' % (OUTDIR, c_str))
 
             #End loop for eta
         ## End loop: for corr in ['PF', 'Roch']:
